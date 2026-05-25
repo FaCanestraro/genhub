@@ -79,8 +79,5 @@ async function handleRegister() {
 
 <style scoped>
 @reference "tailwindcss";
-.input {
-    @apply w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-violet-500 transition-colors;
-}
 </style>
 

@@ -199,7 +199,6 @@ onMounted(fetchCampaigns)
 
 <style scoped>
 @reference "tailwindcss";
-.input { @apply w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-violet-500 transition-colors text-sm; }
 .btn-primary { @apply bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white font-medium px-4 py-2 rounded-lg transition-colors text-sm; }
 .btn-ghost { @apply text-gray-400 hover:text-white hover:bg-gray-800 font-medium px-4 py-2 rounded-lg transition-colors text-sm; }
 </style>

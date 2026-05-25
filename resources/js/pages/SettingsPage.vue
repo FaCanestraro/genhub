@@ -521,7 +521,6 @@ onMounted(loadGeneral)
 
 <style scoped>
 @reference "tailwindcss";
-.input        { @apply w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none transition-colors text-sm; }
 .label        { @apply block text-xs text-gray-400 mb-1 font-medium; }
 .btn-primary  { @apply disabled:opacity-50 text-white font-medium px-4 py-2 rounded-lg transition-colors text-sm; }
 .card {

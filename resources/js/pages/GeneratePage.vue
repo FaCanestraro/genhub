@@ -680,6 +680,5 @@ onUnmounted(() => clearInterval(timer))
 
 <style scoped>
 @reference "tailwindcss";
-.input    { @apply w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-violet-500 transition-colors; }
 .select-sm { @apply bg-gray-800 border border-gray-700 text-gray-300 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-violet-500 transition-colors cursor-pointer; }
 </style>

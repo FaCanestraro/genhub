@@ -422,11 +422,58 @@ onMounted(fetchProducts)
 </script>
 
 <style scoped>
-@reference "tailwindcss";
-.input { @apply w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-violet-500 transition-colors text-sm; }
-.btn-primary { @apply bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white font-medium px-4 py-2 rounded-lg transition-colors text-sm; }
-.btn-ghost { @apply text-gray-400 hover:text-white hover:bg-gray-800 font-medium px-4 py-2 rounded-lg transition-colors text-sm; }
-.image-drop-area { @apply relative w-full h-40 bg-gray-800 border-2 border-dashed border-gray-700 rounded-xl flex items-center justify-center cursor-pointer hover:border-gray-500 transition-colors overflow-hidden; }
+
+.btn-primary {
+    background-color: #7c3aed;
+    color: #fff;
+    font-weight: 500;
+    font-size: 0.875rem;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    transition: background-color 0.18s, opacity 0.18s;
+}
+.btn-primary:hover { background-color: #6d28d9; }
+.btn-primary:disabled { opacity: 0.5; }
+
+.btn-ghost {
+    color: #9ca3af;
+    font-weight: 500;
+    font-size: 0.875rem;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    background: transparent;
+    transition: background 0.18s, color 0.18s;
+}
+.btn-ghost:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.055);
+}
+
+.image-drop-area {
+    position: relative;
+    width: 100%;
+    height: 10rem;
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1.5px dashed rgba(255, 255, 255, 0.13);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    transition: border-color 0.18s, background 0.18s;
+}
+.image-drop-area:hover {
+    background: rgba(255, 255, 255, 0.055);
+    border-color: rgba(255, 255, 255, 0.22);
+}
+.image-drop-area:hover {
+    background: rgba(255, 255, 255, 0.055);
+    border-color: rgba(255, 255, 255, 0.22);
+}
 </style>
 
 
