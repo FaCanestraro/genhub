@@ -22,7 +22,7 @@
             </div>
 
             <!-- Brief (editable) -->
-            <div class="mt-3 bg-gray-900 rounded-xl border border-gray-800 text-sm">
+            <div class="mt-3 rounded-xl text-sm" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.10);box-shadow:inset 0 1px 0 rgba(255,255,255,0.07),inset 0 -1px 0 rgba(0,0,0,0.12)">
                 <div class="flex items-center justify-between px-4 pt-3 pb-1">
                     <span class="text-xs text-gray-500 font-medium uppercase tracking-wide">Brief</span>
                     <div v-if="!editingBrief" class="flex gap-1">
@@ -59,7 +59,8 @@
                     <div
                         v-for="p in action.products"
                         :key="p.id"
-                        class="flex items-center gap-2 bg-gray-900 border border-gray-800 rounded-xl px-3 py-2 hover:border-gray-700 transition-colors"
+                        class="flex items-center gap-2 rounded-xl px-3 py-2 transition-colors"
+                        style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.09)"
                     >
                         <img
                             v-if="p.images?.length"
@@ -67,7 +68,7 @@
                             :alt="p.name"
                             class="w-8 h-8 rounded-lg object-cover flex-shrink-0"
                         />
-                        <div v-else class="w-8 h-8 rounded-lg bg-gray-800 flex items-center justify-center flex-shrink-0">
+                        <div v-else class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background:rgba(255,255,255,0.06)">
                             <Package class="w-4 h-4 text-gray-600" />
                         </div>
                         <div class="min-w-0">
@@ -100,7 +101,12 @@
                                     @click="genForm.type = t.value"
                                     :class="genForm.type === t.value
                                         ? 'bg-violet-600 text-white border-violet-500'
-                                        : 'bg-gray-800 text-gray-400 hover:text-white border-gray-700'"
+                                        : 'text-gray-400 hover:text-white'"
+                                    :style="genForm.type !== t.value ? {
+                                        background: 'rgba(255,255,255,0.045)',
+                                        border: '1px solid rgba(255,255,255,0.10)',
+                                        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07)'
+                                    } : {}"
                                     class="py-2 px-3 rounded-lg text-xs font-medium transition-colors border flex items-center gap-1.5"
                                 >
                                     <span>{{ t.emoji }}</span>
@@ -111,7 +117,7 @@
 
                         <!-- Opções de vídeo -->
                         <template v-if="genForm.type === 'video'">
-                            <div class="bg-gray-800/60 rounded-xl p-3 border border-gray-700">
+                            <div class="rounded-xl p-3" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.10);box-shadow:inset 0 1px 0 rgba(255,255,255,0.07)">
                                 <p class="text-xs text-gray-400 mb-1 font-medium">Modelo Veo</p>
                                 <select v-model="genForm.videoModel" class="input text-xs">
                                     <option value="veo-2.0-generate-001">Veo 2 (estável)</option>
@@ -134,7 +140,7 @@
                             <textarea
                                 v-model="genForm.prompt"
                                 rows="4"
-                                class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-violet-500 transition-colors text-sm resize-none"
+                                class="input resize-none"
                                 :placeholder="promptPlaceholder"
                             ></textarea>
                         </div>
@@ -163,7 +169,7 @@
                     </form>
 
                     <!-- Legenda gerada -->
-                    <div v-if="action?.caption" class="mt-5 pt-5 border-t border-gray-800">
+                    <div v-if="action?.caption" class="mt-5 pt-5" style="border-top:1px solid rgba(255,255,255,0.08)">
                         <h3 class="text-xs font-medium text-gray-400 mb-2 uppercase tracking-wide">Legenda gerada</h3>
                         <p class="text-sm text-gray-300 whitespace-pre-wrap leading-relaxed">{{ action.caption }}</p>
                         <div v-if="action.hashtags?.length" class="flex flex-wrap gap-1 mt-3">
