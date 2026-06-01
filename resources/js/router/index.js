@@ -12,6 +12,7 @@ const routes = [
             { path: '', redirect: '/dashboard' },
             { path: 'dashboard', component: () => import('@/pages/DashboardPage.vue') },
             { path: 'generate', component: () => import('@/pages/GeneratePage.vue') },
+            { path: 'generate-prompts', component: () => import('@/pages/GeneratePage2.vue') },
             { path: 'history', component: () => import('@/pages/HistoryPage.vue') },
             { path: 'products', component: () => import('@/pages/ProductsPage.vue') },
             { path: 'campaigns', component: () => import('@/pages/CampaignsPage.vue') },

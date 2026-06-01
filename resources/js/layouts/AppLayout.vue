@@ -74,7 +74,7 @@ import { onMounted } from 'vue'
 import { useRouter, useRoute, RouterLink, RouterView } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useSettingsStore } from '@/stores/settings'
-import { LayoutDashboard, Package, Megaphone, LogOut, Zap, UserCircle, Sparkles, History, CheckSquare, Settings } from 'lucide-vue-next'
+import { LayoutDashboard, Package, Megaphone, LogOut, Zap, UserCircle, Sparkles, History, CheckSquare, Settings, Wand2 } from 'lucide-vue-next'
 
 const router   = useRouter()
 const route    = useRoute()
@@ -83,7 +83,8 @@ const settings = useSettingsStore()
 
 const mainNav = [
     { path: '/dashboard', label: 'Dashboard',       icon: LayoutDashboard },
-    { path: '/generate',  label: 'Motor de Criação', icon: Sparkles },
+    { path: '/generate',         label: 'Motor de Criação', icon: Sparkles },
+    { path: '/generate-prompts', label: 'Gerador de Prompts', icon: Wand2 },
     { path: '/history',   label: 'Histórico',        icon: History },
     { path: '/products',  label: 'Produtos',          icon: Package },
     { path: '/campaigns', label: 'Campanhas',         icon: Megaphone },
@@ -95,7 +96,7 @@ const accountNav = [
     { path: '/profile',   label: 'Perfil',            icon: UserCircle },
 ]
 
-const isActive = (path) => route.path.startsWith(path)
+const isActive = (path) => route.path === path || (path !== '/' && route.path.startsWith(path + '/'))
 
 async function handleLogout() {
     await auth.logout()
