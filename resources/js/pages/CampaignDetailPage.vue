@@ -35,7 +35,7 @@
             <div
                 v-for="action in actions"
                 :key="action.id"
-                class="relative glass-modal rounded-2xl p-5 hover:border-gray-700 transition-all"
+                class="relative glass-modal rounded-2xl p-5 list-row"
             >
                 <!-- Action buttons -->
                 <div class="absolute top-3 right-3 flex gap-1 z-10">

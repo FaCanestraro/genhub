@@ -5,20 +5,25 @@
         <aside class="w-60 flex-shrink-0 glass-panel border-r flex flex-col relative z-10" style="border-color: var(--border-subtle)">
 
             <!-- Logo -->
-            <div class="flex items-center justify-center py-5" style="border-bottom: 1px solid var(--border-subtle)">
+            <div class="flex items-center justify-center px-4 py-5" style="border-bottom: 1px solid var(--border-subtle)">
                 <img
                     v-if="settings.logoUrl"
                     :src="settings.logoUrl"
-                    class="h-10 w-auto max-w-[160px] object-contain"
+                    class="h-14 w-auto max-w-[180px] object-contain"
                     alt="Logo"
                 />
-                <div
-                    v-else
-                    class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                    :style="{ backgroundColor: settings.primaryColor || 'var(--brand)', boxShadow: `0 0 16px color-mix(in srgb, ${settings.primaryColor || 'var(--brand)'} 45%, transparent)` }"
-                >
-                    <Zap class="w-5 h-5 text-white" />
-                </div>
+                <template v-else>
+                    <div
+                        class="brand-orb w-8 h-8 flex items-center justify-center flex-shrink-0"
+                        :style="{ background: `radial-gradient(circle, color-mix(in srgb, ${settings.primaryColor || 'var(--brand)'} 70%, white) 0%, ${settings.primaryColor || 'var(--brand)'} 60%, transparent 100%)`, boxShadow: `0 0 22px color-mix(in srgb, ${settings.primaryColor || 'var(--brand)'} 55%, transparent)` }"
+                    >
+                        <Zap class="w-4 h-4 text-white" />
+                    </div>
+                    <div>
+                        <p class="text-white font-semibold text-sm tracking-wide leading-none">GenHub</p>
+                        <p class="tech-label mt-0.5">AI Platform</p>
+                    </div>
+                </template>
             </div>
 
             <!-- Nav -->
@@ -50,8 +55,13 @@
 
             </nav>
 
-            <!-- Logout -->
-            <div class="px-3 py-4" style="border-top: 1px solid var(--border-subtle)">
+            <!-- Footer: status + logout -->
+            <div class="px-3 pb-4" style="border-top: 1px solid var(--border-subtle)">
+                <!-- system status -->
+                <div class="flex items-center gap-2 px-3 pt-3 pb-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0" style="box-shadow: 0 0 5px #34d399"></span>
+                    <span class="tech-label">Sistema operacional</span>
+                </div>
                 <button
                     @click="handleLogout"
                     class="nav-item w-full text-left"

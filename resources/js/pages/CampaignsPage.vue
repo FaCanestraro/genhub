@@ -37,7 +37,7 @@
                 v-for="c in campaigns"
                 :key="c.id"
                 :to="`/campaigns/${c.id}`"
-                class="glass-modal rounded-2xl p-5 hover:border-gray-700 transition-all hover:shadow-lg block"
+                class="glass-modal rounded-2xl p-5 block list-row"
             >
                 <div class="flex items-start justify-between mb-3">
                     <StatusBadge :status="c.status" />

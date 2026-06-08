@@ -62,10 +62,7 @@
                 <div
                     v-for="gen in generations"
                     :key="gen.id"
-                    class="group rounded-2xl overflow-hidden transition-all"
-                    style="background: var(--surface-1); border: 1px solid var(--border-subtle)"
-                    onmouseenter="this.style.borderColor='rgba(255,255,255,0.14)'; this.style.transform='translateY(-1px)'"
-                    onmouseleave="this.style.borderColor='var(--border-subtle)'; this.style.transform=''"
+                    class="group rounded-2xl overflow-hidden list-row"
                 >
                     <!-- Thumbnail quadrada -->
                     <div class="relative aspect-square bg-gray-800">

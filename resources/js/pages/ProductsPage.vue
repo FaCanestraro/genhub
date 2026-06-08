@@ -50,7 +50,7 @@
             <div
                 v-for="p in products"
                 :key="p.id"
-                class="glass-modal rounded-2xl overflow-hidden hover:border-gray-700 transition-colors"
+                class="glass-modal rounded-2xl overflow-hidden list-row"
             >
                 <!-- Product image -->
                 <div class="relative h-40 bg-gray-800">

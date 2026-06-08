@@ -24,7 +24,7 @@
             <div
                 v-for="t in templates"
                 :key="t.id"
-                class="glass-modal rounded-2xl overflow-hidden"
+                class="glass-modal rounded-2xl overflow-hidden list-row"
             >
                 <!-- Preview -->
                 <div class="relative h-44 bg-white/[0.03]">

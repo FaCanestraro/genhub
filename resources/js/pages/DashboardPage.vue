@@ -38,15 +38,12 @@
                     <Megaphone class="w-8 h-8" style="color: var(--text-muted); opacity: 0.4" />
                     <p class="text-sm" style="color: var(--text-muted)">Nenhuma campanha ainda.</p>
                 </div>
-                <div v-else class="space-y-2">
+                <div v-else class="space-y-2 overflow-y-auto max-h-72 pr-1" style="scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.08) transparent">
                     <RouterLink
                         v-for="c in campaigns"
                         :key="c.id"
                         :to="`/campaigns/${c.id}`"
-                        class="flex items-center justify-between px-3.5 py-3 rounded-xl transition-all group"
-                        style="background: var(--surface-0); border: 1px solid var(--border-subtle)"
-                        onmouseenter="this.style.borderColor='rgba(255,255,255,0.12)'"
-                        onmouseleave="this.style.borderColor='var(--border-subtle)'"
+                        class="flex items-center justify-between px-3.5 py-3 rounded-xl transition-all group list-row"
                     >
                         <div class="min-w-0">
                             <p class="text-sm font-medium text-white truncate">{{ c.name }}</p>
@@ -75,15 +72,12 @@
                     <Package class="w-8 h-8" style="color: var(--text-muted); opacity: 0.4" />
                     <p class="text-sm" style="color: var(--text-muted)">Nenhum produto cadastrado ainda.</p>
                 </div>
-                <div v-else class="space-y-2">
+                <div v-else class="space-y-2 overflow-y-auto max-h-72 pr-1" style="scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.08) transparent">
                     <RouterLink
                         v-for="p in products"
                         :key="p.id"
                         to="/products"
-                        class="flex items-center gap-3 px-3.5 py-3 rounded-xl transition-all"
-                        style="background: var(--surface-0); border: 1px solid var(--border-subtle)"
-                        onmouseenter="this.style.borderColor='rgba(255,255,255,0.12)'"
-                        onmouseleave="this.style.borderColor='var(--border-subtle)'"
+                        class="flex items-center gap-3 px-3.5 py-3 rounded-xl transition-all list-row"
                     >
                         <div
                             class="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden"

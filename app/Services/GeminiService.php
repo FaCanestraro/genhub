@@ -10,8 +10,8 @@ use Illuminate\Support\Facades\Storage;
 
 class GeminiService
 {
-    private string $imageModel  = 'gemini-3.1-flash-image';
-    private string $videoModel  = 'veo-3.1-generate-preview';
+    private string $imageModel  = 'imagen-4.0-generate-001';
+    private string $videoModel  = 'veo-3.0-generate-001';
     private string $textModel   = 'gemini-2.5-flash';
     private string $apiBase     = 'https://generativelanguage.googleapis.com/v1beta';
 
@@ -42,7 +42,7 @@ class GeminiService
         }
         PROMPT;
 
-        $response = Gemini::generativeModel('gemini-3.1-flash-image')->generateContent($prompt);
+        $response = Gemini::generativeModel('gemini-2.5-flash')->generateContent($prompt);
         $text = $response->text();
 
         $json = json_decode($this->extractJson($text), true);
@@ -63,19 +63,25 @@ class GeminiService
         [$width, $height] = explode('x', $resolution);
 
         $prompt = <<<PROMPT
-        Crie uma imagem profissional de marketing para {$action->platform}.
-        Resolução: {$resolution} pixels (largura: {$width}px, altura: {$height}px).
+        Create a hyperrealistic professional commercial advertising photograph for {$action->platform}.
+        Output resolution: {$resolution} px (width: {$width}px × height: {$height}px).
 
-        PRODUTOS:
+        PRODUCT TO FEATURE (must be clearly visible and prominently placed in the image):
         {$productContext}
 
-        BRIEF:
+        CREATIVE BRIEF (visual direction, scene, mood, persona):
         {$action->brief}
 
         {$extraPrompt}
 
-        Estilo: fotografia profissional de produto, iluminação estúdio, fundo limpo,
-        estético para redes sociais, alta qualidade.
+        MANDATORY REQUIREMENTS:
+        - The product packaging, label, and brand name must be razor-sharp and fully readable
+        - Photorealistic, ultra-high detail — no illustrations, no cartoons, no CGI artifacts
+        - Commercial advertising quality: perfect studio lighting or motivated natural light
+        - Human skin tones must be realistic and natural (Brazilian complexion if people present)
+        - Depth of field: product and person in focus, background beautifully blurred (f/1.4 quality)
+        - No watermarks, no text overlays, no borders
+        - 8K quality, shot on ARRI Alexa or Sony VENICE cinema camera look
         PROMPT;
 
         $quantity = min($action->quantity ?? 1, 4);
@@ -159,20 +165,26 @@ class GeminiService
         $duration       = 8;
 
         $prompt = <<<PROMPT
-        Vídeo de marketing profissional para {$action->platform}.
-        Formato: {$action->type}, proporção {$aspectRatio}.
+        Create a hyperrealistic professional commercial advertising video for {$action->platform}.
+        Aspect ratio: {$aspectRatio}. Duration: {$duration} seconds.
         {$this->platformRules($action->platform, $action->type)}
 
-        PRODUTOS:
+        PRODUCT TO FEATURE (must be clearly visible, prominently featured throughout):
         {$productContext}
 
-        BRIEF:
+        CREATIVE BRIEF (action sequence, mood, camera direction, persona):
         {$action->brief}
 
         {$extraPrompt}
 
-        Cinematografia profissional, iluminação de estúdio, movimento de câmera suave,
-        paleta de cores vibrante, ritmo dinâmico adequado para redes sociais.
+        MANDATORY REQUIREMENTS:
+        - Photorealistic footage — no animation, no CGI look, no motion graphics
+        - The product must appear clearly identifiable with readable label/packaging
+        - Human actors must look like real Brazilian people — natural expressions, realistic skin
+        - Cinematic camera movements: motivated push-ins, orbits, rack focus, slow motion impacts
+        - Professional color grade: rich, saturated, broadcast-ready
+        - Seamless continuous shot — no hard cuts, fluid motion throughout
+        - Anamorphic lens quality, film grain, natural lens flares
         PROMPT;
 
         $key = config('gemini.api_key');
@@ -183,7 +195,6 @@ class GeminiService
                 'instances'  => [['prompt' => trim($prompt)]],
                 'parameters' => [
                     'aspectRatio'     => $aspectRatio,
-                    'sampleCount'     => 1,
                     'durationSeconds' => $duration,
                 ],
             ]
