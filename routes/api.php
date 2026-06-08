@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CampaignController;
 use App\Http\Controllers\Api\GenerationController;
 use App\Http\Controllers\Api\ProductController;
+use App\Http\Controllers\Api\TemplateController;
 use App\Http\Controllers\Api\LeadActivityController;
 use App\Http\Controllers\Api\SettingController;
 use App\Http\Controllers\Api\ProxyDownloadController;
@@ -28,6 +29,9 @@ Route::prefix('auth')->group(function () {
 Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('products', ProductController::class);
     Route::post('products/{product}/images', [ProductController::class, 'uploadImage']);
+
+    Route::apiResource('templates', TemplateController::class)->except('show');
+    Route::post('templates/{template}/preview', [TemplateController::class, 'uploadPreview']);
 
     Route::apiResource('campaigns', CampaignController::class);
     Route::get('actions', [ActionController::class, 'allActions']);

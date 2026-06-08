@@ -29,6 +29,11 @@ class User extends Authenticatable
         return $this->hasMany(Product::class);
     }
 
+    public function templates()
+    {
+        return $this->hasMany(Template::class);
+    }
+
     public function campaigns()
     {
         return $this->hasMany(Campaign::class);

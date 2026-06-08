@@ -80,7 +80,10 @@
                         <span v-if="p.sku" class="text-xs text-gray-600 font-mono bg-gray-800 px-1.5 py-0.5 rounded">{{ p.sku }}</span>
                     </div>
                     <p class="text-sm text-gray-300 mt-2 line-clamp-2">{{ p.description }}</p>
-                    <p v-if="p.price" class="text-violet-400 font-semibold mt-3">R$ {{ numberToCurrency(p.price) }}</p>
+                    <div v-if="p.price" class="flex items-center gap-2 mt-3">
+                        <p class="font-semibold" :class="p.price_discount ? 'text-gray-500 line-through text-sm' : 'text-violet-400'">R$ {{ numberToCurrency(p.price) }}</p>
+                        <p v-if="p.price_discount" class="text-violet-400 font-semibold">R$ {{ numberToCurrency(p.price_discount) }}</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -240,9 +243,22 @@
                                 />
                             </div>
                         </div>
-                        <div>
-                            <label class="block text-sm text-gray-400 mb-1">SKU / EAN</label>
-                            <input v-model="form.sku" type="text" class="input" placeholder="Ex: 7891234567890" />
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-1">Preço com Desconto (R$)</label>
+                                <input
+                                    :value="numberToCurrency(form.price_discount)"
+                                    @input="e => onCurrencyInput(e, v => form.price_discount = v)"
+                                    type="text"
+                                    inputmode="numeric"
+                                    class="input"
+                                    placeholder="0,00"
+                                />
+                            </div>
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-1">SKU / EAN</label>
+                                <input v-model="form.sku" type="text" class="input" placeholder="Ex: 7891234567890" />
+                            </div>
                         </div>
                         <div>
                             <label class="block text-sm text-gray-400 mb-1">Descrição</label>
@@ -277,7 +293,7 @@ const loading = ref(false)
 const showModal = ref(false)
 const saving = ref(false)
 const editingProduct = ref(null)
-const form = ref({ name: '', sku: '', description: '', category: '', price: '', url: '' })
+const form = ref({ name: '', sku: '', description: '', category: '', price: '', price_discount: '', url: '' })
 
 // Integrations
 const integrations = ref(JSON.parse(localStorage.getItem('product_integrations') || '[]'))
@@ -356,8 +372,8 @@ async function fetchProducts() {
 function openModal(product = null) {
     editingProduct.value = product
     form.value = product
-        ? { name: product.name, sku: product.sku || '', description: product.description || '', category: product.category || '', price: product.price || '', url: product.url || '' }
-        : { name: '', sku: '', description: '', category: '', price: '', url: '' }
+        ? { name: product.name, sku: product.sku || '', description: product.description || '', category: product.category || '', price: product.price || '', price_discount: product.price_discount || '', url: product.url || '' }
+        : { name: '', sku: '', description: '', category: '', price: '', price_discount: '', url: '' }
     imageFile.value = null
     imagePreview.value = product?.images?.length ? `/storage/${product.images[0]}` : null
     showModal.value = true

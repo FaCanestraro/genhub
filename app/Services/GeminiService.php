@@ -10,8 +10,8 @@ use Illuminate\Support\Facades\Storage;
 
 class GeminiService
 {
-    private string $imageModel  = 'imagen-4.0-generate-001';
-    private string $videoModel  = 'veo-2.0-generate-001';
+    private string $imageModel  = 'gemini-3.1-flash-image';
+    private string $videoModel  = 'veo-3.1-generate-preview';
     private string $textModel   = 'gemini-2.5-flash';
     private string $apiBase     = 'https://generativelanguage.googleapis.com/v1beta';
 
@@ -42,7 +42,7 @@ class GeminiService
         }
         PROMPT;
 
-        $response = Gemini::generativeModel('gemini-2.5-flash')->generateContent($prompt);
+        $response = Gemini::generativeModel('gemini-3.1-flash-image')->generateContent($prompt);
         $text = $response->text();
 
         $json = json_decode($this->extractJson($text), true);

@@ -8,7 +8,7 @@ class Product extends Model
 {
     protected $fillable = [
         'user_id', 'name', 'sku', 'description', 'category',
-        'price', 'url', 'images', 'attributes', 'active',
+        'price', 'price_discount', 'url', 'images', 'attributes', 'active',
     ];
 
     protected $casts = [
@@ -16,6 +16,7 @@ class Product extends Model
         'attributes' => 'array',
         'active' => 'boolean',
         'price' => 'decimal:2',
+        'price_discount' => 'decimal:2',
     ];
 
     public function user()
