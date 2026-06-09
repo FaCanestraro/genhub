@@ -46,10 +46,6 @@
                     </button>
                 </form>
 
-                <p class="text-center text-sm text-gray-400 mt-6">
-                    Não tem conta?
-                    <RouterLink to="/register" class="text-violet-400 hover:text-violet-300">Cadastre-se</RouterLink>
-                </p>
             </div>
         </div>
     </div>
