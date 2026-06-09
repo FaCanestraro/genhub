@@ -53,7 +53,7 @@ class SettingController extends Controller
 
         // Delete old logo if exists
         if (!empty($setting->data['logo_path'])) {
-            Storage::disk('public')->delete($setting->data['logo_path']);
+            Storage::disk('r2')->delete($setting->data['logo_path']);
         }
 
         $path = $request->file('logo')->store(
@@ -61,7 +61,7 @@ class SettingController extends Controller
             'public'
         );
 
-        $url  = Storage::disk('public')->url($path);
+        $url  = Storage::disk('r2')->url($path);
         $data = array_merge($this->defaults(), $setting->data ?? [], [
             'logo_path' => $path,
             'logo_url'  => $url,

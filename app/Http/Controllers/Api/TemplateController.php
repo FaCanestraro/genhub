@@ -48,7 +48,7 @@ class TemplateController extends Controller
         abort_if($template->user_id !== $request->user()->id, 403);
 
         if ($template->preview_path) {
-            Storage::disk('public')->delete($template->preview_path);
+            Storage::disk('r2')->delete($template->preview_path);
         }
 
         $template->delete();
@@ -63,10 +63,10 @@ class TemplateController extends Controller
         $request->validate(['file' => 'required|file|mimes:jpg,jpeg,png,webp,gif,mp4,mov,webm|max:51200']);
 
         if ($template->preview_path) {
-            Storage::disk('public')->delete($template->preview_path);
+            Storage::disk('r2')->delete($template->preview_path);
         }
 
-        $path = $request->file('file')->store('templates', 'public');
+        $path = $request->file('file')->store('templates', 'r2');
         $template->update(['preview_path' => $path]);
 
         return response()->json(['preview_path' => $path]);

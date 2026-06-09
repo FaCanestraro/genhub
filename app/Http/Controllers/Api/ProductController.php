@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
@@ -81,11 +82,11 @@ class ProductController extends Controller
 
         $request->validate(['image' => 'required|image|max:5120']);
 
-        $path = $request->file('image')->store("products/{$product->id}", 'public');
-        $images = $product->images ?? [];
-        $images[] = $path;
-        $product->update(['images' => $images]);
+        $path = $request->file('image')->store("products/{$product->id}", 'r2');
+        $rawImages = json_decode($product->getRawOriginal('images'), true) ?? [];
+        $rawImages[] = $path;
+        $product->update(['images' => $rawImages]);
 
-        return response()->json(['path' => $path, 'url' => asset("storage/{$path}")]);
+        return response()->json(['path' => $path, 'url' => Storage::disk('r2')->url($path)]);
     }
 }
