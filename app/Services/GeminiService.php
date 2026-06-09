@@ -227,14 +227,14 @@ class GeminiService
 
             $ext      = str_replace('video/', '', explode(';', $mimeType)[0]);
             $filename = 'generations/videos/' . uniqid() . '.' . $ext;
-            Storage::disk('public')->put($filename, $videoBytes);
+            Storage::disk('r2')->put($filename, $videoBytes);
 
             $assets[] = [
                 'type'      => 'video',
-                'disk'      => 'public',
+                'disk'      => 'r2',
                 'path'      => $filename,
                 'mime_type' => $mimeType,
-                'size'      => Storage::disk('public')->size($filename),
+                'size'      => Storage::disk('r2')->size($filename),
                 'duration'  => $duration,
             ];
         }
@@ -248,14 +248,14 @@ class GeminiService
 
                 $ext      = str_replace('video/', '', $mimeType);
                 $filename = 'generations/videos/' . uniqid() . '.' . $ext;
-                Storage::disk('public')->put($filename, base64_decode($bytes));
+                Storage::disk('r2')->put($filename, base64_decode($bytes));
 
                 $assets[] = [
                     'type'      => 'video',
-                    'disk'      => 'public',
+                    'disk'      => 'r2',
                     'path'      => $filename,
                     'mime_type' => $mimeType,
-                    'size'      => Storage::disk('public')->size($filename),
+                    'size'      => Storage::disk('r2')->size($filename),
                     'duration'  => $duration,
                 ];
             }
@@ -322,14 +322,14 @@ class GeminiService
             $ext      = str_replace('image/', '', explode(';', $mimeType)[0]);
             $filename = 'generations/' . uniqid() . '.' . $ext;
 
-            Storage::disk('public')->put($filename, base64_decode($imageBase64));
+            Storage::disk('r2')->put($filename, base64_decode($imageBase64));
 
             return [
                 'type'      => 'image',
-                'disk'      => 'public',
+                'disk'      => 'r2',
                 'path'      => $filename,
                 'mime_type' => $mimeType,
-                'size'      => Storage::disk('public')->size($filename),
+                'size'      => Storage::disk('r2')->size($filename),
             ];
         }
 
