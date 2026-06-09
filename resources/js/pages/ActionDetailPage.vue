@@ -64,7 +64,7 @@
                     >
                         <img
                             v-if="p.images?.length"
-                            :src="`/storage/${p.images[0]}`"
+                            :src="p.images[0]"
                             :alt="p.name"
                             class="w-8 h-8 rounded-lg object-cover flex-shrink-0"
                         />

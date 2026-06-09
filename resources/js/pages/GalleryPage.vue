@@ -46,14 +46,14 @@
                     @click="openDetail(t)"
                 >
                     <video
-                        v-if="t.type === 'video' && t.preview_path"
-                        :src="assetUrl(t.preview_path)"
+                        v-if="t.type === 'video' && t.preview_url"
+                        :src="t.preview_url"
                         class="card-media"
                         muted loop autoplay playsinline
                     />
                     <img
-                        v-else-if="t.preview_path"
-                        :src="assetUrl(t.preview_path)"
+                        v-else-if="t.preview_url"
+                        :src="t.preview_url"
                         :alt="t.title"
                         class="card-media"
                     />
@@ -83,8 +83,8 @@
                     <!-- Blurred bg -->
                     <div
                         class="detail-bg"
-                        :style="detail.preview_path
-                            ? { backgroundImage: `url('${assetUrl(detail.preview_path)}')` }
+                        :style="detail.preview_url
+                            ? { backgroundImage: `url('${detail.preview_url}')` }
                             : {}"
                     />
 
@@ -93,14 +93,14 @@
                         <!-- Left: media -->
                         <div class="detail-media-area">
                             <video
-                                v-if="detail.type === 'video' && detail.preview_path"
-                                :src="`/storage/${detail.preview_path}`"
+                                v-if="detail.type === 'video' && detail.preview_url"
+                                :src="detail.preview_url"
                                 class="detail-media"
                                 muted loop autoplay playsinline controls
                             />
                             <img
-                                v-else-if="detail.preview_path"
-                                :src="`/storage/${detail.preview_path}`"
+                                v-else-if="detail.preview_url"
+                                :src="detail.preview_url"
                                 :alt="detail.title"
                                 class="detail-media"
                             />

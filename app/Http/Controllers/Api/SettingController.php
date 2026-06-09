@@ -16,7 +16,12 @@ class SettingController extends Controller
             ['data' => $this->defaults()]
         );
 
-        return response()->json($setting->data ?? $this->defaults());
+        $data = $setting->data ?? $this->defaults();
+        if (!empty($data['logo_path']) && !str_starts_with($data['logo_url'] ?? '', 'http')) {
+            $data['logo_url'] = Storage::disk('r2')->url($data['logo_path']);
+        }
+
+        return response()->json($data);
     }
 
     public function update(Request $request)

@@ -83,7 +83,7 @@
                             class="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden"
                             style="background: var(--surface-2); border: 1px solid var(--border-subtle)"
                         >
-                            <img v-if="p.images?.length" :src="`/storage/${p.images[0]}`" class="w-full h-full object-cover" />
+                            <img v-if="p.images?.length" :src="p.images[0]" class="w-full h-full object-cover" />
                             <Package v-else class="w-4 h-4" style="color: var(--text-muted)" />
                         </div>
                         <div class="min-w-0">
