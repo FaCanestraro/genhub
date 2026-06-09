@@ -17,7 +17,7 @@ class SettingController extends Controller
         );
 
         $data = $setting->data ?? $this->defaults();
-        if (!empty($data['logo_path']) && !str_starts_with($data['logo_url'] ?? '', 'http')) {
+        if (!empty($data['logo_path'])) {
             $data['logo_url'] = Storage::disk('r2')->url($data['logo_path']);
         }
 
