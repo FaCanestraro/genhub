@@ -56,7 +56,7 @@
                 <div class="relative h-40 bg-gray-800">
                     <img
                         v-if="p.images && p.images.length"
-                        :src="`/storage/${p.images[0]}`"
+                        :src="assetUrl(p.images[0])"
                         :alt="p.name"
                         class="w-full h-full object-cover"
                     />
@@ -287,6 +287,7 @@ import { ref, onMounted } from 'vue'
 import { Plus, Package, Pencil, Trash2, Image as ImageIcon, Plug, X, Check, ChevronRight } from 'lucide-vue-next'
 import api from '@/services/api'
 import { numberToCurrency, onCurrencyInput } from '@/utils/mask'
+import { assetUrl } from '@/utils/assetUrl'
 
 const products = ref([])
 const loading = ref(false)
@@ -375,7 +376,7 @@ function openModal(product = null) {
         ? { name: product.name, sku: product.sku || '', description: product.description || '', category: product.category || '', price: product.price || '', price_discount: product.price_discount || '', url: product.url || '' }
         : { name: '', sku: '', description: '', category: '', price: '', price_discount: '', url: '' }
     imageFile.value = null
-    imagePreview.value = product?.images?.length ? `/storage/${product.images[0]}` : null
+    imagePreview.value = product?.images?.length ? assetUrl(product.images[0]) : null
     showModal.value = true
 }
 

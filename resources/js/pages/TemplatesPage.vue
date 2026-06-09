@@ -30,13 +30,13 @@
                 <div class="relative h-44 bg-white/[0.03]">
                     <video
                         v-if="t.type === 'video' && t.preview_path"
-                        :src="`/storage/${t.preview_path}`"
+                        :src="assetUrl(t.preview_path)"
                         class="w-full h-full object-cover"
                         muted loop autoplay playsinline
                     />
                     <img
                         v-else-if="t.preview_path"
-                        :src="`/storage/${t.preview_path}`"
+                        :src="assetUrl(t.preview_path)"
                         :alt="t.title"
                         class="w-full h-full object-cover"
                     />
@@ -141,6 +141,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { Plus, Pencil, Trash2, Image as ImageIcon, Film, LayoutTemplate } from 'lucide-vue-next'
 import api from '@/services/api'
+import { assetUrl } from '@/utils/assetUrl'
 
 const templates = ref([])
 const loading = ref(false)
@@ -173,7 +174,7 @@ function openModal(t = null) {
         ? { title: t.title, prompt: t.prompt, type: t.type }
         : { title: '', prompt: '', type: 'image' }
     previewFile.value = null
-    previewUrl.value = t?.preview_path ? `/storage/${t.preview_path}` : null
+    previewUrl.value = t?.preview_path ? assetUrl(t.preview_path) : null
     showModal.value = true
 }
 

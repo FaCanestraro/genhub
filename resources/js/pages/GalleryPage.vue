@@ -47,13 +47,13 @@
                 >
                     <video
                         v-if="t.type === 'video' && t.preview_path"
-                        :src="`/storage/${t.preview_path}`"
+                        :src="assetUrl(t.preview_path)"
                         class="card-media"
                         muted loop autoplay playsinline
                     />
                     <img
                         v-else-if="t.preview_path"
-                        :src="`/storage/${t.preview_path}`"
+                        :src="assetUrl(t.preview_path)"
                         :alt="t.title"
                         class="card-media"
                     />
@@ -84,7 +84,7 @@
                     <div
                         class="detail-bg"
                         :style="detail.preview_path
-                            ? { backgroundImage: `url('/storage/${detail.preview_path}')` }
+                            ? { backgroundImage: `url('${assetUrl(detail.preview_path)}')` }
                             : {}"
                     />
 
@@ -270,6 +270,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 import { Film, Image as ImageIcon, X, Sparkles, Loader2, Download, LayoutTemplate, Plus } from 'lucide-vue-next'
 import api from '@/services/api'
+import { assetUrl } from '@/utils/assetUrl'
 
 const templates          = ref([])
 const products           = ref([])
@@ -360,7 +361,7 @@ async function generate() {
             product_ids:  product ? [product.id] : [],
         })
 
-        const urls = data.assets?.map(a => `/storage/${a.path}`) ?? []
+        const urls = data.assets?.map(a => a.url ?? assetUrl(a.path)) ?? []
         result.value = { type: detail.value.type, urls }
         closeDetail()
     } catch (e) {
