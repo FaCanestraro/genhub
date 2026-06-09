@@ -63,7 +63,7 @@ class SettingController extends Controller
 
         $path = $request->file('logo')->store(
             'logos/' . $request->user()->id,
-            'public'
+            'r2'
         );
 
         $url  = Storage::disk('r2')->url($path);
