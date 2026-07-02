@@ -3,7 +3,7 @@
         <div class="flex items-center justify-between mb-8">
             <div>
                 <p class="text-xs font-semibold tracking-widest uppercase mb-1" style="color: var(--text-muted)">Marketing</p>
-                <h1 class="text-2xl font-bold text-white tracking-tight leading-tight">Campanhas</h1>
+                <h1 class="page-hero-title text-2xl tracking-tight leading-tight">Campanhas</h1>
                 <p class="text-sm mt-1" style="color: var(--text-secondary)">Crie e gerencie suas campanhas</p>
             </div>
             <button @click="openModal()" class="btn-primary flex items-center gap-2">

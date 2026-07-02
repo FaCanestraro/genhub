@@ -11,6 +11,7 @@
 }
 
 :root {
+    --font-display: 'Space Grotesk', 'Inter', ui-sans-serif, system-ui, sans-serif;
     --brand: #7c3aed;
     --brand-hover: color-mix(in srgb, #7c3aed 82%, black);
     --brand-dim: color-mix(in srgb, #7c3aed 15%, transparent);
@@ -377,6 +378,14 @@ select:focus {
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: color-mix(in srgb, var(--brand) 70%, rgba(255,255,255,0.6));
+}
+
+/* ── Page hero title (shared across pages) ───────────────────── */
+.page-hero-title {
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: #fff;
 }
 
 /* ── Corner cut card ─────────────────────────────────────────── */

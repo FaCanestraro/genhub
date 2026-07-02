@@ -3,7 +3,7 @@
         <!-- Header -->
         <div class="flex items-center justify-between mb-6 flex-shrink-0">
             <div>
-                <h1 class="text-2xl font-bold text-white flex items-center gap-3">
+                <h1 class="page-hero-title text-2xl flex items-center gap-3">
                     <KanbanSquare class="w-6 h-6 text-violet-400" />
                     Pipeline
                 </h1>

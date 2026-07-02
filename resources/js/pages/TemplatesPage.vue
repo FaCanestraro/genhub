@@ -3,7 +3,7 @@
         <div class="flex items-center justify-between mb-8">
             <div>
                 <p class="text-xs font-semibold tracking-widest uppercase mb-1" style="color: var(--text-muted)">Criação</p>
-                <h1 class="text-2xl font-bold text-white tracking-tight leading-tight">Modelos de Arte</h1>
+                <h1 class="page-hero-title text-2xl tracking-tight leading-tight">Modelos de Arte</h1>
                 <p class="text-sm mt-1" style="color: var(--text-secondary)">Cadastre prompts e prévias para geração rápida</p>
             </div>
             <button @click="openModal()" class="btn-primary flex items-center gap-2">

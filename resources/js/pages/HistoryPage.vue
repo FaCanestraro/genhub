@@ -4,7 +4,7 @@
         <div class="flex items-center justify-between mb-8">
             <div>
                 <p class="text-xs font-semibold tracking-widest uppercase mb-1" style="color: var(--text-muted)">IA</p>
-                <h1 class="text-2xl font-bold text-white tracking-tight leading-tight">Histórico</h1>
+                <h1 class="page-hero-title text-2xl tracking-tight leading-tight">Histórico</h1>
                 <p class="text-sm mt-1" style="color: var(--text-secondary)">Todas as gerações de conteúdo com IA.</p>
             </div>
 

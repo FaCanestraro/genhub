@@ -4,7 +4,7 @@
         <!-- Page header -->
         <div class="mb-10">
             <p class="text-xs font-semibold tracking-widest uppercase mb-1" style="color: var(--text-muted)">Visão Geral</p>
-            <h1 class="text-3xl font-bold text-white tracking-tight leading-tight">
+            <h1 class="page-hero-title text-3xl tracking-tight leading-tight">
                 Olá, {{ firstName }} 👋
             </h1>
             <p class="mt-1.5 text-sm" style="color: var(--text-secondary)">Aqui está o resumo da sua conta hoje.</p>

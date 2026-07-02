@@ -1,6 +1,6 @@
 ﻿<template>
     <div class="p-8 max-w-2xl mx-auto">
-        <h1 class="text-2xl font-bold text-white mb-1">Perfil</h1>
+        <h1 class="page-hero-title text-2xl mb-1">Perfil</h1>
         <p class="text-gray-400 mb-8">Gerencie seus dados e informações da empresa</p>
 
         <form @submit.prevent="save" class="space-y-6">

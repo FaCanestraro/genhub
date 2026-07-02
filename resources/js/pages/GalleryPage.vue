@@ -5,29 +5,13 @@
         <div class="px-8 pt-10 pb-0">
             <p class="tech-label mb-2">Criação</p>
             <h1 class="gallery-hero-title">Galeria de Modelos</h1>
-            <p class="text-sm mt-3 mb-6" style="color: var(--text-secondary)">
+            <p class="text-sm mt-3 mb-2" style="color: var(--text-secondary)">
                 Selecione um modelo, escolha um produto e gere sua arte
             </p>
-
-            <!-- Filter strip -->
-            <div class="filter-strip">
-                <button
-                    v-for="f in filters"
-                    :key="f.value"
-                    @click="activeFilter = f.value"
-                    class="filter-btn"
-                    :class="{ 'filter-btn--active': activeFilter === f.value }"
-                >
-                    {{ f.label }}
-                </button>
-            </div>
         </div>
 
-        <!-- Divider -->
-        <div class="mx-8 mt-5 divider-subtle" />
-
         <!-- ── Empty state ──────────────────────────────────────────── -->
-        <div v-if="!loading && filteredTemplates.length === 0" class="text-center py-24">
+        <div v-if="!loading && templates.length === 0" class="text-center py-24">
             <LayoutTemplate class="w-12 h-12 text-gray-700 mx-auto mb-4" />
             <p class="text-gray-500 text-sm mb-5">Nenhum modelo encontrado.</p>
             <RouterLink to="/templates" class="btn-primary inline-flex items-center gap-2">
@@ -36,44 +20,93 @@
             </RouterLink>
         </div>
 
-        <!-- ── Masonry grid ─────────────────────────────────────────── -->
-        <div v-else class="masonry-grid px-8 pt-6 pb-12">
-            <div v-for="(col, ci) in masonryColumns" :key="ci" class="masonry-col">
-                <div
-                    v-for="t in col"
-                    :key="t.id"
-                    class="masonry-card"
-                    @click="openDetail(t)"
-                >
-                    <video
-                        v-if="t.type === 'video' && t.preview_url"
-                        :src="t.preview_url"
-                        class="card-media"
-                        muted loop autoplay playsinline
-                    />
-                    <img
-                        v-else-if="t.preview_url"
-                        :src="t.preview_url"
-                        :alt="t.title"
-                        class="card-media"
-                    />
-                    <div v-else class="card-placeholder">
-                        <Film v-if="t.type === 'video'" class="w-10 h-10 text-gray-700" />
-                        <ImageIcon v-else class="w-10 h-10 text-gray-700" />
+        <!-- ── Sections (Imagem / Vídeo) ────────────────────────────── -->
+        <template v-else>
+            <section
+                v-for="s in sections"
+                v-show="s.items.length"
+                :key="s.type"
+                class="gallery-section"
+            >
+                <!-- Section header -->
+                <div class="px-8 pt-8 pb-4 flex items-end justify-between gap-4">
+                    <div>
+                        <h2 class="section-title">{{ s.title }}</h2>
+                        <p class="section-desc">{{ s.desc }}</p>
                     </div>
+                    <button
+                        v-if="!s.expanded && s.items.length > COLLAPSED_COUNT"
+                        @click="expanded[s.type] = true"
+                        class="section-see-all"
+                    >
+                        Ver todos
+                        <ArrowUpRight class="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                        v-else-if="s.expanded && s.items.length > COLLAPSED_COUNT"
+                        @click="expanded[s.type] = false"
+                        class="section-see-all"
+                    >
+                        Ver menos
+                    </button>
+                </div>
 
-                    <!-- Hover overlay -->
-                    <div class="card-overlay">
-                        <div class="card-overlay-inner">
-                            <span class="type-pill" :class="t.type === 'video' ? 'type-pill--video' : 'type-pill--image'">
-                                {{ t.type === 'video' ? 'Vídeo' : 'Imagem' }}
-                            </span>
-                            <h3 class="card-title">{{ t.title }}</h3>
+                <!-- Grid wrapper (with fade when collapsed) -->
+                <div
+                    class="section-grid-wrap px-8"
+                    :class="{ 'is-collapsed': !s.expanded && s.items.length > COLLAPSED_COUNT }"
+                >
+                    <div class="masonry-grid pb-2">
+                        <div v-for="(col, ci) in s.columns" :key="ci" class="masonry-col">
+                            <div
+                                v-for="t in col"
+                                :key="t.id"
+                                class="masonry-card"
+                                @click="openDetail(t)"
+                            >
+                                <video
+                                    v-if="t.type === 'video' && t.preview_url"
+                                    :src="t.preview_url"
+                                    class="card-media"
+                                    muted loop autoplay playsinline
+                                />
+                                <img
+                                    v-else-if="t.preview_url"
+                                    :src="t.preview_url"
+                                    :alt="t.title"
+                                    class="card-media"
+                                />
+                                <div v-else class="card-placeholder">
+                                    <Film v-if="t.type === 'video'" class="w-10 h-10 text-gray-700" />
+                                    <ImageIcon v-else class="w-10 h-10 text-gray-700" />
+                                </div>
+
+                                <!-- Hover overlay -->
+                                <div class="card-overlay">
+                                    <div class="card-overlay-inner">
+                                        <span class="type-pill" :class="t.type === 'video' ? 'type-pill--video' : 'type-pill--image'">
+                                            {{ t.type === 'video' ? 'Vídeo' : 'Imagem' }}
+                                        </span>
+                                        <h3 class="card-title">{{ t.title }}</h3>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
+
+                    <!-- Fade + CTA (only when collapsed & has more) -->
+                    <div
+                        v-if="!s.expanded && s.items.length > COLLAPSED_COUNT"
+                        class="section-fade"
+                    >
+                        <button @click="expanded[s.type] = true" class="fade-btn">
+                            Ver todos os modelos
+                            <ArrowUpRight class="w-4 h-4" />
+                        </button>
+                    </div>
                 </div>
-            </div>
-        </div>
+            </section>
+        </template>
 
         <!-- ── Detail modal ─────────────────────────────────────────── -->
         <Teleport to="body">
@@ -268,7 +301,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { RouterLink } from 'vue-router'
-import { Film, Image as ImageIcon, X, Sparkles, Loader2, Download, LayoutTemplate, Plus } from 'lucide-vue-next'
+import { Film, Image as ImageIcon, X, Sparkles, Loader2, Download, LayoutTemplate, Plus, ArrowUpRight } from 'lucide-vue-next'
 import api from '@/services/api'
 import { assetUrl } from '@/utils/assetUrl'
 
@@ -284,25 +317,27 @@ const detail       = ref(null)
 const expandPrompt = ref(false)
 const copied       = ref(false)
 
-const activeFilter = ref('all')
-const filters = [
-    { value: 'all',   label: 'Todos'   },
-    { value: 'image', label: 'Imagem'  },
-    { value: 'video', label: 'Vídeo'   },
+const COL_COUNT      = 5
+const COLLAPSED_COUNT = 10   // itens exibidos antes do fade / "Ver todos"
+
+const expanded = ref({ image: false, video: false })
+
+const SECTION_META = [
+    { type: 'image', title: 'Imagem', desc: 'Modelos para gerar imagens estáticas.' },
+    { type: 'video', title: 'Vídeo',  desc: 'Modelos para gerar vídeos e reels.'    },
 ]
 
-const filteredTemplates = computed(() => {
-    if (activeFilter.value === 'all') return templates.value
-    return templates.value.filter(t => t.type === activeFilter.value)
-})
-
-const COL_COUNT = 5
-const masonryColumns = computed(() => {
-    const items = filteredTemplates.value
-    return Array.from({ length: COL_COUNT }, (_, i) =>
-        items.filter((_, j) => j % COL_COUNT === i)
-    )
-})
+const sections = computed(() =>
+    SECTION_META.map(meta => {
+        const items       = templates.value.filter(t => t.type === meta.type)
+        const isExpanded  = expanded.value[meta.type]
+        const visible     = isExpanded ? items : items.slice(0, COLLAPSED_COUNT)
+        const columns     = Array.from({ length: COL_COUNT }, (_, i) =>
+            visible.filter((_, j) => j % COL_COUNT === i)
+        )
+        return { ...meta, items, expanded: isExpanded, columns }
+    })
+)
 
 // Lock body scroll when modal is open
 watch(detail, (val) => {
@@ -382,44 +417,101 @@ onMounted(fetchData)
 
 /* ── Hero title ────────────────────────────────────────────────── */
 .gallery-hero-title {
+    font-family: var(--font-display);
     font-size: clamp(1.75rem, 3.5vw, 3rem);
-    font-weight: 900;
+    font-weight: 700;
     color: #fff;
-    letter-spacing: -0.025em;
+    letter-spacing: -0.03em;
     line-height: 1;
 }
 
-/* ── Filter strip ──────────────────────────────────────────────── */
-.filter-strip {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
+/* ── Section ────────────────────────────────────────────────────── */
+.section-title {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #fff;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+}
+.section-desc {
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    margin-top: 4px;
 }
 
-.filter-btn {
-    padding: 5px 16px;
+.section-see-all {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    flex-shrink: 0;
+    padding: 6px 14px;
     border-radius: 9999px;
     border: 1px solid rgba(255, 255, 255, 0.12);
     background: transparent;
-    color: rgba(156, 163, 175, 1);
+    color: rgba(196, 181, 253, 1);
     font-size: 0.75rem;
-    font-weight: 500;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.02em;
     cursor: pointer;
     transition: all 0.15s;
 }
-.filter-btn:hover {
-    border-color: rgba(255, 255, 255, 0.24);
-    color: #fff;
-    background: rgba(255, 255, 255, 0.05);
-}
-.filter-btn--active {
-    background: rgba(124, 58, 237, 0.16);
+.section-see-all:hover {
     border-color: rgba(124, 58, 237, 0.48);
-    color: #c4b5fd;
-    box-shadow: 0 0 12px rgba(124, 58, 237, 0.14);
+    background: rgba(124, 58, 237, 0.14);
+    color: #ddd6fe;
+}
+
+/* ── Collapsible grid wrapper + fade ───────────────────────────── */
+.section-grid-wrap {
+    position: relative;
+}
+.section-grid-wrap.is-collapsed {
+    max-height: 720px;
+    overflow: hidden;
+}
+.section-fade {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 240px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 28px;
+    background: linear-gradient(
+        to bottom,
+        transparent 0%,
+        color-mix(in srgb, var(--bg-base) 65%, transparent) 45%,
+        var(--bg-base) 92%
+    );
+    pointer-events: none;
+}
+.fade-btn {
+    pointer-events: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 11px 22px;
+    border-radius: 9999px;
+    background: rgba(12, 10, 26, 0.92);
+    border: 1px solid rgba(124, 58, 237, 0.4);
+    color: #ddd6fe;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 0 24px rgba(124, 58, 237, 0.28), 0 6px 20px rgba(0, 0, 0, 0.4);
+    transition: all 0.16s;
+}
+.fade-btn:hover {
+    background: var(--brand);
+    border-color: var(--brand);
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 0 34px rgba(124, 58, 237, 0.5), 0 8px 24px rgba(0, 0, 0, 0.45);
 }
 
 
