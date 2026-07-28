@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { useToastStore } from '@/stores/toast'
 
 const api = axios.create({
     baseURL: '/api',
@@ -14,10 +15,16 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
     (res) => res,
     (err) => {
-        if (err.response?.status === 401) {
+        const status = err.response?.status
+
+        if (status === 401) {
             localStorage.removeItem('token')
             window.location.href = '/login'
+        } else if (status !== 422) {
+            const message = err.response?.data?.message || 'Ocorreu um erro ao processar a solicitação.'
+            useToastStore().push(message, 'error')
         }
+
         return Promise.reject(err)
     }
 )

@@ -9,7 +9,7 @@
                 </h1>
                 <p class="text-gray-400 mt-1">Arraste os cards para mover entre etapas.</p>
             </div>
-            <button @click="openModal()" class="btn-primary flex items-center gap-2">
+            <button v-if="auth.can('leads', 'create')" @click="openModal()" class="btn-primary flex items-center gap-2">
                 <Plus class="w-4 h-4" />
                 Novo Lead
             </button>
@@ -53,7 +53,7 @@
                     <div
                         v-for="lead in (pipeline[col.value] ?? [])"
                         :key="lead.id"
-                        draggable="true"
+                        :draggable="auth.can('leads', 'edit')"
                         class="bg-gray-900 border border-gray-800 rounded-xl p-4 cursor-grab active:cursor-grabbing hover:border-gray-700 transition-all group select-none"
                         :class="dragging?.id === lead.id ? 'opacity-40 scale-95' : 'opacity-100'"
                         @dragstart="onDragStart($event, lead)"
@@ -68,6 +68,7 @@
                                 <span class="font-medium text-white text-sm truncate">{{ lead.nome }}</span>
                             </div>
                             <button
+                                v-if="auth.can('leads', 'delete')"
                                 @click.stop="deleteLead(lead)"
                                 class="p-1 text-gray-600 hover:text-red-400 rounded opacity-0 group-hover:opacity-100 transition-all flex-shrink-0"
                             >
@@ -159,8 +160,10 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { KanbanSquare, Plus, Trash2, X, Loader2 } from 'lucide-vue-next'
 import api from '@/services/api'
+import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
+const auth   = useAuthStore()
 
 const pipeline = ref({})
 const loading  = ref(true)

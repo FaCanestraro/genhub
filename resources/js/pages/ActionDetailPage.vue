@@ -25,7 +25,7 @@
             <div class="mt-3 rounded-xl text-sm" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.10);box-shadow:inset 0 1px 0 rgba(255,255,255,0.07),inset 0 -1px 0 rgba(0,0,0,0.12)">
                 <div class="flex items-center justify-between px-4 pt-3 pb-1">
                     <span class="text-xs text-gray-500 font-medium uppercase tracking-wide">Brief</span>
-                    <div v-if="!editingBrief" class="flex gap-1">
+                    <div v-if="!editingBrief && auth.can('campaigns', 'edit')" class="flex gap-1">
                         <button @click="startEditBrief" class="p-1 text-gray-600 hover:text-white hover:bg-gray-700 rounded-lg transition-colors" title="Editar brief">
                             <Pencil class="w-3.5 h-3.5" />
                         </button>
@@ -147,6 +147,7 @@
 
                         <!-- Botão gerar -->
                         <button
+                            v-if="auth.can('generate', 'create')"
                             type="submit"
                             :disabled="generating"
                             class="w-full bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white font-semibold py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
@@ -218,6 +219,7 @@
                             <span class="text-xs text-gray-500">{{ formatDate(gen.created_at) }}</span>
                             <span class="text-xs text-gray-600">— {{ gen.model_used }}</span>
                             <button
+                                v-if="gen.session_id ? auth.can('generate', 'edit') : auth.can('generate', 'delete')"
                                 @click="deleteGeneration(gen)"
                                 class="ml-auto p-1 text-gray-600 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                                 :title="gen.session_id ? 'Remover da ação (mantém no chat)' : 'Excluir'"
@@ -245,7 +247,7 @@
                                     <button @click="downloadAsset(asset.url)" class="p-2 bg-white/10 hover:bg-white/20 rounded-lg">
                                         <Download class="w-4 h-4 text-white" />
                                     </button>
-                                    <button @click="deleteAsset(asset)" class="p-2 bg-red-500/20 hover:bg-red-500/40 rounded-lg">
+                                    <button v-if="auth.can('gallery', 'delete')" @click="deleteAsset(asset)" class="p-2 bg-red-500/20 hover:bg-red-500/40 rounded-lg">
                                         <Trash2 class="w-4 h-4 text-red-400" />
                                     </button>
                                 </div>
@@ -275,7 +277,7 @@
                                         <Download class="w-3.5 h-3.5" />
                                         Baixar
                                     </button>
-                                    <button @click="deleteAsset(asset)" class="p-1.5 bg-gray-800 hover:bg-red-500/20 rounded-lg text-gray-400 hover:text-red-400 transition-colors">
+                                    <button v-if="auth.can('gallery', 'delete')" @click="deleteAsset(asset)" class="p-1.5 bg-gray-800 hover:bg-red-500/20 rounded-lg text-gray-400 hover:text-red-400 transition-colors">
                                         <Trash2 class="w-3.5 h-3.5" />
                                     </button>
                                 </div>
@@ -302,7 +304,9 @@ import { downloadAsset } from '@/utils/download'
 import StatusBadge from '@/components/StatusBadge.vue'
 import PlatformIcon from '@/components/PlatformIcon.vue'
 import TypeBadge from '@/components/TypeBadge.vue'
+import { useAuthStore } from '@/stores/auth'
 
+const auth          = useAuthStore()
 const route        = useRoute()
 const campaignId   = computed(() => route.params.campaignId)
 const actionId     = computed(() => route.params.actionId)

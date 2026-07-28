@@ -3,15 +3,28 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\CheckPermission;
 use App\Models\Template;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\Storage;
 
-class TemplateController extends Controller
+class TemplateController extends Controller implements HasMiddleware
 {
+    public static function middleware(): array
+    {
+        return [
+            new Middleware(CheckPermission::class.':templates,view',   only: ['index']),
+            new Middleware(CheckPermission::class.':templates,create', only: ['store']),
+            new Middleware(CheckPermission::class.':templates,edit',   only: ['update', 'uploadPreview']),
+            new Middleware(CheckPermission::class.':templates,delete', only: ['destroy']),
+        ];
+    }
+
     public function index(Request $request)
     {
-        $templates = $request->user()->templates()->latest()->get();
+        $templates = Template::where('user_id', $request->user()->accountId())->latest()->get();
         return response()->json($templates);
     }
 
@@ -23,14 +36,14 @@ class TemplateController extends Controller
             'type'    => 'required|in:image,video',
         ]);
 
-        $template = $request->user()->templates()->create($data);
+        $template = Template::create(['user_id' => $request->user()->accountId()] + $data);
 
         return response()->json($template, 201);
     }
 
     public function update(Request $request, Template $template)
     {
-        abort_if($template->user_id !== $request->user()->id, 403);
+        abort_if($template->user_id !== $request->user()->accountId(), 403);
 
         $data = $request->validate([
             'title'  => 'sometimes|string|max:255',
@@ -45,7 +58,7 @@ class TemplateController extends Controller
 
     public function destroy(Request $request, Template $template)
     {
-        abort_if($template->user_id !== $request->user()->id, 403);
+        abort_if($template->user_id !== $request->user()->accountId(), 403);
 
         if ($template->preview_path) {
             Storage::disk('r2')->delete($template->preview_path);
@@ -58,7 +71,7 @@ class TemplateController extends Controller
 
     public function uploadPreview(Request $request, Template $template)
     {
-        abort_if($template->user_id !== $request->user()->id, 403);
+        abort_if($template->user_id !== $request->user()->accountId(), 403);
 
         $request->validate(['file' => 'required|file|mimes:jpg,jpeg,png,webp,gif,mp4,mov,webm|max:51200']);
 

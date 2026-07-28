@@ -26,7 +26,7 @@
                 </div>
 
                 <!-- Filtro status -->
-                <select v-model="filters.status" @change="reload" class="text-sm rounded-xl px-3 py-2 focus:outline-none text-gray-300" style="background: var(--surface-1); border: 1px solid var(--border-subtle)">
+                <select v-model="filters.status" @change="reload" class="history-select text-sm rounded-xl px-3 py-2 focus:outline-none text-gray-300">
                     <option value="">Todos os status</option>
                     <option value="completed">Concluído</option>
                     <option value="failed">Falhou</option>
@@ -86,6 +86,7 @@
                             <!-- Topo: excluir -->
                             <div class="flex justify-end">
                                 <button
+                                    v-if="auth.can('generate', 'delete')"
                                     @click="deleteGen(gen)"
                                     class="p-1.5 bg-red-500/20 hover:bg-red-500/40 rounded-lg transition-colors"
                                     title="Excluir"
@@ -188,6 +189,9 @@ import { History, Sparkles, Film, Image, FileText, Layers, Trash2, Download, Loa
 import api from '@/services/api'
 import { downloadAsset } from '@/utils/download'
 import StatusBadge from '@/components/StatusBadge.vue'
+import { useAuthStore } from '@/stores/auth'
+
+const auth = useAuthStore()
 
 const generations = ref([])
 const loading     = ref(true)
@@ -295,3 +299,19 @@ function formatDate(d) {
 
 onMounted(() => fetchGenerations(true))
 </script>
+
+<style scoped>
+.history-select {
+    background: var(--surface-1);
+    border: 1px solid var(--border-subtle);
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    padding-right: 2.25rem;
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1rem;
+}
+</style>

@@ -3,18 +3,31 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\CheckPermission;
 use App\Models\Campaign;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 
-class CampaignController extends Controller
+class CampaignController extends Controller implements HasMiddleware
 {
+    public static function middleware(): array
+    {
+        return [
+            new Middleware(CheckPermission::class.':campaigns,view',   only: ['index', 'show']),
+            new Middleware(CheckPermission::class.':campaigns,create', only: ['store']),
+            new Middleware(CheckPermission::class.':campaigns,edit',   only: ['update']),
+            new Middleware(CheckPermission::class.':campaigns,delete', only: ['destroy']),
+        ];
+    }
+
     public function index(Request $request)
     {
-        $campaigns = $request->user()->campaigns()
+        $campaigns = Campaign::where('user_id', $request->user()->accountId())
             ->withCount('actions')
             ->when($request->status, fn ($q) => $q->where('status', $request->status))
             ->latest()
-            ->paginate(20);
+            ->paginate(min((int) $request->input('per_page', 20), 100));
 
         return response()->json($campaigns);
     }
@@ -36,14 +49,14 @@ class CampaignController extends Controller
             'goal_sales' => 'nullable|integer|min:0',
         ]);
 
-        $campaign = $request->user()->campaigns()->create($data);
+        $campaign = Campaign::create(['user_id' => $request->user()->accountId()] + $data);
 
         return response()->json($campaign, 201);
     }
 
     public function show(Request $request, Campaign $campaign)
     {
-        abort_if($campaign->user_id !== $request->user()->id, 403);
+        abort_if($campaign->user_id !== $request->user()->accountId(), 403);
 
         $campaign->load(['actions' => fn ($q) => $q->with('latestGeneration')->latest()]);
 
@@ -52,7 +65,7 @@ class CampaignController extends Controller
 
     public function update(Request $request, Campaign $campaign)
     {
-        abort_if($campaign->user_id !== $request->user()->id, 403);
+        abort_if($campaign->user_id !== $request->user()->accountId(), 403);
 
         $data = $request->validate([
             'name' => 'sometimes|string|max:255',
@@ -76,7 +89,7 @@ class CampaignController extends Controller
 
     public function destroy(Request $request, Campaign $campaign)
     {
-        abort_if($campaign->user_id !== $request->user()->id, 403);
+        abort_if($campaign->user_id !== $request->user()->accountId(), 403);
 
         $campaign->delete();
 

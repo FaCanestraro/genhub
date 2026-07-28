@@ -6,7 +6,7 @@
                 <h1 class="page-hero-title text-2xl tracking-tight leading-tight">Campanhas</h1>
                 <p class="text-sm mt-1" style="color: var(--text-secondary)">Crie e gerencie suas campanhas</p>
             </div>
-            <button @click="openModal()" class="btn-primary flex items-center gap-2">
+            <button v-if="auth.can('campaigns', 'create')" @click="openModal()" class="btn-primary flex items-center gap-2">
                 <Plus class="w-4 h-4" />
                 Nova Campanha
             </button>
@@ -29,7 +29,7 @@
         <div v-if="!loading && campaigns.length === 0" class="text-center py-20">
             <Megaphone class="w-12 h-12 text-gray-600 mx-auto mb-4" />
             <p class="text-gray-400">Nenhuma campanha encontrada.</p>
-            <button @click="openModal()" class="btn-primary mt-4">Criar campanha</button>
+            <button v-if="auth.can('campaigns', 'create')" @click="openModal()" class="btn-primary mt-4">Criar campanha</button>
         </div>
 
         <div v-else class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -42,6 +42,7 @@
                 <div class="flex items-start justify-between mb-3">
                     <StatusBadge :status="c.status" />
                     <button
+                        v-if="auth.can('campaigns', 'edit')"
                         @click.prevent="openModal(c)"
                         class="p-1.5 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors"
                     >
@@ -136,6 +137,9 @@ import { Plus, Megaphone, Pencil } from 'lucide-vue-next'
 import api from '@/services/api'
 import StatusBadge from '@/components/StatusBadge.vue'
 import { numberToCurrency, onCurrencyInput } from '@/utils/mask'
+import { useAuthStore } from '@/stores/auth'
+
+const auth = useAuthStore()
 
 const campaigns = ref([])
 const loading = ref(false)

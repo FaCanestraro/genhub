@@ -33,10 +33,10 @@
                     </div>
                 </div>
                 <div class="flex items-center gap-2 flex-shrink-0">
-                    <button @click="openEdit" class="flex items-center gap-1.5 px-3 py-1.5 text-sm border border-gray-700 rounded-lg text-gray-300 hover:bg-gray-800 transition-colors">
+                    <button v-if="auth.can('leads', 'edit')" @click="openEdit" class="flex items-center gap-1.5 px-3 py-1.5 text-sm border border-gray-700 rounded-lg text-gray-300 hover:bg-gray-800 transition-colors">
                         <Pencil class="w-3.5 h-3.5" />Editar
                     </button>
-                    <button @click="confirmDelete" class="flex items-center gap-1.5 px-3 py-1.5 text-sm border border-red-800 rounded-lg text-red-400 hover:bg-red-900/20 transition-colors">
+                    <button v-if="auth.can('leads', 'delete')" @click="confirmDelete" class="flex items-center gap-1.5 px-3 py-1.5 text-sm border border-red-800 rounded-lg text-red-400 hover:bg-red-900/20 transition-colors">
                         <Trash2 class="w-3.5 h-3.5" />Excluir
                     </button>
                 </div>
@@ -50,7 +50,7 @@
                     <!-- Status -->
                     <div>
                         <label class="label">Status</label>
-                        <select v-model="lead.status" @change="patchField('status', lead.status)" class="input uppercase font-semibold" :class="statusClass(lead.status)">
+                        <select v-model="lead.status" @change="patchField('status', lead.status)" :disabled="!auth.can('leads', 'edit')" class="input uppercase font-semibold" :class="statusClass(lead.status)">
                             <option v-for="s in statuses" :key="s.value" :value="s.value">{{ s.label }}</option>
                         </select>
                     </div>
@@ -61,6 +61,7 @@
                         <input v-model="lead.responsavel"
                             @blur="patchField('responsavel', lead.responsavel)"
                             @keydown.enter="patchField('responsavel', lead.responsavel)"
+                            :disabled="!auth.can('leads', 'edit')"
                             class="input" placeholder="—" />
                     </div>
 
@@ -75,6 +76,7 @@
                         <label class="label">Notas</label>
                         <textarea v-model="lead.notas"
                             @blur="patchField('notas', lead.notas)"
+                            :disabled="!auth.can('leads', 'edit')"
                             rows="3" class="input resize-none text-xs" placeholder="Adicionar notas..."></textarea>
                     </div>
 
@@ -91,7 +93,7 @@
                 <div class="flex-1 overflow-y-auto flex flex-col border-r border-gray-800">
                     <div class="flex items-center justify-between px-6 py-4 border-b border-gray-800">
                         <h2 class="font-semibold text-white">Atividades</h2>
-                        <button @click="openAddActivity" class="flex items-center gap-1.5 text-sm text-violet-400 hover:text-violet-300 border border-violet-800 hover:border-violet-600 px-3 py-1.5 rounded-lg transition-colors">
+                        <button v-if="auth.can('leads', 'create')" @click="openAddActivity" class="flex items-center gap-1.5 text-sm text-violet-400 hover:text-violet-300 border border-violet-800 hover:border-violet-600 px-3 py-1.5 rounded-lg transition-colors">
                             <Plus class="w-3.5 h-3.5" />Adicionar
                         </button>
                     </div>
@@ -120,7 +122,7 @@
                                     <p class="text-sm font-medium text-white">{{ act.titulo }}</p>
                                     <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                         <span class="text-xs text-gray-600 whitespace-nowrap">{{ timeAgo(act.created_at) }}</span>
-                                        <button @click="deleteActivity(act)" class="p-0.5 text-gray-600 hover:text-red-400 transition-colors">
+                                        <button v-if="auth.can('leads', 'delete')" @click="deleteActivity(act)" class="p-0.5 text-gray-600 hover:text-red-400 transition-colors">
                                             <X class="w-3 h-3" />
                                         </button>
                                     </div>
@@ -151,7 +153,7 @@
 
                     <!-- TAREFAS -->
                     <div v-if="activeTab === 'tarefas'" class="flex-1 overflow-y-auto p-4">
-                        <button @click="openAddTask" class="w-full flex items-center gap-2 text-sm text-violet-400 hover:text-violet-300 border border-violet-800 hover:border-violet-600 rounded-lg px-3 py-2 transition-colors mb-3">
+                        <button v-if="auth.can('tasks', 'create')" @click="openAddTask" class="w-full flex items-center gap-2 text-sm text-violet-400 hover:text-violet-300 border border-violet-800 hover:border-violet-600 rounded-lg px-3 py-2 transition-colors mb-3">
                             <Plus class="w-3.5 h-3.5" />Nova Tarefa
                         </button>
 
@@ -161,12 +163,12 @@
 
                         <div v-for="task in leadTasks" :key="task.id"
                             class="flex items-start gap-2.5 p-3 bg-gray-900 border border-gray-800 rounded-xl mb-2 group">
-                            <button @click="toggleTask(task)" class="mt-0.5 flex-shrink-0">
+                            <component :is="auth.can('tasks', 'edit') ? 'button' : 'div'" @click="auth.can('tasks', 'edit') && toggleTask(task)" class="mt-0.5 flex-shrink-0">
                                 <div :class="task.concluida ? 'brand-check' : 'border-gray-600'"
                                     class="w-4 h-4 rounded border-2 flex items-center justify-center transition-colors">
                                     <Check v-if="task.concluida" class="w-2.5 h-2.5 text-white" />
                                 </div>
-                            </button>
+                            </component>
                             <div class="flex-1 min-w-0">
                                 <p :class="task.concluida ? 'line-through text-gray-500' : 'text-white'" class="text-sm font-medium">{{ task.titulo }}</p>
                                 <p v-if="task.responsavel" class="text-xs text-gray-600 mt-0.5">{{ task.responsavel }}</p>
@@ -174,7 +176,7 @@
                                     {{ formatDate(task.prazo) }}
                                 </p>
                             </div>
-                            <button @click="deleteTask(task)" class="p-1 text-gray-700 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all">
+                            <button v-if="auth.can('tasks', 'delete')" @click="deleteTask(task)" class="p-1 text-gray-700 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all">
                                 <Trash2 class="w-3 h-3" />
                             </button>
                         </div>
@@ -340,9 +342,11 @@ import {
     MessageSquare, CheckSquare, Paperclip, FileText
 } from 'lucide-vue-next'
 import api from '@/services/api'
+import { useAuthStore } from '@/stores/auth'
 
 const route  = useRoute()
 const router = useRouter()
+const auth   = useAuthStore()
 
 const lead    = ref(null)
 const loading = ref(true)

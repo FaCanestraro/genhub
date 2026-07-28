@@ -3,19 +3,33 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\CheckPermission;
 use App\Models\Action;
 use App\Models\Asset;
 use App\Models\Generation;
+use App\Models\Product;
 use App\Services\GeminiService;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 
-class GenerationController extends Controller
+class GenerationController extends Controller implements HasMiddleware
 {
     public function __construct(private GeminiService $gemini) {}
 
+    public static function middleware(): array
+    {
+        return [
+            new Middleware(CheckPermission::class.':generate,view',   only: ['index', 'show', 'standaloneHistory']),
+            new Middleware(CheckPermission::class.':generate,create', only: ['generate', 'generateStandalone']),
+            new Middleware(CheckPermission::class.':generate,edit',   only: ['renameSession', 'detach']),
+            new Middleware(CheckPermission::class.':generate,delete', only: ['destroy', 'destroySession']),
+        ];
+    }
+
     public function generate(Request $request, Action $action)
     {
-        abort_if($action->user_id !== $request->user()->id, 403);
+        abort_if($action->user_id !== $request->user()->accountId(), 403);
 
         $request->validate([
             'type'   => 'required|in:image,text,carousel,video',
@@ -31,7 +45,7 @@ class GenerationController extends Controller
 
         $generation = Generation::create([
             'action_id' => $action->id,
-            'user_id' => $request->user()->id,
+            'user_id' => $request->user()->accountId(),
             'type' => $request->type,
             'status' => 'processing',
             'prompt' => $request->prompt,
@@ -39,7 +53,7 @@ class GenerationController extends Controller
         ]);
 
         try {
-            $products = $request->user()->products()
+            $products = Product::where('user_id', $request->user()->accountId())
                 ->whereIn('id', $action->product_ids ?? [])
                 ->get();
 
@@ -62,7 +76,7 @@ class GenerationController extends Controller
                 foreach ($result['assets'] as $assetData) {
                     Asset::create([
                         'generation_id' => $generation->id,
-                        'user_id' => $request->user()->id,
+                        'user_id' => $request->user()->accountId(),
                         'type' => $assetData['type'],
                         'disk' => $assetData['disk'],
                         'path' => $assetData['path'],
@@ -139,7 +153,7 @@ class GenerationController extends Controller
         $generation = Generation::create([
             'action_id'  => null,
             'session_id' => $request->session_id,
-            'user_id'    => $request->user()->id,
+            'user_id'    => $request->user()->accountId(),
             'type'       => $request->type,
             'status'     => 'processing',
             'prompt'     => $request->brief . ($request->prompt ? "\n\n" . $request->prompt : ''),
@@ -147,7 +161,7 @@ class GenerationController extends Controller
         ]);
 
         try {
-            $products = $request->user()->products()
+            $products = Product::where('user_id', $request->user()->accountId())
                 ->whereIn('id', $request->product_ids ?? [])
                 ->get();
 
@@ -170,7 +184,7 @@ class GenerationController extends Controller
                 foreach ($result['assets'] as $assetData) {
                     Asset::create([
                         'generation_id' => $generation->id,
-                        'user_id'       => $request->user()->id,
+                        'user_id'       => $request->user()->accountId(),
                         'type'          => $assetData['type'],
                         'disk'          => $assetData['disk'],
                         'path'          => $assetData['path'],
@@ -216,8 +230,7 @@ class GenerationController extends Controller
     {
         $request->validate(['title' => 'required|string|max:100']);
 
-        $request->user()
-            ->generations()
+        Generation::where('user_id', $request->user()->accountId())
             ->where('session_id', $sessionId)
             ->update(['session_title' => $request->title]);
 
@@ -226,8 +239,7 @@ class GenerationController extends Controller
 
     public function destroySession(Request $request, string $sessionId)
     {
-        $generations = $request->user()
-            ->generations()
+        $generations = Generation::where('user_id', $request->user()->accountId())
             ->where('session_id', $sessionId)
             ->with('assets')
             ->get();
@@ -245,8 +257,7 @@ class GenerationController extends Controller
 
     public function standaloneHistory(Request $request)
     {
-        $query = $request->user()
-            ->generations()
+        $query = Generation::where('user_id', $request->user()->accountId())
             ->with('assets')
             ->latest();
 
@@ -263,7 +274,7 @@ class GenerationController extends Controller
 
     public function detach(Request $request, Generation $generation)
     {
-        abort_if($generation->user_id !== $request->user()->id, 403);
+        abort_if($generation->user_id !== $request->user()->accountId(), 403);
 
         $generation->update(['action_id' => null]);
 
@@ -272,7 +283,7 @@ class GenerationController extends Controller
 
     public function destroy(Request $request, Generation $generation)
     {
-        abort_if($generation->user_id !== $request->user()->id, 403);
+        abort_if($generation->user_id !== $request->user()->accountId(), 403);
 
         $generation->assets()->each(function ($asset) {
             \Illuminate\Support\Facades\Storage::disk($asset->disk)->delete($asset->path);
@@ -286,15 +297,14 @@ class GenerationController extends Controller
 
     public function show(Request $request, Generation $generation)
     {
-        abort_if($generation->user_id !== $request->user()->id, 403);
+        abort_if($generation->user_id !== $request->user()->accountId(), 403);
 
         return response()->json($generation->load('assets'));
     }
 
     public function index(Request $request)
     {
-        $query = $request->user()
-            ->generations()
+        $query = Generation::where('user_id', $request->user()->accountId())
             ->with('assets', 'action.campaign')
             ->latest();
 

@@ -12,7 +12,7 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable, HasApiTokens;
 
-    protected $fillable = ['name', 'email', 'password', 'company_name', 'cnpj', 'phone'];
+    protected $fillable = ['name', 'email', 'password', 'phone', 'owner_id', 'role_id'];
 
     protected $hidden = ['password', 'remember_token'];
 
@@ -42,5 +42,30 @@ class User extends Authenticatable
     public function generations()
     {
         return $this->hasMany(Generation::class);
+    }
+
+    public function owner()
+    {
+        return $this->belongsTo(User::class, 'owner_id');
+    }
+
+    public function members()
+    {
+        return $this->hasMany(User::class, 'owner_id');
+    }
+
+    public function role()
+    {
+        return $this->belongsTo(Role::class);
+    }
+
+    public function isOwner(): bool
+    {
+        return $this->owner_id === null;
+    }
+
+    public function accountId(): int
+    {
+        return $this->owner_id ?? $this->id;
     }
 }

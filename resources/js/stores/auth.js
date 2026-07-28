@@ -7,6 +7,12 @@ export const useAuthStore = defineStore('auth', () => {
     const token = ref(localStorage.getItem('token'))
 
     const isAuthenticated = computed(() => !!token.value)
+    const isOwner = computed(() => !user.value?.owner_id)
+
+    function can(menu, action) {
+        if (isOwner.value) return true
+        return !!user.value?.role?.permissions?.[menu]?.[action]
+    }
 
     async function login(email, password) {
         const { data } = await api.post('/auth/login', { email, password })
@@ -34,5 +40,5 @@ export const useAuthStore = defineStore('auth', () => {
         localStorage.removeItem('token')
     }
 
-    return { user, token, isAuthenticated, login, register, fetchMe, logout }
+    return { user, token, isAuthenticated, isOwner, can, login, register, fetchMe, logout }
 })

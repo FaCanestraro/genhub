@@ -6,7 +6,7 @@
                 <h1 class="page-hero-title text-2xl tracking-tight leading-tight">Modelos de Arte</h1>
                 <p class="text-sm mt-1" style="color: var(--text-secondary)">Cadastre prompts e prévias para geração rápida</p>
             </div>
-            <button @click="openModal()" class="btn-primary flex items-center gap-2">
+            <button v-if="auth.can('templates', 'create')" @click="openModal()" class="btn-primary flex items-center gap-2">
                 <Plus class="w-4 h-4" />
                 Novo Modelo
             </button>
@@ -16,7 +16,7 @@
         <div v-if="!loading && templates.length === 0" class="text-center py-20">
             <LayoutTemplate class="w-12 h-12 text-gray-600 mx-auto mb-4" />
             <p class="text-gray-400">Nenhum modelo cadastrado ainda.</p>
-            <button @click="openModal()" class="btn-primary mt-4">Criar modelo</button>
+            <button v-if="auth.can('templates', 'create')" @click="openModal()" class="btn-primary mt-4">Criar modelo</button>
         </div>
 
         <!-- Grid -->
@@ -51,10 +51,10 @@
                         </span>
                     </div>
                     <div class="absolute top-2 right-2 flex gap-1">
-                        <button @click="openModal(t)" class="p-1.5 text-gray-400 hover:text-white bg-black/50 hover:bg-black/80 rounded-lg transition-colors backdrop-blur-sm">
+                        <button v-if="auth.can('templates', 'edit')" @click="openModal(t)" class="p-1.5 text-gray-400 hover:text-white bg-black/50 hover:bg-black/80 rounded-lg transition-colors backdrop-blur-sm">
                             <Pencil class="w-4 h-4" />
                         </button>
-                        <button @click="deleteTemplate(t)" class="p-1.5 text-gray-400 hover:text-red-400 bg-black/50 hover:bg-black/80 rounded-lg transition-colors backdrop-blur-sm">
+                        <button v-if="auth.can('templates', 'delete')" @click="deleteTemplate(t)" class="p-1.5 text-gray-400 hover:text-red-400 bg-black/50 hover:bg-black/80 rounded-lg transition-colors backdrop-blur-sm">
                             <Trash2 class="w-4 h-4" />
                         </button>
                     </div>
@@ -142,7 +142,9 @@ import { ref, computed, onMounted } from 'vue'
 import { Plus, Pencil, Trash2, Image as ImageIcon, Film, LayoutTemplate } from 'lucide-vue-next'
 import api from '@/services/api'
 import { assetUrl } from '@/utils/assetUrl'
+import { useAuthStore } from '@/stores/auth'
 
+const auth = useAuthStore()
 const templates = ref([])
 const loading = ref(false)
 const showModal = ref(false)

@@ -7,7 +7,7 @@
                 <h1 class="page-hero-title text-2xl tracking-tight leading-tight">Tarefas</h1>
                 <p class="text-sm mt-1" style="color: var(--text-secondary)">Gerencie suas tarefas e compromissos.</p>
             </div>
-            <button @click="openModal()" class="btn-primary flex items-center gap-2">
+            <button v-if="auth.can('tasks', 'create')" @click="openModal()" class="btn-primary flex items-center gap-2">
                 <Plus class="w-4 h-4" />
                 Nova Tarefa
             </button>
@@ -42,7 +42,7 @@
             <div v-else-if="tasks.length === 0" class="p-16 text-center">
                 <CheckSquare class="w-12 h-12 text-gray-700 mx-auto mb-4" />
                 <p class="text-gray-400">Nenhuma tarefa encontrada.</p>
-                <button @click="openModal()" class="btn-primary mt-4">Criar primeira tarefa</button>
+                <button v-if="auth.can('tasks', 'create')" @click="openModal()" class="btn-primary mt-4">Criar primeira tarefa</button>
             </div>
 
             <table v-else class="w-full text-sm">
@@ -64,12 +64,12 @@
                         :class="{ 'opacity-60': task.concluida }"
                     >
                         <td class="px-5 py-3.5">
-                            <button @click="toggleTask(task)" class="flex items-center justify-center">
+                            <component :is="auth.can('tasks', 'edit') ? 'button' : 'div'" @click="auth.can('tasks', 'edit') && toggleTask(task)" class="flex items-center justify-center">
                                 <div :class="task.concluida ? 'brand-check' : 'border-gray-600 hover:brand-border'"
                                     class="w-4 h-4 rounded border-2 flex items-center justify-center transition-colors">
                                     <Check v-if="task.concluida" class="w-2.5 h-2.5 text-white" />
                                 </div>
-                            </button>
+                            </component>
                         </td>
                         <td class="px-5 py-3.5">
                             <p :class="task.concluida ? 'line-through text-gray-500' : 'text-white'" class="font-medium">{{ task.titulo }}</p>
@@ -94,10 +94,10 @@
                         </td>
                         <td class="px-5 py-3.5">
                             <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <button @click="openModal(task)" class="p-1.5 text-gray-500 hover:text-white hover:bg-gray-700 rounded-lg transition-colors">
+                                <button v-if="auth.can('tasks', 'edit')" @click="openModal(task)" class="p-1.5 text-gray-500 hover:text-white hover:bg-gray-700 rounded-lg transition-colors">
                                     <Pencil class="w-3.5 h-3.5" />
                                 </button>
-                                <button @click="deleteTask(task)" class="p-1.5 text-gray-500 hover:text-red-400 hover:bg-gray-700 rounded-lg transition-colors">
+                                <button v-if="auth.can('tasks', 'delete')" @click="deleteTask(task)" class="p-1.5 text-gray-500 hover:text-red-400 hover:bg-gray-700 rounded-lg transition-colors">
                                     <Trash2 class="w-3.5 h-3.5" />
                                 </button>
                             </div>
@@ -155,7 +155,9 @@ import { ref, reactive, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import { CheckSquare, Plus, Search, Pencil, Trash2, X, Loader2, Check } from 'lucide-vue-next'
 import api from '@/services/api'
+import { useAuthStore } from '@/stores/auth'
 
+const auth    = useAuthStore()
 const tasks   = ref([])
 const leads   = ref([])
 const loading = ref(true)

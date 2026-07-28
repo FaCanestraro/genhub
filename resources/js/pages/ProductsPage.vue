@@ -12,7 +12,7 @@
                     Integrações
                     <span v-if="integrations.length" class="text-xs bg-white/10 px-1.5 py-0.5 rounded-full">{{ integrations.length }}</span>
                 </button>
-                <button @click="openModal()" class="btn-primary flex items-center gap-2">
+                <button v-if="auth.can('products', 'create')" @click="openModal()" class="btn-primary flex items-center gap-2">
                     <Plus class="w-4 h-4" />
                     Novo Produto
                 </button>
@@ -42,7 +42,7 @@
         <div v-if="!loading && products.length === 0" class="text-center py-20">
             <Package class="w-12 h-12 text-gray-600 mx-auto mb-4" />
             <p class="text-gray-400">Nenhum produto cadastrado ainda.</p>
-            <button @click="openModal()" class="btn-primary mt-4">Adicionar produto</button>
+            <button v-if="auth.can('products', 'create')" @click="openModal()" class="btn-primary mt-4">Adicionar produto</button>
         </div>
 
         <!-- Grid -->
@@ -64,10 +64,10 @@
                         <Package class="w-10 h-10 text-gray-600" />
                     </div>
                     <div class="absolute top-2 right-2 flex gap-1">
-                        <button @click="openModal(p)" class="p-1.5 text-gray-400 hover:text-white bg-black/50 hover:bg-black/80 rounded-lg transition-colors backdrop-blur-sm">
+                        <button v-if="auth.can('products', 'edit')" @click="openModal(p)" class="p-1.5 text-gray-400 hover:text-white bg-black/50 hover:bg-black/80 rounded-lg transition-colors backdrop-blur-sm">
                             <Pencil class="w-4 h-4" />
                         </button>
-                        <button @click="deleteProduct(p)" class="p-1.5 text-gray-400 hover:text-red-400 bg-black/50 hover:bg-black/80 rounded-lg transition-colors backdrop-blur-sm">
+                        <button v-if="auth.can('products', 'delete')" @click="deleteProduct(p)" class="p-1.5 text-gray-400 hover:text-red-400 bg-black/50 hover:bg-black/80 rounded-lg transition-colors backdrop-blur-sm">
                             <Trash2 class="w-4 h-4" />
                         </button>
                     </div>
@@ -288,6 +288,9 @@ import { Plus, Package, Pencil, Trash2, Image as ImageIcon, Plug, X, Check, Chev
 import api from '@/services/api'
 import { numberToCurrency, onCurrencyInput } from '@/utils/mask'
 import { assetUrl } from '@/utils/assetUrl'
+import { useAuthStore } from '@/stores/auth'
+
+const auth = useAuthStore()
 
 const products = ref([])
 const loading = ref(false)

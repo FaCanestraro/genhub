@@ -59,6 +59,7 @@
                         </button>
                         <div class="opacity-0 group-hover:opacity-100 flex items-center gap-0.5 mt-1.5 mr-1.5 transition-all flex-shrink-0">
                             <button
+                                v-if="auth.can('generate', 'edit')"
                                 @click.stop="startEdit(s)"
                                 class="p-1.5 rounded-lg transition-colors"
                                 style="color: var(--text-muted)"
@@ -67,6 +68,7 @@
                                 <Pencil class="w-3 h-3" />
                             </button>
                             <button
+                                v-if="auth.can('generate', 'delete')"
                                 @click.stop="deleteSession(s)"
                                 class="p-1.5 rounded-lg transition-colors hover:text-red-400"
                                 style="color: var(--text-muted)"
@@ -145,7 +147,7 @@
                                             <button @click="downloadAsset(asset.url)" class="p-2 bg-white/10 hover:bg-white/20 rounded-lg">
                                                 <Download class="w-4 h-4 text-white" />
                                             </button>
-                                            <button @click="deleteAsset(asset, gen)" class="p-2 bg-red-500/20 hover:bg-red-500/40 rounded-lg">
+                                            <button v-if="auth.can('gallery', 'delete')" @click="deleteAsset(asset, gen)" class="p-2 bg-red-500/20 hover:bg-red-500/40 rounded-lg">
                                                 <Trash2 class="w-4 h-4 text-red-400" />
                                             </button>
                                         </div>
@@ -182,7 +184,7 @@
                                     </button>
                                 </div>
 
-                                <button @click="deleteGeneration(gen)" class="text-xs text-gray-700 hover:text-red-400 flex items-center gap-1 transition-colors">
+                                <button v-if="auth.can('generate', 'delete')" @click="deleteGeneration(gen)" class="text-xs text-gray-700 hover:text-red-400 flex items-center gap-1 transition-colors">
                                     <Trash2 class="w-3 h-3" />
                                     Excluir
                                 </button>
@@ -305,6 +307,7 @@
                         @keydown.ctrl.enter.prevent="generate"
                     ></textarea>
                     <button
+                        v-if="auth.can('generate', 'create')"
                         type="submit"
                         :disabled="generating || !form.brief.trim() || !validResolution"
                         class="absolute bottom-3 right-3 flex items-center gap-1.5 px-3 py-1.5 btn-primary disabled:opacity-40 text-sm font-semibold rounded-lg transition-colors"
@@ -325,6 +328,9 @@ import { useRoute } from 'vue-router'
 import { Sparkles, Loader2, Download, Trash2, Copy, Film, Image, Package, MessageSquare, Plus, AlertTriangle, Pencil, Check, X } from 'lucide-vue-next'
 import api from '@/services/api'
 import { downloadAsset } from '@/utils/download'
+import { useAuthStore } from '@/stores/auth'
+
+const auth = useAuthStore()
 
 const route = useRoute()
 
@@ -681,4 +687,14 @@ onUnmounted(() => clearInterval(timer))
 <style scoped>
 @reference "tailwindcss";
 .select-sm { @apply bg-gray-800 border border-gray-700 text-gray-300 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-violet-500 transition-colors cursor-pointer; }
+select.select-sm {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    padding-right: 1.75rem;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.5rem center;
+    background-size: 0.85rem;
+}
 </style>

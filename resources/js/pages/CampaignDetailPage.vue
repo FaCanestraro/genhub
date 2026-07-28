@@ -16,7 +16,7 @@
                     </div>
                     <p v-if="campaign.description" class="text-gray-400">{{ campaign.description }}</p>
                 </div>
-                <button @click="openActionModal()" class="btn-primary flex items-center gap-2">
+                <button v-if="auth.can('campaigns', 'create')" @click="openActionModal()" class="btn-primary flex items-center gap-2">
                     <Plus class="w-4 h-4" />
                     Nova Ação
                 </button>
@@ -28,7 +28,7 @@
             <Layers class="w-12 h-12 text-gray-600 mx-auto mb-4" />
             <p class="text-gray-400">Nenhuma ação criada nesta campanha.</p>
             <p class="text-sm text-gray-500 mt-1">Crie ações para gerar posts de Instagram, TikToks e muito mais.</p>
-            <button @click="openActionModal()" class="btn-primary mt-4">Criar primeira ação</button>
+            <button v-if="auth.can('campaigns', 'create')" @click="openActionModal()" class="btn-primary mt-4">Criar primeira ação</button>
         </div>
 
         <div v-else class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -40,6 +40,7 @@
                 <!-- Action buttons -->
                 <div class="absolute top-3 right-3 flex gap-1 z-10">
                     <button
+                        v-if="auth.can('campaigns', 'edit')"
                         @click.stop="openActionModal(action)"
                         class="p-1.5 text-gray-500 hover:text-white hover:bg-gray-700 rounded-lg transition-colors"
                         title="Editar"
@@ -47,6 +48,7 @@
                         <Pencil class="w-3.5 h-3.5" />
                     </button>
                     <button
+                        v-if="auth.can('campaigns', 'delete')"
                         @click.stop="deleteAction(action)"
                         class="p-1.5 text-gray-500 hover:text-red-400 hover:bg-gray-700 rounded-lg transition-colors"
                         title="Excluir"
@@ -245,6 +247,9 @@ import api from '@/services/api'
 import StatusBadge from '@/components/StatusBadge.vue'
 import PlatformIcon from '@/components/PlatformIcon.vue'
 import TypeBadge from '@/components/TypeBadge.vue'
+import { useAuthStore } from '@/stores/auth'
+
+const auth = useAuthStore()
 
 const route = useRoute()
 const campaignId = computed(() => route.params.id)

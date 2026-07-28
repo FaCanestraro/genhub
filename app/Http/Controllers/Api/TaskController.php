@@ -3,14 +3,27 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\CheckPermission;
 use App\Models\Task;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 
-class TaskController extends Controller
+class TaskController extends Controller implements HasMiddleware
 {
+    public static function middleware(): array
+    {
+        return [
+            new Middleware(CheckPermission::class.':tasks,view',   only: ['index']),
+            new Middleware(CheckPermission::class.':tasks,create', only: ['store']),
+            new Middleware(CheckPermission::class.':tasks,edit',   only: ['update', 'toggle']),
+            new Middleware(CheckPermission::class.':tasks,delete', only: ['destroy']),
+        ];
+    }
+
     public function index(Request $request)
     {
-        $query = Task::where('user_id', $request->user()->id)
+        $query = Task::where('user_id', $request->user()->accountId())
             ->with('lead:id,nome')
             ->latest('prazo');
 
@@ -49,14 +62,14 @@ class TaskController extends Controller
             'prazo'       => 'nullable|date',
         ]);
 
-        $task = Task::create(['user_id' => $request->user()->id] + $data);
+        $task = Task::create(['user_id' => $request->user()->accountId()] + $data);
 
         return response()->json($task->load('lead:id,nome'), 201);
     }
 
     public function update(Request $request, Task $task)
     {
-        abort_if($task->user_id !== $request->user()->id, 403);
+        abort_if($task->user_id !== $request->user()->accountId(), 403);
 
         $data = $request->validate([
             'titulo'      => 'sometimes|string|max:255',
@@ -74,14 +87,14 @@ class TaskController extends Controller
 
     public function destroy(Request $request, Task $task)
     {
-        abort_if($task->user_id !== $request->user()->id, 403);
+        abort_if($task->user_id !== $request->user()->accountId(), 403);
         $task->delete();
         return response()->json(null, 204);
     }
 
     public function toggle(Request $request, Task $task)
     {
-        abort_if($task->user_id !== $request->user()->id, 403);
+        abort_if($task->user_id !== $request->user()->accountId(), 403);
         $task->update(['concluida' => !$task->concluida]);
         return response()->json($task);
     }

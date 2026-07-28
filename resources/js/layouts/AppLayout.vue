@@ -31,7 +31,7 @@
 
                 <p class="nav-label">Workspace</p>
                 <RouterLink
-                    v-for="item in mainNav"
+                    v-for="item in visibleMainNav"
                     :key="item.path"
                     :to="item.path"
                     class="nav-item"
@@ -43,7 +43,7 @@
 
                 <p class="nav-label">Conta</p>
                 <RouterLink
-                    v-for="item in accountNav"
+                    v-for="item in visibleAccountNav"
                     :key="item.path"
                     :to="item.path"
                     class="nav-item"
@@ -80,11 +80,11 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
+import { onMounted, computed } from 'vue'
 import { useRouter, useRoute, RouterLink, RouterView } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useSettingsStore } from '@/stores/settings'
-import { LayoutDashboard, Package, Megaphone, LogOut, Zap, UserCircle, Sparkles, History, CheckSquare, Settings, Wand2, LayoutTemplate, Images } from 'lucide-vue-next'
+import { LayoutDashboard, Package, Megaphone, LogOut, Zap, UserCircle, Sparkles, History, CheckSquare, Settings, Wand2, LayoutTemplate, Images, Users, KanbanSquare } from 'lucide-vue-next'
 
 const router   = useRouter()
 const route    = useRoute()
@@ -92,21 +92,26 @@ const auth     = useAuthStore()
 const settings = useSettingsStore()
 
 const mainNav = [
-    { path: '/dashboard', label: 'Dashboard',       icon: LayoutDashboard },
-    { path: '/generate',         label: 'Motor de Criação', icon: Sparkles },
-    { path: '/generate-prompts', label: 'Gerador de Prompts', icon: Wand2 },
-    { path: '/history',   label: 'Histórico',        icon: History },
-    { path: '/products',  label: 'Produtos',          icon: Package },
-    { path: '/templates', label: 'Modelos de Arte',   icon: LayoutTemplate },
-    { path: '/gallery',   label: 'Galeria',           icon: Images },
-    { path: '/campaigns', label: 'Campanhas',         icon: Megaphone },
-    { path: '/tasks',     label: 'Tarefas',           icon: CheckSquare },
+    { path: '/dashboard', label: 'Dashboard',       icon: LayoutDashboard, menu: 'dashboard' },
+    { path: '/generate',         label: 'Motor de Criação', icon: Sparkles, menu: 'generate' },
+    { path: '/generate-prompts', label: 'Gerador de Prompts', icon: Wand2, menu: 'generate_prompts' },
+    { path: '/history',   label: 'Histórico',        icon: History, menu: 'history' },
+    { path: '/products',  label: 'Produtos',          icon: Package, menu: 'products' },
+    { path: '/templates', label: 'Modelos de Arte',   icon: LayoutTemplate, menu: 'templates' },
+    { path: '/gallery',   label: 'Galeria',           icon: Images, menu: 'gallery' },
+    { path: '/leads',     label: 'Leads',             icon: Users, menu: 'leads' },
+    { path: '/pipeline',  label: 'Pipeline',          icon: KanbanSquare, menu: 'pipeline' },
+    { path: '/campaigns', label: 'Campanhas',         icon: Megaphone, menu: 'campaigns' },
+    { path: '/tasks',     label: 'Tarefas',           icon: CheckSquare, menu: 'tasks' },
 ]
 
 const accountNav = [
-    { path: '/settings',  label: 'Configurações',    icon: Settings },
-    { path: '/profile',   label: 'Perfil',            icon: UserCircle },
+    { path: '/settings',  label: 'Configurações',    icon: Settings, menu: 'settings' },
+    { path: '/profile',   label: 'Meu Usuário',      icon: UserCircle, menu: null },
 ]
+
+const visibleMainNav    = computed(() => mainNav.filter(item => auth.can(item.menu, 'view')))
+const visibleAccountNav = computed(() => accountNav.filter(item => !item.menu || auth.can(item.menu, 'view')))
 
 const isActive = (path) => route.path === path || (path !== '/' && route.path.startsWith(path + '/'))
 

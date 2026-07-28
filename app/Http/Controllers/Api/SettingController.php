@@ -3,16 +3,27 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\CheckPermission;
 use App\Models\Setting;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\Storage;
 
-class SettingController extends Controller
+class SettingController extends Controller implements HasMiddleware
 {
+    public static function middleware(): array
+    {
+        return [
+            new Middleware(CheckPermission::class.':settings,view', only: ['show']),
+            new Middleware(CheckPermission::class.':settings,edit', only: ['update', 'uploadLogo']),
+        ];
+    }
+
     public function show(Request $request)
     {
         $setting = Setting::firstOrCreate(
-            ['user_id' => $request->user()->id],
+            ['user_id' => $request->user()->accountId()],
             ['data' => $this->defaults()]
         );
 
@@ -28,6 +39,7 @@ class SettingController extends Controller
     {
         $validated = $request->validate([
             'nome_empresa'             => 'nullable|string|max:255',
+            'cnpj'                     => 'nullable|string|max:18',
             'moeda'                    => 'nullable|in:BRL,USD,EUR',
             'fuso_horario'             => 'nullable|string|max:100',
             'auto_atribuir_leads'      => 'boolean',
@@ -41,7 +53,7 @@ class SettingController extends Controller
             'cor_primaria'             => 'nullable|string|max:7',
         ]);
 
-        $setting = Setting::firstOrCreate(['user_id' => $request->user()->id]);
+        $setting = Setting::firstOrCreate(['user_id' => $request->user()->accountId()]);
         $merged  = array_merge($this->defaults(), $setting->data ?? [], $validated);
         $setting->update(['data' => $merged]);
 
@@ -54,7 +66,7 @@ class SettingController extends Controller
             'logo' => 'required|image|mimes:jpeg,png,jpg,svg,webp|max:2048',
         ]);
 
-        $setting = Setting::firstOrCreate(['user_id' => $request->user()->id]);
+        $setting = Setting::firstOrCreate(['user_id' => $request->user()->accountId()]);
 
         // Delete old logo if exists
         if (!empty($setting->data['logo_path'])) {
@@ -62,7 +74,7 @@ class SettingController extends Controller
         }
 
         $path = $request->file('logo')->store(
-            'logos/' . $request->user()->id,
+            'logos/' . $request->user()->accountId(),
             'r2'
         );
 
@@ -80,6 +92,7 @@ class SettingController extends Controller
     {
         return [
             'nome_empresa'             => '',
+            'cnpj'                     => '',
             'moeda'                    => 'BRL',
             'fuso_horario'             => 'America/Sao_Paulo',
             'auto_atribuir_leads'      => false,

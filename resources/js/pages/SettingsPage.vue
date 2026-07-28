@@ -40,6 +40,18 @@
                                 <label class="label">Nome da Empresa</label>
                                 <input v-model="general.nome_empresa" class="input" placeholder="Razão social ou nome fantasia" />
                             </div>
+                            <div class="col-span-2">
+                                <label class="label">CNPJ</label>
+                                <input
+                                    :value="general.cnpj"
+                                    @input="e => onCNPJInput(e, v => general.cnpj = v)"
+                                    type="text"
+                                    inputmode="numeric"
+                                    class="input"
+                                    placeholder="00.000.000/0000-00"
+                                    maxlength="18"
+                                />
+                            </div>
                             <div>
                                 <label class="label">Moeda Padrão</label>
                                 <select v-model="general.moeda" class="input">
@@ -175,7 +187,7 @@
                                         <Zap v-else class="w-7 h-7 text-white" />
                                     </div>
 
-                                    <div class="flex-1">
+                                    <div v-if="auth.can('settings', 'edit')" class="flex-1">
                                         <label
                                             class="flex items-center gap-2 cursor-pointer w-fit px-4 py-2 border border-gray-700 rounded-lg text-sm text-gray-300 hover:bg-gray-800 transition-colors"
                                             :class="uploadingLogo ? 'opacity-50 pointer-events-none' : ''"
@@ -197,7 +209,7 @@
 
                     <!-- Save -->
                     <div class="flex items-center gap-4">
-                        <button type="submit" :disabled="savingGeneral" class="btn-primary px-6 py-2.5">
+                        <button v-if="auth.can('settings', 'edit')" type="submit" :disabled="savingGeneral" class="btn-primary px-6 py-2.5">
                             {{ savingGeneral ? 'Salvando...' : 'Salvar configurações' }}
                         </button>
                         <Transition name="fade">
@@ -228,7 +240,7 @@
                             <div class="flex-1 min-w-0">
                                 <p class="text-white font-medium">{{ auth.user?.name }}</p>
                                 <p class="text-gray-400 text-sm">{{ auth.user?.email }}</p>
-                                <p v-if="auth.user?.company_name" class="text-gray-500 text-xs mt-0.5">{{ auth.user?.company_name }}</p>
+                                <p v-if="general.nome_empresa" class="text-gray-500 text-xs mt-0.5">{{ general.nome_empresa }}</p>
                             </div>
                             <span class="text-xs px-2.5 py-1 rounded-full font-medium"
                                 :style="{ backgroundColor: settingsStore.primaryColor + '22', color: settingsStore.primaryColor }">Admin</span>
@@ -240,97 +252,69 @@
                         </div>
                     </div>
 
-                    <div class="card">
+                    <div v-if="auth.isOwner" class="card">
                         <div class="flex items-center justify-between mb-4">
                             <h3 class="section-title">Membros da equipe</h3>
-                            <span class="text-xs text-gray-600 bg-gray-800 px-2.5 py-1 rounded-full">Em breve</span>
+                            <button type="button" @click="openMemberModal()" class="text-xs font-medium px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5"
+                                :style="{ backgroundColor: settingsStore.primaryColor + '22', color: settingsStore.primaryColor }">
+                                <Plus class="w-3.5 h-3.5" /> Novo membro
+                            </button>
                         </div>
-                        <div class="py-8 text-center">
+                        <div v-if="loadingMembers" class="py-8 text-center text-gray-500 text-sm">Carregando...</div>
+                        <div v-else-if="!members.length" class="py-8 text-center">
                             <Users class="w-10 h-10 text-gray-700 mx-auto mb-3" />
                             <p class="text-gray-400 text-sm">Convide membros da equipe para colaborar.</p>
                         </div>
+                        <div v-else class="space-y-2">
+                            <div v-for="member in members" :key="member.id" class="flex items-center justify-between gap-3 py-2.5 px-3 rounded-lg bg-gray-800/50">
+                                <div class="min-w-0">
+                                    <p class="text-sm text-white truncate">{{ member.name }}</p>
+                                    <p class="text-xs text-gray-500 truncate">{{ member.email }} · {{ member.role?.name }}</p>
+                                </div>
+                                <div class="flex items-center gap-1 flex-shrink-0">
+                                    <button type="button" @click="openMemberModal(member)" class="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-gray-700 transition-colors">
+                                        <Pencil class="w-3.5 h-3.5" />
+                                    </button>
+                                    <button type="button" @click="deleteMember(member)" class="p-1.5 rounded-lg text-gray-500 hover:text-red-400 hover:bg-gray-700 transition-colors">
+                                        <Trash2 class="w-3.5 h-3.5" />
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <p v-if="errorMembers" class="text-sm text-red-400 mt-3">{{ errorMembers }}</p>
                     </div>
 
-                    <div class="card">
+                    <div v-if="auth.isOwner" class="card">
                         <div class="flex items-center justify-between mb-4">
                             <h3 class="section-title">Perfis de acesso</h3>
-                            <span class="text-xs text-gray-600 bg-gray-800 px-2.5 py-1 rounded-full">Em breve</span>
+                            <button type="button" @click="openRoleModal()" class="text-xs font-medium px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5"
+                                :style="{ backgroundColor: settingsStore.primaryColor + '22', color: settingsStore.primaryColor }">
+                                <Plus class="w-3.5 h-3.5" /> Novo perfil
+                            </button>
                         </div>
-                        <div class="space-y-2">
-                            <div v-for="role in defaultRoles" :key="role.name" class="flex items-center justify-between py-2.5 px-3 rounded-lg bg-gray-800/50">
-                                <div>
-                                    <p class="text-sm text-white">{{ role.name }}</p>
-                                    <p class="text-xs text-gray-500">{{ role.desc }}</p>
+                        <div v-if="loadingRoles" class="py-8 text-center text-gray-500 text-sm">Carregando...</div>
+                        <div v-else class="space-y-2">
+                            <div v-for="role in roles" :key="role.id" class="flex items-center justify-between gap-3 py-2.5 px-3 rounded-lg bg-gray-800/50">
+                                <div class="min-w-0">
+                                    <div class="flex items-center gap-2">
+                                        <p class="text-sm text-white truncate">{{ role.name }}</p>
+                                        <span v-if="role.is_default" class="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-700 text-gray-400 flex-shrink-0">Padrão</span>
+                                    </div>
+                                    <p v-if="role.description" class="text-xs text-gray-500 truncate">{{ role.description }}</p>
                                 </div>
-                                <span class="text-xs text-gray-600">{{ role.users }} usuário(s)</span>
+                                <div v-if="!role.is_default" class="flex items-center gap-1 flex-shrink-0">
+                                    <button type="button" @click="openRoleModal(role)" class="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-gray-700 transition-colors">
+                                        <Pencil class="w-3.5 h-3.5" />
+                                    </button>
+                                    <button type="button" @click="deleteRole(role)" class="p-1.5 rounded-lg text-gray-500 hover:text-red-400 hover:bg-gray-700 transition-colors">
+                                        <Trash2 class="w-3.5 h-3.5" />
+                                    </button>
+                                </div>
                             </div>
                         </div>
+                        <p v-if="errorRoles" class="text-sm text-red-400 mt-3">{{ errorRoles }}</p>
                     </div>
                 </div>
-            </section>
-
-            <!-- Alterar Senha -->
-            <section v-else-if="active === 'senha'">
-                <div class="mb-6">
-                    <h1 class="text-xl font-bold text-white">Alterar Senha</h1>
-                    <p class="text-gray-400 text-sm mt-1">Mantenha sua conta segura.</p>
-                </div>
-
-                <form @submit.prevent="changePassword" class="max-w-md space-y-5">
-                    <div class="card space-y-4">
-                        <div>
-                            <label class="label">Senha atual *</label>
-                            <div class="relative">
-                                <input v-model="pwForm.current" :type="showPw.current ? 'text' : 'password'"
-                                    required class="input pr-10" placeholder="••••••••" />
-                                <button type="button" @click="showPw.current = !showPw.current"
-                                    class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300">
-                                    <Eye v-if="!showPw.current" class="w-4 h-4" /><EyeOff v-else class="w-4 h-4" />
-                                </button>
-                            </div>
-                        </div>
-                        <div>
-                            <label class="label">Nova senha *</label>
-                            <div class="relative">
-                                <input v-model="pwForm.password" :type="showPw.password ? 'text' : 'password'"
-                                    required minlength="8" class="input pr-10" placeholder="Mínimo 8 caracteres" />
-                                <button type="button" @click="showPw.password = !showPw.password"
-                                    class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300">
-                                    <Eye v-if="!showPw.password" class="w-4 h-4" /><EyeOff v-else class="w-4 h-4" />
-                                </button>
-                            </div>
-                            <div class="flex gap-1 mt-2">
-                                <div v-for="i in 4" :key="i" class="h-1 flex-1 rounded-full transition-colors"
-                                    :class="pwStrength >= i ? strengthColor : 'bg-gray-700'"></div>
-                            </div>
-                            <p class="text-xs mt-1" :class="pwStrength > 0 ? strengthTextColor : 'text-gray-600'">{{ strengthLabel }}</p>
-                        </div>
-                        <div>
-                            <label class="label">Confirmar nova senha *</label>
-                            <div class="relative">
-                                <input v-model="pwForm.password_confirmation" :type="showPw.confirm ? 'text' : 'password'"
-                                    required class="input pr-10" placeholder="Repita a nova senha" />
-                                <button type="button" @click="showPw.confirm = !showPw.confirm"
-                                    class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300">
-                                    <Eye v-if="!showPw.confirm" class="w-4 h-4" /><EyeOff v-else class="w-4 h-4" />
-                                </button>
-                            </div>
-                            <p v-if="pwForm.password_confirmation && pwForm.password !== pwForm.password_confirmation"
-                                class="text-xs text-red-400 mt-1">Senhas não coincidem.</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-4">
-                        <button type="submit" :disabled="savingPw || pwForm.password !== pwForm.password_confirmation" class="btn-primary px-6 py-2.5">
-                            {{ savingPw ? 'Alterando...' : 'Alterar senha' }}
-                        </button>
-                        <Transition name="fade">
-                            <span v-if="savedPw" class="text-sm text-green-400 flex items-center gap-1.5">
-                                <CheckCircle class="w-4 h-4" /> Senha alterada!
-                            </span>
-                        </Transition>
-                        <span v-if="errorPw" class="text-sm text-red-400">{{ errorPw }}</span>
-                    </div>
-                </form>
             </section>
 
             <!-- Em desenvolvimento -->
@@ -348,6 +332,105 @@
             </section>
         </div>
     </div>
+
+    <!-- Modal: Perfil de acesso -->
+    <Teleport to="body">
+        <div v-if="showRoleModal" class="fixed inset-0 bg-black/30 backdrop-blur-xl flex items-center justify-center z-50 p-4" @click.self="showRoleModal = false">
+            <div class="glass-modal rounded-2xl w-full max-w-2xl p-6 max-h-[90vh] overflow-y-auto">
+                <h2 class="text-lg font-semibold text-white mb-5">{{ editingRole ? 'Editar' : 'Novo' }} Perfil de Acesso</h2>
+
+                <form @submit.prevent="saveRole" class="space-y-4">
+                    <div>
+                        <label class="label">Nome *</label>
+                        <input v-model="roleForm.name" type="text" required class="input" placeholder="Ex: Operador" />
+                    </div>
+                    <div>
+                        <label class="label">Descrição</label>
+                        <input v-model="roleForm.description" type="text" class="input" placeholder="Descreva a função deste perfil" />
+                    </div>
+
+                    <div>
+                        <label class="label mb-2">Permissões por área</label>
+                        <div class="rounded-lg border border-gray-800 overflow-hidden">
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="bg-gray-800/50 text-gray-400 text-xs uppercase tracking-wide">
+                                        <th class="text-left font-medium px-3 py-2">Área</th>
+                                        <th v-for="action in permissionActions" :key="action.key" class="px-2 py-2 text-center font-medium">
+                                            <button type="button" @click="toggleColumn(action.key)" class="hover:text-white transition-colors">
+                                                {{ action.label }}
+                                            </button>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="(label, slug) in menus" :key="slug" class="border-t border-gray-800">
+                                        <td class="px-3 py-2 text-gray-300">{{ label }}</td>
+                                        <td v-for="action in permissionActions" :key="action.key" class="px-2 py-2 text-center">
+                                            <input type="checkbox" v-model="roleForm.permissions[slug][action.key]" class="w-4 h-4 accent-violet-600 cursor-pointer" />
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <p v-if="errorRole" class="text-sm text-red-400">{{ errorRole }}</p>
+
+                    <div class="flex justify-end gap-3 pt-2">
+                        <button type="button" @click="showRoleModal = false" class="btn-ghost">Cancelar</button>
+                        <button type="submit" :disabled="savingRole" class="btn-primary">
+                            {{ savingRole ? 'Salvando...' : 'Salvar' }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </Teleport>
+
+    <!-- Modal: Membro da equipe -->
+    <Teleport to="body">
+        <div v-if="showMemberModal" class="fixed inset-0 bg-black/30 backdrop-blur-xl flex items-center justify-center z-50 p-4" @click.self="showMemberModal = false">
+            <div class="glass-modal rounded-2xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
+                <h2 class="text-lg font-semibold text-white mb-5">{{ editingMember ? 'Editar' : 'Novo' }} Membro da Equipe</h2>
+
+                <form @submit.prevent="saveMember" class="space-y-4">
+                    <div>
+                        <label class="label">Nome *</label>
+                        <input v-model="memberForm.name" type="text" required class="input" placeholder="Nome do membro" />
+                    </div>
+                    <div>
+                        <label class="label">E-mail *</label>
+                        <input v-model="memberForm.email" type="email" required class="input" placeholder="email@exemplo.com" />
+                    </div>
+                    <div>
+                        <label class="label">{{ editingMember ? 'Nova senha (opcional)' : 'Senha *' }}</label>
+                        <input v-model="memberForm.password" type="password" :required="!editingMember" minlength="8" class="input" placeholder="Mínimo 8 caracteres" />
+                    </div>
+                    <div>
+                        <label class="label">Confirmar senha{{ editingMember ? '' : ' *' }}</label>
+                        <input v-model="memberForm.password_confirmation" type="password" :required="!editingMember && !!memberForm.password" minlength="8" class="input" placeholder="Repita a senha" />
+                    </div>
+                    <div>
+                        <label class="label">Perfil de acesso *</label>
+                        <select v-model="memberForm.role_id" required class="input">
+                            <option value="" disabled>Selecione um perfil</option>
+                            <option v-for="role in roles" :key="role.id" :value="role.id">{{ role.name }}</option>
+                        </select>
+                    </div>
+
+                    <p v-if="errorMember" class="text-sm text-red-400">{{ errorMember }}</p>
+
+                    <div class="flex justify-end gap-3 pt-2">
+                        <button type="button" @click="showMemberModal = false" class="btn-ghost">Cancelar</button>
+                        <button type="submit" :disabled="savingMember" class="btn-primary">
+                            {{ savingMember ? 'Salvando...' : 'Salvar' }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </Teleport>
 </template>
 
 <script setup>
@@ -355,12 +438,13 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import {
     Settings, Users, Mail, Webhook, FileText, Bot, Share2,
-    LayoutList, CreditCard, ScrollText, Zap, Lock,
-    Loader2, CheckCircle, Eye, EyeOff, Upload
+    LayoutList, CreditCard, ScrollText, Zap,
+    Loader2, CheckCircle, Upload, Plus, Pencil, Trash2
 } from 'lucide-vue-next'
 import api from '@/services/api'
 import { useAuthStore } from '@/stores/auth'
 import { useSettingsStore } from '@/stores/settings'
+import { onCNPJInput, maskCNPJ } from '@/utils/mask'
 
 const auth          = useAuthStore()
 const settingsStore = useSettingsStore()
@@ -378,7 +462,6 @@ const sections = [
     { id: 'assinatura', label: 'Assinatura',              icon: CreditCard },
     { id: 'logs',       label: 'Logs de Auditoria',       icon: ScrollText },
     { id: 'automacao',  label: 'Automação',               icon: Zap },
-    { id: 'senha',      label: 'Alterar Senha',           icon: Lock },
 ]
 
 const currentSection = computed(() => sections.find(s => s.id === active.value))
@@ -391,7 +474,7 @@ const savedGeneral    = ref(false)
 const errorGeneral    = ref('')
 
 const general = reactive({
-    nome_empresa: '', moeda: 'BRL', fuso_horario: 'America/Sao_Paulo',
+    nome_empresa: '', cnpj: '', moeda: 'BRL', fuso_horario: 'America/Sao_Paulo',
     auto_atribuir_leads: false, email_notificacao_leads: '',
     dias_expirar_lead: 30, orcamento_padrao: 0, dominio_tracking: '',
     notificar_novo_lead: true, notificar_tarefa_vencida: true, notificar_fim_campanha: true,
@@ -415,6 +498,7 @@ async function loadGeneral() {
     try {
         const { data } = await api.get('/settings')
         Object.assign(general, data)
+        if (general.cnpj) general.cnpj = maskCNPJ(general.cnpj)
         // Ensure the loaded color is applied
         if (data.cor_primaria) settingsStore.applyColor(data.cor_primaria)
     } finally {
@@ -473,56 +557,184 @@ async function onLogoChange(e) {
     }
 }
 
-// ─── Usuários ──────────────────────────────────────────────────────────────────
+// ─── Perfis de acesso ───────────────────────────────────────────────────────────
 
-const defaultRoles = [
-    { name: 'Admin',        desc: 'Acesso total ao sistema',    users: 1 },
-    { name: 'Operador',     desc: 'Gerencia campanhas e leads', users: 0 },
-    { name: 'Visualizador', desc: 'Somente leitura',            users: 0 },
+const menus         = ref({})
+const roles         = ref([])
+const loadingRoles   = ref(true)
+const errorRoles     = ref('')
+const showRoleModal = ref(false)
+const editingRole    = ref(null)
+const savingRole     = ref(false)
+const errorRole      = ref('')
+
+const permissionActions = [
+    { key: 'view',   label: 'Ver' },
+    { key: 'create', label: 'Criar' },
+    { key: 'edit',   label: 'Editar' },
+    { key: 'delete', label: 'Excluir' },
 ]
 
-// ─── Alterar Senha ─────────────────────────────────────────────────────────────
+const roleForm = reactive({ name: '', description: '', permissions: {} })
 
-const savingPw = ref(false)
-const savedPw  = ref(false)
-const errorPw  = ref('')
-const pwForm   = reactive({ current: '', password: '', password_confirmation: '' })
-const showPw   = reactive({ current: false, password: false, confirm: false })
+function blankPermissions() {
+    return Object.fromEntries(
+        Object.keys(menus.value).map(slug => [slug, { view: false, create: false, edit: false, delete: false }])
+    )
+}
 
-const pwStrength = computed(() => {
-    const p = pwForm.password; if (!p) return 0
-    let s = 0
-    if (p.length >= 8) s++
-    if (/[A-Z]/.test(p)) s++
-    if (/[0-9]/.test(p)) s++
-    if (/[^A-Za-z0-9]/.test(p)) s++
-    return s
-})
-const strengthColor     = computed(() => ['','bg-red-500','bg-orange-500','bg-yellow-500','bg-green-500'][pwStrength.value])
-const strengthTextColor = computed(() => ['','text-red-400','text-orange-400','text-yellow-400','text-green-400'][pwStrength.value])
-const strengthLabel     = computed(() => ['','Fraca','Razoável','Boa','Forte'][pwStrength.value])
+async function loadMenus() {
+    const { data } = await api.get('/menus')
+    menus.value = data
+}
 
-async function changePassword() {
-    savingPw.value = true; errorPw.value = ''
+async function loadRoles() {
+    loadingRoles.value = true
+    errorRoles.value = ''
     try {
-        await api.put('/auth/password', pwForm)
-        savedPw.value = true
-        Object.assign(pwForm, { current: '', password: '', password_confirmation: '' })
-        setTimeout(() => (savedPw.value = false), 3000)
-    } catch (e) {
-        errorPw.value = e.response?.data?.message ?? 'Erro ao alterar senha.'
+        const { data } = await api.get('/roles')
+        roles.value = data
+    } catch {
+        errorRoles.value = 'Erro ao carregar perfis de acesso.'
     } finally {
-        savingPw.value = false
+        loadingRoles.value = false
     }
 }
 
-onMounted(loadGeneral)
+function openRoleModal(role = null) {
+    editingRole.value = role
+    roleForm.permissions = blankPermissions()
+    if (role) {
+        roleForm.name = role.name
+        roleForm.description = role.description || ''
+        Object.assign(roleForm.permissions, JSON.parse(JSON.stringify(role.permissions || {})))
+    } else {
+        roleForm.name = ''
+        roleForm.description = ''
+    }
+    errorRole.value = ''
+    showRoleModal.value = true
+}
+
+function toggleColumn(actionKey) {
+    const allChecked = Object.keys(menus.value).every(slug => roleForm.permissions[slug][actionKey])
+    Object.keys(menus.value).forEach(slug => { roleForm.permissions[slug][actionKey] = !allChecked })
+}
+
+async function saveRole() {
+    savingRole.value = true
+    errorRole.value = ''
+    try {
+        if (editingRole.value) {
+            await api.put(`/roles/${editingRole.value.id}`, roleForm)
+        } else {
+            await api.post('/roles', roleForm)
+        }
+        showRoleModal.value = false
+        await loadRoles()
+    } catch (e) {
+        errorRole.value = e.response?.data?.message ?? 'Erro ao salvar perfil.'
+    } finally {
+        savingRole.value = false
+    }
+}
+
+async function deleteRole(role) {
+    if (!confirm(`Excluir o perfil "${role.name}"?`)) return
+    try {
+        await api.delete(`/roles/${role.id}`)
+        await loadRoles()
+    } catch {
+        errorRoles.value = 'Erro ao excluir perfil.'
+    }
+}
+
+// ─── Membros da equipe ──────────────────────────────────────────────────────────
+
+const members         = ref([])
+const loadingMembers   = ref(true)
+const errorMembers     = ref('')
+const showMemberModal = ref(false)
+const editingMember    = ref(null)
+const savingMember     = ref(false)
+const errorMember      = ref('')
+
+const memberForm = reactive({ name: '', email: '', password: '', password_confirmation: '', role_id: '' })
+
+async function loadMembers() {
+    loadingMembers.value = true
+    errorMembers.value = ''
+    try {
+        const { data } = await api.get('/team-members')
+        members.value = data
+    } catch {
+        errorMembers.value = 'Erro ao carregar membros da equipe.'
+    } finally {
+        loadingMembers.value = false
+    }
+}
+
+function openMemberModal(member = null) {
+    editingMember.value = member
+    if (member) {
+        memberForm.name = member.name
+        memberForm.email = member.email
+        memberForm.role_id = member.role_id
+    } else {
+        memberForm.name = ''
+        memberForm.email = ''
+        memberForm.role_id = ''
+    }
+    memberForm.password = ''
+    memberForm.password_confirmation = ''
+    errorMember.value = ''
+    showMemberModal.value = true
+}
+
+async function saveMember() {
+    savingMember.value = true
+    errorMember.value = ''
+    try {
+        if (editingMember.value) {
+            await api.put(`/team-members/${editingMember.value.id}`, memberForm)
+        } else {
+            await api.post('/team-members', memberForm)
+        }
+        showMemberModal.value = false
+        await loadMembers()
+    } catch (e) {
+        errorMember.value = e.response?.data?.message ?? 'Erro ao salvar membro.'
+    } finally {
+        savingMember.value = false
+    }
+}
+
+async function deleteMember(member) {
+    if (!confirm(`Remover "${member.name}" da equipe?`)) return
+    try {
+        await api.delete(`/team-members/${member.id}`)
+        await loadMembers()
+    } catch {
+        errorMembers.value = 'Erro ao remover membro.'
+    }
+}
+
+onMounted(async () => {
+    loadGeneral()
+    if (auth.isOwner) {
+        await loadMenus()
+        loadRoles()
+        loadMembers()
+    }
+})
 </script>
 
 <style scoped>
 @reference "tailwindcss";
 .label        { @apply block text-xs text-gray-400 mb-1 font-medium; }
 .btn-primary  { @apply disabled:opacity-50 text-white font-medium px-4 py-2 rounded-lg transition-colors text-sm; }
+.btn-ghost    { @apply text-gray-400 hover:text-white font-medium px-4 py-2 rounded-lg transition-colors text-sm; background: transparent; }
+.btn-ghost:hover { background: rgba(255, 255, 255, 0.055); }
 .card {
     @apply rounded-2xl p-6;
     background: rgba(14, 12, 22, 0.68);

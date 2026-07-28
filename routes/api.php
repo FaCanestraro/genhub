@@ -11,6 +11,9 @@ use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\TemplateController;
 use App\Http\Controllers\Api\LeadActivityController;
 use App\Http\Controllers\Api\SettingController;
+use App\Http\Controllers\Api\MenuController;
+use App\Http\Controllers\Api\RoleController;
+use App\Http\Controllers\Api\TeamMemberController;
 use App\Http\Controllers\Api\ProxyDownloadController;
 use Illuminate\Support\Facades\Route;
 
@@ -61,6 +64,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('settings', [SettingController::class, 'show']);
     Route::put('settings', [SettingController::class, 'update']);
     Route::post('settings/logo', [SettingController::class, 'uploadLogo']);
+
+    Route::get('menus', [MenuController::class, 'index']);
+    Route::apiResource('roles', RoleController::class)->except('show');
+    Route::apiResource('team-members', TeamMemberController::class)->except('show');
 
     Route::get('proxy-download', [ProxyDownloadController::class, 'download']);
 });

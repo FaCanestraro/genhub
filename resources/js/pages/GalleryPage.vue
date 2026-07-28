@@ -238,7 +238,7 @@
                             </div>
 
                             <!-- CTA -->
-                            <div class="mt-auto">
+                            <div v-if="auth.can('generate', 'create')" class="mt-auto">
                                 <button
                                     @click="generate"
                                     :disabled="generating"
@@ -304,6 +304,9 @@ import { RouterLink } from 'vue-router'
 import { Film, Image as ImageIcon, X, Sparkles, Loader2, Download, LayoutTemplate, Plus, ArrowUpRight } from 'lucide-vue-next'
 import api from '@/services/api'
 import { assetUrl } from '@/utils/assetUrl'
+import { useAuthStore } from '@/stores/auth'
+
+const auth = useAuthStore()
 
 const templates          = ref([])
 const products           = ref([])

@@ -3,15 +3,29 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\CheckPermission;
 use App\Models\Lead;
 use App\Models\LeadActivity;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 
-class LeadController extends Controller
+class LeadController extends Controller implements HasMiddleware
 {
+    public static function middleware(): array
+    {
+        return [
+            new Middleware(CheckPermission::class.':leads,view',    only: ['index', 'show']),
+            new Middleware(CheckPermission::class.':pipeline,view', only: ['pipeline']),
+            new Middleware(CheckPermission::class.':leads,create', only: ['store']),
+            new Middleware(CheckPermission::class.':leads,edit',   only: ['update']),
+            new Middleware(CheckPermission::class.':leads,delete', only: ['destroy']),
+        ];
+    }
+
     public function index(Request $request)
     {
-        $query = Lead::where('user_id', $request->user()->id)
+        $query = Lead::where('user_id', $request->user()->accountId())
             ->with('campaign:id,name')
             ->latest();
 
@@ -33,7 +47,7 @@ class LeadController extends Controller
 
     public function pipeline(Request $request)
     {
-        $leads = Lead::where('user_id', $request->user()->id)
+        $leads = Lead::where('user_id', $request->user()->accountId())
             ->select('id','nome','email','telefone','status','fonte','responsavel','created_at')
             ->latest()
             ->get()
@@ -56,14 +70,14 @@ class LeadController extends Controller
             'campaign_id' => 'nullable|exists:campaigns,id',
         ]);
 
-        $lead = Lead::create(['user_id' => $request->user()->id] + $data);
+        $lead = Lead::create(['user_id' => $request->user()->accountId()] + $data);
 
         return response()->json($lead, 201);
     }
 
     public function show(Request $request, Lead $lead)
     {
-        abort_if($lead->user_id !== $request->user()->id, 403);
+        abort_if($lead->user_id !== $request->user()->accountId(), 403);
         return response()->json(
             $lead->load('campaign:id,name', 'tasks', 'activities.user:id,name')
         );
@@ -71,7 +85,7 @@ class LeadController extends Controller
 
     public function update(Request $request, Lead $lead)
     {
-        abort_if($lead->user_id !== $request->user()->id, 403);
+        abort_if($lead->user_id !== $request->user()->accountId(), 403);
 
         $data = $request->validate([
             'nome'        => 'sometimes|string|max:255',
@@ -104,7 +118,7 @@ class LeadController extends Controller
 
     public function destroy(Request $request, Lead $lead)
     {
-        abort_if($lead->user_id !== $request->user()->id, 403);
+        abort_if($lead->user_id !== $request->user()->accountId(), 403);
         $lead->delete();
         return response()->json(null, 204);
     }

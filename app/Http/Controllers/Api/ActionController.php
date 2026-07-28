@@ -3,15 +3,29 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\CheckPermission;
 use App\Models\Action;
 use App\Models\Campaign;
+use App\Models\Generation;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 
-class ActionController extends Controller
+class ActionController extends Controller implements HasMiddleware
 {
+    public static function middleware(): array
+    {
+        return [
+            new Middleware(CheckPermission::class.':campaigns,view',   only: ['allActions', 'index', 'show']),
+            new Middleware(CheckPermission::class.':campaigns,create', only: ['store']),
+            new Middleware(CheckPermission::class.':campaigns,edit',   only: ['update']),
+            new Middleware(CheckPermission::class.':campaigns,delete', only: ['destroy']),
+        ];
+    }
+
     public function allActions(Request $request)
     {
-        $actions = Action::where('user_id', $request->user()->id)
+        $actions = Action::where('user_id', $request->user()->accountId())
             ->with('latestGeneration', 'campaign')
             ->latest()
             ->get();
@@ -21,7 +35,7 @@ class ActionController extends Controller
 
     public function index(Request $request, Campaign $campaign)
     {
-        abort_if($campaign->user_id !== $request->user()->id, 403);
+        abort_if($campaign->user_id !== $request->user()->accountId(), 403);
 
         $actions = $campaign->actions()
             ->with('latestGeneration.assets')
@@ -33,7 +47,7 @@ class ActionController extends Controller
 
     public function store(Request $request, Campaign $campaign)
     {
-        abort_if($campaign->user_id !== $request->user()->id, 403);
+        abort_if($campaign->user_id !== $request->user()->accountId(), 403);
 
         $data = $request->validate([
             'type'                 => 'required|in:post,reel,carousel,story,tiktok_video',
@@ -53,11 +67,11 @@ class ActionController extends Controller
 
         $action = $campaign->actions()->create([
             ...$data,
-            'user_id' => $request->user()->id,
+            'user_id' => $request->user()->accountId(),
         ]);
 
         if ($attachIds) {
-            $request->user()->generations()
+            Generation::where('user_id', $request->user()->accountId())
                 ->whereIn('id', $attachIds)
                 ->update(['action_id' => $action->id]);
         }
@@ -69,7 +83,7 @@ class ActionController extends Controller
 
     public function show(Request $request, Action $action)
     {
-        abort_if($action->user_id !== $request->user()->id, 403);
+        abort_if($action->user_id !== $request->user()->accountId(), 403);
 
         $action->load('generations.assets', 'campaign');
 
@@ -83,7 +97,7 @@ class ActionController extends Controller
 
     public function update(Request $request, Action $action)
     {
-        abort_if($action->user_id !== $request->user()->id, 403);
+        abort_if($action->user_id !== $request->user()->accountId(), 403);
 
         $data = $request->validate([
             'title'                   => 'sometimes|string|max:255',
@@ -107,7 +121,7 @@ class ActionController extends Controller
         $action->update($data);
 
         if ($attachIds) {
-            $request->user()->generations()
+            Generation::where('user_id', $request->user()->accountId())
                 ->whereIn('id', $attachIds)
                 ->update(['action_id' => $action->id]);
         }
@@ -117,7 +131,7 @@ class ActionController extends Controller
 
     public function destroy(Request $request, Action $action)
     {
-        abort_if($action->user_id !== $request->user()->id, 403);
+        abort_if($action->user_id !== $request->user()->accountId(), 403);
 
         $action->campaign->decrement('actions_count');
         $action->delete();

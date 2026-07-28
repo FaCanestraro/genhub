@@ -22,7 +22,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { Megaphone, Layers, Sparkles, Package } from 'lucide-vue-next'
+import { Megaphone, Layers, Sparkles, Package, Wallet } from 'lucide-vue-next'
 
 const props = defineProps({
     label: String,
@@ -40,7 +40,7 @@ const colorMap = {
     cyan:   '#22d3ee',
 }
 
-const icons = { Megaphone, Layers, Sparkles, Package }
+const icons = { Megaphone, Layers, Sparkles, Package, Wallet }
 const iconComponent = computed(() => icons[props.icon] || Sparkles)
 const colorVar = computed(() => colorMap[props.color] || colorMap.violet)
 </script>

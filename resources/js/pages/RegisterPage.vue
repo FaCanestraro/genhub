@@ -18,10 +18,6 @@
                         <input v-model="form.name" type="text" required class="input" placeholder="Seu nome" />
                     </div>
                     <div>
-                        <label class="block text-sm text-gray-400 mb-1">Empresa (opcional)</label>
-                        <input v-model="form.company_name" type="text" class="input" placeholder="Nome da empresa" />
-                    </div>
-                    <div>
                         <label class="block text-sm text-gray-400 mb-1">E-mail</label>
                         <input v-model="form.email" type="email" required class="input" placeholder="seu@email.com" />
                     </div>
@@ -60,7 +56,7 @@ const router = useRouter()
 const auth = useAuthStore()
 const loading = ref(false)
 const error = ref('')
-const form = ref({ name: '', email: '', company_name: '', password: '', password_confirmation: '' })
+const form = ref({ name: '', email: '', password: '', password_confirmation: '' })
 
 async function handleRegister() {
     loading.value = true
