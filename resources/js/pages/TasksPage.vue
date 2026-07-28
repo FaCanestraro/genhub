@@ -36,7 +36,7 @@
         <!-- Tabela -->
         <div class="glass-modal rounded-2xl overflow-hidden">
             <div v-if="loading" class="p-8 text-center">
-                <Loader2 class="w-6 h-6 text-violet-400 animate-spin mx-auto" />
+                <Loader2 class="w-6 h-6 text-lime-400 animate-spin mx-auto" />
             </div>
 
             <div v-else-if="tasks.length === 0" class="p-16 text-center">
@@ -79,7 +79,7 @@
                             <RouterLink
                                 v-if="task.lead"
                                 :to="`/leads/${task.lead_id}`"
-                                class="text-xs text-violet-400 bg-violet-600/10 hover:bg-violet-600/20 px-2 py-0.5 rounded-full transition-colors"
+                                class="text-xs text-lime-400 bg-lime-600/10 hover:bg-lime-600/20 px-2 py-0.5 rounded-full transition-colors"
                             >
                                 {{ task.lead.nome }}
                             </RouterLink>
@@ -255,7 +255,6 @@ onMounted(() => {
 <style scoped>
 @reference "tailwindcss";
 .label       { @apply block text-xs text-gray-400 mb-1 font-medium; }
-.btn-primary { @apply bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white font-medium px-4 py-2 rounded-lg transition-colors text-sm; }
 </style>
 
 

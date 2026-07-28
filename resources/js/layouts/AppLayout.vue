@@ -15,9 +15,9 @@
                 <template v-else>
                     <div
                         class="brand-orb w-8 h-8 flex items-center justify-center flex-shrink-0"
-                        :style="{ background: `radial-gradient(circle, color-mix(in srgb, ${settings.primaryColor || 'var(--brand)'} 70%, white) 0%, ${settings.primaryColor || 'var(--brand)'} 60%, transparent 100%)`, boxShadow: `0 0 22px color-mix(in srgb, ${settings.primaryColor || 'var(--brand)'} 55%, transparent)` }"
+                        :style="{ background: settings.primaryColor || 'var(--brand)' }"
                     >
-                        <Zap class="w-4 h-4 text-white" />
+                        <Zap class="w-4 h-4" style="color: var(--brand-ink)" />
                     </div>
                     <div>
                         <p class="text-white font-semibold text-sm tracking-wide leading-none">GenHub</p>

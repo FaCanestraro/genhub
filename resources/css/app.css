@@ -11,20 +11,22 @@
 }
 
 :root {
-    --font-display: 'Space Grotesk', 'Inter', ui-sans-serif, system-ui, sans-serif;
-    --brand: #7c3aed;
-    --brand-hover: color-mix(in srgb, #7c3aed 82%, black);
-    --brand-dim: color-mix(in srgb, #7c3aed 15%, transparent);
-    --brand-glow-sm: 0 0 10px color-mix(in srgb, #7c3aed 20%, transparent);
-    --brand-glow-md: 0 0 18px color-mix(in srgb, #7c3aed 28%, transparent);
-    --bg-base: #050410;
-    --surface-0: rgba(255, 255, 255, 0.02);
-    --surface-1: rgba(255, 255, 255, 0.045);
-    --surface-2: rgba(255, 255, 255, 0.07);
-    --border-subtle: rgba(255, 255, 255, 0.07);
-    --border-soft: rgba(255, 255, 255, 0.11);
-    --text-muted: rgba(107, 114, 128, 1);  /* gray-500 */
-    --text-secondary: rgba(156, 163, 175, 1); /* gray-400 */
+    --font-display: 'Bricolage Grotesque', 'Inter', ui-sans-serif, system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', ui-monospace, monospace;
+    --brand: #C6FF3D;
+    --brand-ink: #0A0A0A;
+    --brand-hover: color-mix(in srgb, #C6FF3D 82%, black);
+    --brand-dim: color-mix(in srgb, #C6FF3D 15%, transparent);
+    --brand-glow-sm: 0 0 10px color-mix(in srgb, #C6FF3D 20%, transparent);
+    --brand-glow-md: 0 0 18px color-mix(in srgb, #C6FF3D 28%, transparent);
+    --bg-base: #0A0A0A;
+    --surface-0: rgba(255, 255, 255, 0.025);
+    --surface-1: rgba(255, 255, 255, 0.05);
+    --surface-2: rgba(255, 255, 255, 0.08);
+    --border-subtle: rgba(255, 255, 255, 0.09);
+    --border-soft: rgba(255, 255, 255, 0.15);
+    --text-muted: rgba(140, 140, 136, 1);
+    --text-secondary: rgba(175, 175, 169, 1);
     --grid-dot: rgba(255, 255, 255, 0.038);
 }
 
@@ -56,88 +58,23 @@ body {
     position: relative;
 }
 
-body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background:
-        radial-gradient(ellipse 70% 55% at 5%   -5%,  color-mix(in srgb, var(--brand) 32%, transparent) 0%, transparent 55%),
-        radial-gradient(ellipse 55% 50% at 95% 105%,  color-mix(in srgb, var(--brand) 22%, transparent) 0%, transparent 50%),
-        radial-gradient(ellipse 40% 35% at 96%  4%,   color-mix(in srgb, var(--brand) 18%, transparent) 0%, transparent 55%),
-        radial-gradient(ellipse 40% 35% at 4%  96%,   color-mix(in srgb, var(--brand) 16%, transparent) 0%, transparent 55%),
-        radial-gradient(ellipse 60% 45% at 50%  50%,  color-mix(in srgb, var(--brand) 13%, transparent) 0%, transparent 60%),
-        radial-gradient(ellipse 30% 25% at 30%  30%,  color-mix(in srgb, var(--brand) 10%, transparent) 0%, transparent 55%),
-        radial-gradient(ellipse 30% 25% at 70%  70%,  color-mix(in srgb, var(--brand) 10%, transparent) 0%, transparent 55%);
-    pointer-events: none;
-    z-index: 0;
-    transition: background 0.6s ease;
-}
-
-/* ── Dot-grid tech overlay ────────────────────────────────────── */
-body::after {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image: radial-gradient(circle, var(--grid-dot) 1px, transparent 1px);
-    background-size: 28px 28px;
-    pointer-events: none;
-    z-index: 0;
-}
-
 /* ── Glass: overlay de modal ──────────────────────────────────── */
 .glass-overlay {
-    background: rgba(2, 2, 12, 0.72);
-    backdrop-filter: blur(28px) saturate(60%);
-    -webkit-backdrop-filter: blur(28px) saturate(60%);
+    background: rgba(0, 0, 0, 0.72);
 }
 
 /* ── Glass: painel (sidebar, cards fixos) ─────────────────────── */
 .glass-panel {
-    background: rgba(255, 255, 255, 0.035);
-    backdrop-filter: blur(24px) saturate(160%);
-    -webkit-backdrop-filter: blur(24px) saturate(160%);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow:
-        inset 0 1px 0   rgba(255, 255, 255, 0.10),
-        inset 0 -1px 0  rgba(0,   0,   0,   0.18),
-        0 16px 48px     rgba(0,   0,   0,   0.38),
-        0 0   60px      color-mix(in srgb, var(--brand) 7%, transparent);
+    background: var(--surface-1);
+    border: 1px solid var(--border-subtle);
     position: relative;
-}
-
-/* top accent line on sidebar panel */
-.glass-panel::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: linear-gradient(
-        90deg,
-        transparent 0%,
-        color-mix(in srgb, var(--brand) 60%, transparent) 30%,
-        color-mix(in srgb, var(--brand) 60%, transparent) 70%,
-        transparent 100%
-    );
-    box-shadow: 0 0 8px color-mix(in srgb, var(--brand) 45%, transparent);
-    pointer-events: none;
-    z-index: 1;
 }
 
 /* ── Glass: modal / card interativo ──────────────────────────── */
 .glass-modal {
-    background: rgba(255, 255, 255, 0.055);
-    backdrop-filter: blur(36px) saturate(180%);
-    -webkit-backdrop-filter: blur(36px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    box-shadow:
-        inset 0 1.5px 0  rgba(255, 255, 255, 0.18),
-        inset 1px 0 0    rgba(255, 255, 255, 0.06),
-        inset -1px 0 0   rgba(255, 255, 255, 0.03),
-        inset 0 -1px 0   rgba(0,   0,   0,   0.22),
-        0 8px 32px       rgba(0,   0,   0,   0.38),
-        0 0  72px        color-mix(in srgb, var(--brand) 10%, transparent);
+    background: var(--surface-2);
+    border: 1px solid var(--border-soft);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
 }
 
 /* ── Surface levels (cards, linhas de lista) ──────────────────── */
@@ -152,41 +89,46 @@ body::after {
 
 /* ── Botão primário ───────────────────────────────────────────── */
 .btn-primary {
+    display: inline-flex;
+    align-items: center;
     background-color: var(--brand) !important;
-    box-shadow: 0 0 20px color-mix(in srgb, var(--brand) 38%, transparent);
-    transition: background-color 0.18s, box-shadow 0.18s, opacity 0.18s;
+    color: var(--brand-ink) !important;
+    border-radius: 100px;
+    padding: 0.5rem 1.125rem;
+    font-size: 0.875rem;
+    font-weight: 700;
+    line-height: 1.25rem;
+    transition: background-color 0.18s, opacity 0.18s, transform 0.12s;
 }
 .btn-primary:hover:not(:disabled) {
     background-color: var(--brand-hover) !important;
-    box-shadow: 0 0 30px color-mix(in srgb, var(--brand) 52%, transparent);
 }
-.btn-primary:disabled { opacity: 0.45; }
+.btn-primary:active:not(:disabled) { transform: scale(0.98); }
+.btn-primary:disabled { opacity: 0.4; }
 
-/* ── Input / Textarea / Select glass ─────────────────────────── */
+/* ── Input / Textarea / Select ────────────────────────────────── */
 .input {
     display: block;
     width: 100%;
-    border-radius: 0.5rem;
-    padding: 0.625rem 1rem;
+    border-radius: 100px;
+    padding: 0.625rem 1.1rem;
     font-size: 0.875rem;
     color: #fff;
-    background: rgba(255, 255, 255, 0.045);
-    border: 1px solid rgba(255, 255, 255, 0.10);
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.07),
-        inset 0 -1px 0 rgba(0, 0, 0, 0.12);
-    transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
+    background: var(--surface-1);
+    border: 1px solid var(--border-soft);
+    transition: border-color 0.18s, background 0.18s;
     outline: none;
 }
-.input::placeholder { color: rgba(107, 114, 128, 0.7); }
+textarea.input {
+    border-radius: 1rem;
+}
+/* inputs com ícone absoluto à esquerda (busca) precisam de mais respiro */
+.input.pl-9  { padding-left: 2.25rem; }
+.input.pl-10 { padding-left: 2.5rem; }
+.input::placeholder { color: var(--text-muted); }
 .input:hover {
-    background-color: rgba(255, 255, 255, 0.058);
-    border-color: color-mix(in srgb, var(--brand) 55%, rgba(255, 255, 255, 0.18));
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.07),
-        inset 0 -1px 0 rgba(0, 0, 0, 0.12),
-        0 0 0 1px color-mix(in srgb, var(--brand) 14%, transparent),
-        0 0 12px color-mix(in srgb, var(--brand) 12%, transparent);
+    background-color: var(--surface-2);
+    border-color: color-mix(in srgb, var(--brand) 45%, var(--border-soft));
 }
 
 select.input {
@@ -197,56 +139,49 @@ select.input {
     cursor: pointer;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
     background-repeat: no-repeat;
-    background-position: right 0.875rem center;
+    background-position: right 1rem center;
     background-size: 1.1rem;
 }
 select.input:hover {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23d1d5db' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
 }
 
-/* ── List row (dashboard items com hover glow) ───────────────── */
+/* ── List row (dashboard items) ───────────────────────────────── */
 .list-row {
     background: var(--surface-0);
     border: 1px solid var(--border-subtle);
-    transition: border-color 0.18s, box-shadow 0.18s, background 0.18s, transform 0.18s;
+    transition: border-color 0.18s, background 0.18s, transform 0.18s;
 }
 .list-row:hover {
-    background: rgba(255, 255, 255, 0.038);
-    border-color: color-mix(in srgb, var(--brand) 40%, rgba(255,255,255,0.08));
-    box-shadow:
-        0 0 0 1px color-mix(in srgb, var(--brand) 28%, transparent),
-        0 0 22px color-mix(in srgb, var(--brand) 28%, transparent),
-        0 0 40px color-mix(in srgb, var(--brand) 10%, transparent);
+    background: var(--surface-1);
+    border-color: color-mix(in srgb, var(--brand) 55%, var(--border-subtle));
     transform: translateY(-2px);
 }
 
 /* ── Select options ──────────────────────────────────────────── */
 select option {
-    background-color: #110f22;
+    background-color: #14171c;
     color: #e5e7eb;
 }
 select option:hover,
 select option:checked {
-    background-color: #1e1a3a;
+    background-color: #1f2329;
 }
 
 /* ── Focus ring ───────────────────────────────────────────────── */
 input:focus,
 textarea:focus,
 select:focus {
-    border-color: color-mix(in srgb, var(--brand) 85%, rgba(255,255,255,0.4)) !important;
-    box-shadow:
-        0 0 0 3px color-mix(in srgb, var(--brand) 18%, transparent),
-        0 0 20px color-mix(in srgb, var(--brand) 22%, transparent) !important;
+    border-color: var(--brand) !important;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 22%, transparent) !important;
     outline: none;
-    background-color: rgba(255, 255, 255, 0.062) !important;
+    background-color: var(--surface-2) !important;
 }
 
 /* ── Brand utilities ──────────────────────────────────────────── */
 .brand-active {
     background-color: var(--brand) !important;
-    color: white !important;
-    box-shadow: 0 0 14px color-mix(in srgb, var(--brand) 32%, transparent);
+    color: var(--brand-ink) !important;
 }
 .brand-active:hover    { background-color: var(--brand-hover) !important; }
 .brand-bg              { background-color: var(--brand) !important; }
@@ -257,50 +192,34 @@ select:focus {
 
 /* ── Gradient text ────────────────────────────────────────────── */
 .text-gradient {
-    background: linear-gradient(135deg, #c4b5fd 0%, #7c3aed 100%);
+    background: linear-gradient(135deg, #eaffb0 0%, var(--brand) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
 }
 
-/* ── Card glass com hover glow ────────────────────────────────── */
+/* ── Card glass (agora superfície flat) ───────────────────────── */
 .card-glass {
-    background: rgba(10, 8, 20, 0.52);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    background: var(--surface-1);
     border: 1px solid var(--border-subtle);
-    transition: border-color 0.22s, box-shadow 0.22s;
+    transition: border-color 0.18s, transform 0.18s;
 }
 .card-glass:hover {
-    border-color: rgba(255, 255, 255, 0.13);
-    box-shadow: 0 0 36px color-mix(in srgb, var(--brand) 13%, transparent);
+    border-color: color-mix(in srgb, var(--brand) 50%, var(--border-subtle));
+    transform: translateY(-2px);
 }
 
-/* ── Stat card premium ────────────────────────────────────────── */
+/* ── Stat card ─────────────────────────────────────────────────── */
 .stat-card {
-    background: rgba(255, 255, 255, 0.04);
-    backdrop-filter: blur(20px) saturate(160%);
-    -webkit-backdrop-filter: blur(20px) saturate(160%);
-    border: 1px solid rgba(255, 255, 255, 0.09);
-    border-radius: 1.25rem;
+    background: var(--surface-1);
+    border: 1px solid var(--border-subtle);
+    border-radius: 0.875rem;
     position: relative;
     overflow: hidden;
-    transition: border-color 0.22s, box-shadow 0.22s, transform 0.22s;
-}
-.stat-card::before {
-    content: '';
-    position: absolute;
-    inset: 0 0 auto 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.18) 40%, rgba(255,255,255,0.18) 60%, transparent 100%);
+    transition: border-color 0.18s, transform 0.18s;
 }
 .stat-card:hover {
-    border-color: color-mix(in srgb, var(--brand) 30%, rgba(255,255,255,0.1));
-    box-shadow:
-        0 8px 40px rgba(0, 0, 0, 0.45),
-        0 0 0 1px color-mix(in srgb, var(--brand) 28%, transparent),
-        0 0 40px color-mix(in srgb, var(--brand) 30%, transparent),
-        0 0 80px color-mix(in srgb, var(--brand) 12%, transparent);
+    border-color: color-mix(in srgb, var(--brand) 55%, var(--border-subtle));
     transform: translateY(-2px);
 }
 
@@ -317,37 +236,21 @@ select:focus {
     align-items: center;
     gap: 0.75rem;
     padding: 0.5rem 0.75rem;
-    border-radius: 0.6rem;
+    border-radius: 100px;
     font-size: 0.8125rem;
-    font-weight: 500;
+    font-weight: 600;
     letter-spacing: 0.005em;
     transition: background 0.16s, color 0.16s;
     color: var(--text-secondary);
     position: relative;
 }
 .nav-item:hover {
-    background: rgba(255, 255, 255, 0.055);
+    background: var(--surface-2);
     color: #fff;
 }
 .nav-item.active {
-    background: color-mix(in srgb, var(--brand) 14%, transparent);
-    color: #fff;
-    box-shadow:
-        inset 0 0 0 1px color-mix(in srgb, var(--brand) 28%, transparent),
-        0 0 16px color-mix(in srgb, var(--brand) 8%, transparent);
-}
-.nav-item.active::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 15%;
-    bottom: 15%;
-    width: 2.5px;
-    border-radius: 0 3px 3px 0;
-    background: linear-gradient(180deg, color-mix(in srgb, var(--brand) 60%, white), var(--brand));
-    box-shadow:
-        0 0 6px var(--brand),
-        0 0 14px color-mix(in srgb, var(--brand) 55%, transparent);
+    background: var(--brand);
+    color: var(--brand-ink);
 }
 
 /* ── Nav section label ────────────────────────────────────────── */
@@ -356,7 +259,7 @@ select:focus {
     font-weight: 600;
     letter-spacing: 0.09em;
     text-transform: uppercase;
-    color: rgba(107, 114, 128, 0.7);
+    color: var(--text-muted);
     padding: 0 0.75rem;
     margin-bottom: 0.25rem;
     margin-top: 1rem;
@@ -379,15 +282,15 @@ select:focus {
     animation: shimmer 1.8s infinite;
 }
 
-/* ── Pulse glow ───────────────────────────────────────────────── */
+/* ── Pulse (status dots ao vivo) ─────────────────────────────── */
 @keyframes pulse-glow {
-    0%, 100% { box-shadow: 0 0 0 0   color-mix(in srgb, var(--brand) 0%,   transparent); }
-    50%       { box-shadow: 0 0 20px 4px color-mix(in srgb, var(--brand) 35%, transparent); }
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.35; }
 }
 
 /* ── Tech mono label ─────────────────────────────────────────── */
 .tech-label {
-    font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+    font-family: var(--font-mono);
     font-size: 0.65rem;
     font-weight: 500;
     letter-spacing: 0.08em;
@@ -398,8 +301,8 @@ select:focus {
 /* ── Page hero title (shared across pages) ───────────────────── */
 .page-hero-title {
     font-family: var(--font-display);
-    font-weight: 700;
-    letter-spacing: -0.02em;
+    font-weight: 800;
+    letter-spacing: -0.025em;
     color: #fff;
 }
 
@@ -408,7 +311,7 @@ select:focus {
     clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%);
 }
 
-/* ── Scanline overlay (use on glass-modal or glass-panel) ─────── */
+/* ── Scanline overlay (use on glass-modal ou thumbnails de produto) ── */
 .scanline {
     position: relative;
     overflow: hidden;
@@ -428,14 +331,8 @@ select:focus {
     z-index: 2;
 }
 
-/* ── Brand ambient orb ───────────────────────────────────────── */
-@keyframes orb-float {
-    0%, 100% { transform: translateY(0px) scale(1); opacity: 0.65; }
-    50%       { transform: translateY(-6px) scale(1.03); opacity: 0.85; }
-}
+/* ── Marca (logo glyph quando não há logo customizado) ─────────── */
 .brand-orb {
-    border-radius: 50%;
-    background: radial-gradient(circle, color-mix(in srgb, var(--brand) 70%, white) 0%, var(--brand) 60%, transparent 100%);
-    box-shadow: 0 0 28px color-mix(in srgb, var(--brand) 60%, transparent);
-    animation: orb-float 4s ease-in-out infinite;
+    border-radius: 8px;
+    background: var(--brand);
 }

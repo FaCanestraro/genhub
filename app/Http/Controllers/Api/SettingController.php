@@ -103,7 +103,7 @@ class SettingController extends Controller implements HasMiddleware
             'notificar_novo_lead'      => true,
             'notificar_tarefa_vencida' => true,
             'notificar_fim_campanha'   => true,
-            'cor_primaria'             => '#7c3aed',
+            'cor_primaria'             => '#C6FF3D',
             'logo_path'                => null,
             'logo_url'                 => null,
         ];

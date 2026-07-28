@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import api from '@/services/api'
 
 export const useSettingsStore = defineStore('settings', () => {
-    const primaryColor = ref('#7c3aed')
+    const primaryColor = ref('#C6FF3D')
     const logoUrl      = ref(null)
     const nomeEmpresa  = ref('')
     const loaded       = ref(false)

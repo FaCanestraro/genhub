@@ -2,7 +2,7 @@
     <div class="min-h-screen bg-gray-950 flex items-center justify-center p-4">
         <div class="w-full max-w-md">
             <div class="text-center mb-8">
-                <div class="inline-flex items-center justify-center w-12 h-12 bg-violet-600 rounded-xl mb-4">
+                <div class="inline-flex items-center justify-center w-12 h-12 bg-lime-600 rounded-xl mb-4">
                     <Zap class="w-7 h-7 text-white" />
                 </div>
                 <h1 class="text-2xl font-bold text-white">GenHub</h1>
@@ -32,14 +32,14 @@
 
                     <p v-if="error" class="text-red-400 text-sm">{{ error }}</p>
 
-                    <button type="submit" :disabled="loading" class="w-full bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white font-medium py-2.5 rounded-lg transition-colors">
+                    <button type="submit" :disabled="loading" class="w-full bg-lime-600 hover:bg-lime-700 disabled:opacity-50 text-white font-medium py-2.5 rounded-lg transition-colors">
                         {{ loading ? 'Cadastrando...' : 'Criar conta' }}
                     </button>
                 </form>
 
                 <p class="text-center text-sm text-gray-400 mt-6">
                     Já tem conta?
-                    <RouterLink to="/login" class="text-violet-400 hover:text-violet-300">Entrar</RouterLink>
+                    <RouterLink to="/login" class="text-lime-400 hover:text-lime-300">Entrar</RouterLink>
                 </p>
             </div>
         </div>

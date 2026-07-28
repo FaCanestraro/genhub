@@ -146,7 +146,7 @@
                                     :key="p.id"
                                     type="button"
                                     @click="toggleProduct(p.id)"
-                                    :class="actionForm.product_ids.includes(p.id) ? 'bg-violet-600 text-white' : 'bg-gray-800 text-gray-400 hover:text-white'"
+                                    :class="actionForm.product_ids.includes(p.id) ? 'bg-lime-600 text-white' : 'bg-gray-800 text-gray-400 hover:text-white'"
                                     class="px-3 py-1 rounded-full text-xs transition-colors"
                                 >
                                     {{ p.name }}
@@ -162,9 +162,9 @@
                                 class="w-full flex items-center justify-between px-4 py-3 text-sm text-gray-300 hover:bg-gray-800 transition-colors"
                             >
                                 <span class="flex items-center gap-2">
-                                    <Sparkles class="w-4 h-4 text-violet-400" />
+                                    <Sparkles class="w-4 h-4 text-lime-400" />
                                     Material gerado pela IA
-                                    <span v-if="actionForm.attach_generation_ids.length" class="text-xs bg-violet-600 text-white px-1.5 py-0.5 rounded-full">
+                                    <span v-if="actionForm.attach_generation_ids.length" class="text-xs bg-lime-600 text-white px-1.5 py-0.5 rounded-full">
                                         {{ actionForm.attach_generation_ids.length }}
                                     </span>
                                 </span>
@@ -190,7 +190,7 @@
                                         @click="toggleGeneration(gen.id)"
                                         class="relative aspect-square rounded-lg overflow-hidden cursor-pointer bg-gray-800 border-2 transition-colors"
                                         :class="actionForm.attach_generation_ids.includes(gen.id)
-                                            ? 'border-violet-500'
+                                            ? 'border-lime-500'
                                             : 'border-transparent hover:border-gray-600'"
                                     >
                                         <img
@@ -210,9 +210,9 @@
                                         <!-- Check de seleção -->
                                         <div
                                             v-if="actionForm.attach_generation_ids.includes(gen.id)"
-                                            class="absolute inset-0 bg-violet-600/30 flex items-center justify-center"
+                                            class="absolute inset-0 bg-lime-600/30 flex items-center justify-center"
                                         >
-                                            <div class="w-6 h-6 rounded-full bg-violet-600 flex items-center justify-center">
+                                            <div class="w-6 h-6 rounded-full bg-lime-600 flex items-center justify-center">
                                                 <Check class="w-3.5 h-3.5 text-white" />
                                             </div>
                                         </div>
@@ -380,7 +380,6 @@ onMounted(fetchData)
 
 <style scoped>
 @reference "tailwindcss";
-.btn-primary { @apply bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white font-medium px-4 py-2 rounded-lg transition-colors text-sm; }
 .btn-ghost { @apply text-gray-400 hover:text-white hover:bg-gray-800 font-medium px-4 py-2 rounded-lg transition-colors text-sm; }
 </style>
 

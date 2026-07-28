@@ -752,17 +752,4 @@ onMounted(fetchData)
     transform: scale(0.97) translateY(8px);
 }
 
-/* ── Primary button ────────────────────────────────────────────── */
-.btn-primary {
-    background-color: var(--brand);
-    color: #fff;
-    font-weight: 500;
-    font-size: 0.875rem;
-    padding: 0.5rem 1.25rem;
-    border-radius: 0.5rem;
-    transition: background-color 0.18s, box-shadow 0.18s;
-    box-shadow: 0 0 20px rgba(124, 58, 237, 0.32);
-    cursor: pointer;
-}
-.btn-primary:hover { background-color: var(--brand-hover); }
 </style>

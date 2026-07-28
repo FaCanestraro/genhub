@@ -103,7 +103,7 @@
                     v-if="currentGenerations.length === 0 && !generating"
                     class="flex flex-col items-center justify-center h-full gap-5 text-center px-8"
                 >
-                    <div class="w-16 h-16 rounded-2xl bg-violet-600 flex items-center justify-center shadow-lg shadow-violet-900/40">
+                    <div class="w-16 h-16 rounded-2xl bg-lime-600 flex items-center justify-center shadow-lg shadow-lime-900/40">
                         <Sparkles class="w-8 h-8 text-white" />
                     </div>
                     <div>
@@ -124,7 +124,7 @@
 
                         <!-- Resposta da IA -->
                         <div class="flex gap-3">
-                            <div class="w-8 h-8 rounded-lg bg-violet-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <div class="w-8 h-8 rounded-lg bg-lime-600 flex items-center justify-center flex-shrink-0 mt-0.5">
                                 <Sparkles class="w-4 h-4 text-white" />
                             </div>
                             <div class="flex-1 min-w-0 space-y-3">
@@ -174,7 +174,7 @@
                                     <p class="text-sm text-gray-200 whitespace-pre-wrap leading-relaxed">{{ parsedCaption(gen).caption }}</p>
                                     <div v-if="parsedCaption(gen).hashtags?.length" class="flex flex-wrap gap-1 mt-2">
                                         <span v-for="tag in parsedCaption(gen).hashtags" :key="tag"
-                                              class="text-xs text-violet-400 bg-violet-500/10 px-2 py-0.5 rounded-full">
+                                              class="text-xs text-lime-400 bg-lime-500/10 px-2 py-0.5 rounded-full">
                                             #{{ tag.replace('#', '') }}
                                         </span>
                                     </div>
@@ -194,12 +194,12 @@
 
                     <!-- Gerando... -->
                     <div v-if="generating" class="flex gap-3">
-                        <div class="w-8 h-8 rounded-lg bg-violet-600 flex items-center justify-center flex-shrink-0">
+                        <div class="w-8 h-8 rounded-lg bg-lime-600 flex items-center justify-center flex-shrink-0">
                             <Loader2 class="w-4 h-4 text-white animate-spin" />
                         </div>
                         <div class="bg-gray-800 rounded-2xl rounded-tl-sm px-4 py-3 flex items-center gap-3">
                             <span class="text-sm text-gray-400">{{ generatingLabel }}</span>
-                            <span v-if="form.type === 'video'" class="font-mono text-violet-400 text-sm">{{ formatTimer(elapsed) }}</span>
+                            <span v-if="form.type === 'video'" class="font-mono text-lime-400 text-sm">{{ formatTimer(elapsed) }}</span>
                         </div>
                     </div>
                 </div>
@@ -274,7 +274,7 @@
                             type="button"
                             @click="showProducts = !showProducts"
                             class="select-sm flex items-center gap-1"
-                            :class="form.productIds.length ? 'text-violet-300 border-violet-600/50 bg-violet-600/10' : ''"
+                            :class="form.productIds.length ? 'text-lime-300 border-lime-600/50 bg-lime-600/10' : ''"
                         >
                             <Package class="w-3 h-3" />
                             {{ form.productIds.length ? `${form.productIds.length} prod.` : 'Produtos' }}
@@ -292,7 +292,7 @@
                 <div v-if="showProducts && products.length" class="flex flex-wrap gap-1.5 mb-2">
                     <label v-for="p in products" :key="p.id"
                            class="flex items-center gap-1.5 px-2.5 py-1 bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-700 transition-colors">
-                        <input type="checkbox" :value="p.id" v-model="form.productIds" class="accent-violet-500" />
+                        <input type="checkbox" :value="p.id" v-model="form.productIds" class="accent-lime-500" />
                         <span class="text-xs text-gray-300">{{ p.name }}</span>
                     </label>
                 </div>
@@ -302,7 +302,7 @@
                     <textarea
                         v-model="form.brief"
                         rows="3"
-                        class="w-full bg-gray-800/60 border border-gray-700 rounded-xl px-4 py-3 pr-24 text-white placeholder-gray-600 focus:outline-none focus:border-violet-500 transition-colors text-sm resize-none leading-relaxed"
+                        class="w-full bg-gray-800/60 border border-gray-700 rounded-xl px-4 py-3 pr-24 text-white placeholder-gray-600 focus:outline-none focus:border-lime-500 transition-colors text-sm resize-none leading-relaxed"
                         :placeholder="chatPlaceholder"
                         @keydown.ctrl.enter.prevent="generate"
                     ></textarea>
@@ -686,7 +686,7 @@ onUnmounted(() => clearInterval(timer))
 
 <style scoped>
 @reference "tailwindcss";
-.select-sm { @apply bg-gray-800 border border-gray-700 text-gray-300 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-violet-500 transition-colors cursor-pointer; }
+.select-sm { @apply bg-gray-800 border border-gray-700 text-gray-300 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-lime-500 transition-colors cursor-pointer; }
 select.select-sm {
     appearance: none;
     -webkit-appearance: none;

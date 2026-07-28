@@ -46,7 +46,7 @@
                         <span class="text-xs">Sem prévia</span>
                     </div>
                     <div class="absolute top-2 left-2">
-                        <span class="text-xs font-medium px-2 py-0.5 rounded-full" :class="t.type === 'video' ? 'bg-blue-500/20 text-blue-300' : 'bg-violet-500/20 text-violet-300'">
+                        <span class="text-xs font-medium px-2 py-0.5 rounded-full" :class="t.type === 'video' ? 'bg-blue-500/20 text-blue-300' : 'bg-lime-500/20 text-lime-300'">
                             {{ t.type === 'video' ? '🎬 Vídeo' : '🖼 Imagem' }}
                         </span>
                     </div>
@@ -87,7 +87,7 @@
                                     :key="opt.value"
                                     type="button"
                                     @click="form.type = opt.value"
-                                    :class="form.type === opt.value ? 'bg-violet-600 text-white border-violet-500' : 'text-gray-400 hover:text-white'"
+                                    :class="form.type === opt.value ? 'bg-lime-600 text-white border-lime-500' : 'text-gray-400 hover:text-white'"
                                     :style="form.type !== opt.value ? { background: 'rgba(255,255,255,0.045)', border: '1px solid rgba(255,255,255,0.10)' } : {}"
                                     class="py-2 px-3 rounded-lg text-sm font-medium transition-colors border"
                                 >
@@ -106,7 +106,7 @@
                             <label class="block text-sm text-gray-400 mb-2">Prévia (imagem ou vídeo)</label>
                             <div
                                 class="preview-drop"
-                                :class="{ 'border-violet-500': dragOver }"
+                                :class="{ 'border-lime-500': dragOver }"
                                 @dragover.prevent="dragOver = true"
                                 @dragleave="dragOver = false"
                                 @drop.prevent="onDrop"
@@ -239,18 +239,6 @@ onMounted(fetchTemplates)
 </script>
 
 <style scoped>
-.btn-primary {
-    background-color: #7c3aed;
-    color: #fff;
-    font-weight: 500;
-    font-size: 0.875rem;
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    transition: background-color 0.18s, opacity 0.18s;
-}
-.btn-primary:hover { background-color: #6d28d9; }
-.btn-primary:disabled { opacity: 0.5; }
-
 .btn-ghost {
     color: #9ca3af;
     font-weight: 500;
@@ -277,7 +265,7 @@ onMounted(fetchTemplates)
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
     transition: border-color 0.18s, background 0.18s;
 }
-.preview-drop:hover, .preview-drop.border-violet-500 {
+.preview-drop:hover, .preview-drop.border-lime-500 {
     background: rgba(255, 255, 255, 0.055);
     border-color: rgba(124, 58, 237, 0.6);
 }

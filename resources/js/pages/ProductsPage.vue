@@ -81,8 +81,8 @@
                     </div>
                     <p class="text-sm text-gray-300 mt-2 line-clamp-2">{{ p.description }}</p>
                     <div v-if="p.price" class="flex items-center gap-2 mt-3">
-                        <p class="font-semibold" :class="p.price_discount ? 'text-gray-500 line-through text-sm' : 'text-violet-400'">R$ {{ numberToCurrency(p.price) }}</p>
-                        <p v-if="p.price_discount" class="text-violet-400 font-semibold">R$ {{ numberToCurrency(p.price_discount) }}</p>
+                        <p class="font-semibold" :class="p.price_discount ? 'text-gray-500 line-through text-sm' : 'text-lime-400'">R$ {{ numberToCurrency(p.price) }}</p>
+                        <p v-if="p.price_discount" class="text-lime-400 font-semibold">R$ {{ numberToCurrency(p.price_discount) }}</p>
                     </div>
                 </div>
             </div>
@@ -125,7 +125,7 @@
                                     v-for="sys in SYSTEMS"
                                     :key="sys.id"
                                     @click="pickSystem(sys)"
-                                    class="flex flex-col items-center gap-2 p-4 rounded-xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.07] hover:border-violet-500/50 transition-all text-center group"
+                                    class="flex flex-col items-center gap-2 p-4 rounded-xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.07] hover:border-lime-500/50 transition-all text-center group"
                                 >
                                     <span class="text-3xl">{{ sys.icon }}</span>
                                     <span class="text-sm font-medium text-gray-300 group-hover:text-white transition-colors">{{ sys.name }}</span>
@@ -204,7 +204,7 @@
                             <label class="block text-sm text-gray-400 mb-2">Imagem do produto</label>
                             <div
                                 class="image-drop-area"
-                                :class="{ 'border-violet-500': dragOver }"
+                                :class="{ 'border-lime-500': dragOver }"
                                 @dragover.prevent="dragOver = true"
                                 @dragleave="dragOver = false"
                                 @drop.prevent="onDrop"
@@ -442,18 +442,6 @@ onMounted(fetchProducts)
 </script>
 
 <style scoped>
-
-.btn-primary {
-    background-color: #7c3aed;
-    color: #fff;
-    font-weight: 500;
-    font-size: 0.875rem;
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    transition: background-color 0.18s, opacity 0.18s;
-}
-.btn-primary:hover { background-color: #6d28d9; }
-.btn-primary:disabled { opacity: 0.5; }
 
 .btn-ghost {
     color: #9ca3af;

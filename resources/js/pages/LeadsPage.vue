@@ -4,7 +4,7 @@
         <div class="flex items-center justify-between mb-8">
             <div>
                 <h1 class="page-hero-title text-2xl flex items-center gap-3">
-                    <Users class="w-6 h-6 text-violet-400" />
+                    <Users class="w-6 h-6 text-lime-400" />
                     Leads
                 </h1>
                 <p class="text-gray-400 mt-1">Gerencie seus leads e acompanhe o progresso.</p>
@@ -34,7 +34,7 @@
         <!-- Tabela -->
         <div class="glass-modal rounded-2xl overflow-hidden">
             <div v-if="loading" class="p-8 text-center">
-                <Loader2 class="w-6 h-6 text-violet-400 animate-spin mx-auto" />
+                <Loader2 class="w-6 h-6 text-lime-400 animate-spin mx-auto" />
             </div>
 
             <div v-else-if="leads.length === 0" class="p-16 text-center">
@@ -60,7 +60,7 @@
                     <tr v-for="lead in leads" :key="lead.id" class="hover:bg-gray-800/50 transition-colors group cursor-pointer" @click="router.push(`/leads/${lead.id}`)">
                         <td class="px-5 py-3.5">
                             <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-full bg-violet-600/20 flex items-center justify-center text-violet-400 font-semibold text-xs flex-shrink-0">
+                                <div class="w-8 h-8 rounded-full bg-lime-600/20 flex items-center justify-center text-lime-400 font-semibold text-xs flex-shrink-0">
                                     {{ lead.nome.charAt(0).toUpperCase() }}
                                 </div>
                                 <span class="font-medium text-white">{{ lead.nome }}</span>
@@ -185,7 +185,7 @@ const statuses = [
     { value: 'contato_feito', label: 'Contato Feito',   class: 'bg-cyan-500/20 text-cyan-300' },
     { value: 'qualificacao',  label: 'Qualificação',    class: 'bg-yellow-500/20 text-yellow-300' },
     { value: 'cotacao',       label: 'Cotação',         class: 'bg-orange-500/20 text-orange-300' },
-    { value: 'negociacao',    label: 'Negociação',      class: 'bg-purple-500/20 text-purple-300' },
+    { value: 'negociacao',    label: 'Negociação',      class: 'bg-lime-500/20 text-lime-300' },
     { value: 'fechado',       label: 'Fechado',         class: 'bg-green-500/20 text-green-300' },
 ]
 
@@ -260,7 +260,7 @@ onMounted(fetchLeads)
 <style scoped>
 @reference "tailwindcss";
 .filter-select {
-    @apply bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-violet-500 transition-colors text-sm;
+    @apply bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-lime-500 transition-colors text-sm;
     appearance: none;
     -webkit-appearance: none;
     -moz-appearance: none;
@@ -272,7 +272,6 @@ onMounted(fetchLeads)
     background-size: 1rem;
 }
 .label         { @apply block text-xs text-gray-400 mb-1 font-medium; }
-.btn-primary   { @apply bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white font-medium px-4 py-2 rounded-lg transition-colors text-sm; }
 </style>
 
 

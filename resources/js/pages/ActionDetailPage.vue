@@ -31,7 +31,7 @@
                         </button>
                     </div>
                     <div v-else class="flex gap-1">
-                        <button @click="saveBrief" :disabled="savingBrief" class="px-2 py-0.5 text-xs bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white rounded-lg transition-colors">
+                        <button @click="saveBrief" :disabled="savingBrief" class="px-2 py-0.5 text-xs bg-lime-600 hover:bg-lime-700 disabled:opacity-50 text-white rounded-lg transition-colors">
                             {{ savingBrief ? '...' : 'Salvar' }}
                         </button>
                         <button @click="cancelEditBrief" class="px-2 py-0.5 text-xs text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-colors">
@@ -73,7 +73,7 @@
                         </div>
                         <div class="min-w-0">
                             <p class="text-sm font-medium text-white leading-tight truncate max-w-[140px]">{{ p.name }}</p>
-                            <p v-if="p.price" class="text-xs text-violet-400 leading-tight">R$ {{ Number(p.price).toFixed(2) }}</p>
+                            <p v-if="p.price" class="text-xs text-lime-400 leading-tight">R$ {{ Number(p.price).toFixed(2) }}</p>
                         </div>
                     </div>
                 </div>
@@ -85,7 +85,7 @@
             <div class="lg:col-span-2">
                 <div class="glass-panel rounded-2xl p-5 sticky top-8">
                     <h2 class="font-semibold text-white mb-4 flex items-center gap-2">
-                        <Sparkles class="w-4 h-4 text-violet-400" />
+                        <Sparkles class="w-4 h-4 text-lime-400" />
                         Gerar com IA
                     </h2>
 
@@ -100,7 +100,7 @@
                                     type="button"
                                     @click="genForm.type = t.value"
                                     :class="genForm.type === t.value
-                                        ? 'bg-violet-600 text-white border-violet-500'
+                                        ? 'bg-lime-600 text-white border-lime-500'
                                         : 'text-gray-400 hover:text-white'"
                                     :style="genForm.type !== t.value ? {
                                         background: 'rgba(255,255,255,0.045)',
@@ -150,7 +150,7 @@
                             v-if="auth.can('generate', 'create')"
                             type="submit"
                             :disabled="generating"
-                            class="w-full bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white font-semibold py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
+                            class="w-full bg-lime-600 hover:bg-lime-700 disabled:opacity-50 text-white font-semibold py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
                         >
                             <template v-if="generating">
                                 <Loader2 class="w-4 h-4 animate-spin" />
@@ -164,7 +164,7 @@
 
                         <!-- Timer para vídeo -->
                         <div v-if="generating && genForm.type === 'video'" class="text-center">
-                            <div class="text-2xl font-mono text-violet-400">{{ formatTimer(elapsed) }}</div>
+                            <div class="text-2xl font-mono text-lime-400">{{ formatTimer(elapsed) }}</div>
                             <p class="text-xs text-gray-500 mt-1">aguardando Veo processar...</p>
                         </div>
                     </form>
@@ -177,7 +177,7 @@
                             <span
                                 v-for="tag in action.hashtags"
                                 :key="tag"
-                                class="text-xs text-violet-400 bg-violet-500/10 px-2 py-0.5 rounded-full"
+                                class="text-xs text-lime-400 bg-lime-500/10 px-2 py-0.5 rounded-full"
                             >#{{ tag.replace('#', '') }}</span>
                         </div>
                         <button @click="copyCaption" class="mt-3 text-xs text-gray-400 hover:text-white flex items-center gap-1 transition-colors">
@@ -199,15 +199,15 @@
                 <!-- Skeleton durante geração de vídeo -->
                 <div v-if="generating && genForm.type === 'video'" class="glass-panel rounded-2xl overflow-hidden">
                     <div class="aspect-video bg-gray-800 flex flex-col items-center justify-center gap-4">
-                        <div class="w-16 h-16 rounded-full bg-violet-500/20 flex items-center justify-center">
-                            <Film class="w-8 h-8 text-violet-400 animate-pulse" />
+                        <div class="w-16 h-16 rounded-full bg-lime-500/20 flex items-center justify-center">
+                            <Film class="w-8 h-8 text-lime-400 animate-pulse" />
                         </div>
                         <div class="text-center">
                             <p class="text-white font-medium">Gerando vídeo com Veo</p>
                             <p class="text-sm text-gray-400 mt-1">Processamento em curso...</p>
                         </div>
                         <div class="w-48 h-1.5 bg-gray-700 rounded-full overflow-hidden">
-                            <div class="h-full bg-violet-500 rounded-full animate-[progress_3s_ease-in-out_infinite]" style="width: 60%"></div>
+                            <div class="h-full bg-lime-500 rounded-full animate-[progress_3s_ease-in-out_infinite]" style="width: 60%"></div>
                         </div>
                     </div>
                 </div>

@@ -4,7 +4,7 @@
         <div class="flex items-center justify-between mb-6 flex-shrink-0">
             <div>
                 <h1 class="page-hero-title text-2xl flex items-center gap-3">
-                    <KanbanSquare class="w-6 h-6 text-violet-400" />
+                    <KanbanSquare class="w-6 h-6 text-lime-400" />
                     Pipeline
                 </h1>
                 <p class="text-gray-400 mt-1">Arraste os cards para mover entre etapas.</p>
@@ -17,7 +17,7 @@
 
         <!-- Loading -->
         <div v-if="loading" class="flex-1 flex items-center justify-center">
-            <Loader2 class="w-6 h-6 text-violet-400 animate-spin" />
+            <Loader2 class="w-6 h-6 text-lime-400 animate-spin" />
         </div>
 
         <!-- Kanban Board -->
@@ -45,7 +45,7 @@
                 <!-- Drop zone indicator -->
                 <div
                     v-if="dragOver === col.value && dragging?.status !== col.value"
-                    class="mx-3 mb-2 h-1 rounded-full bg-violet-500/60"
+                    class="mx-3 mb-2 h-1 rounded-full bg-lime-500/60"
                 ></div>
 
                 <!-- Cards -->
@@ -62,7 +62,7 @@
                     >
                         <div class="flex items-start justify-between gap-2 mb-2">
                             <div class="flex items-center gap-2 min-w-0">
-                                <div class="w-7 h-7 rounded-full bg-violet-600/20 flex items-center justify-center text-violet-400 font-semibold text-xs flex-shrink-0">
+                                <div class="w-7 h-7 rounded-full bg-lime-600/20 flex items-center justify-center text-lime-400 font-semibold text-xs flex-shrink-0">
                                     {{ lead.nome.charAt(0).toUpperCase() }}
                                 </div>
                                 <span class="font-medium text-white text-sm truncate">{{ lead.nome }}</span>
@@ -89,7 +89,7 @@
                     <div
                         v-if="!pipeline[col.value]?.length"
                         class="border-2 border-dashed rounded-xl p-6 text-center transition-colors"
-                        :class="dragOver === col.value ? 'border-violet-500/40 bg-violet-500/5' : 'border-gray-800'"
+                        :class="dragOver === col.value ? 'border-lime-500/40 bg-lime-500/5' : 'border-gray-800'"
                     >
                         <p class="text-xs text-gray-600">
                             {{ dragOver === col.value ? 'Soltar aqui' : 'Nenhum lead' }}
@@ -181,7 +181,7 @@ const columns = [
     { value: 'contato_feito', label: 'Contato Feito', dot: 'bg-cyan-400' },
     { value: 'qualificacao',  label: 'Qualificação',  dot: 'bg-yellow-400' },
     { value: 'cotacao',       label: 'Cotação',       dot: 'bg-orange-400' },
-    { value: 'negociacao',    label: 'Negociação',    dot: 'bg-purple-400' },
+    { value: 'negociacao',    label: 'Negociação',    dot: 'bg-lime-400' },
     { value: 'fechado',       label: 'Fechado',       dot: 'bg-green-400' },
 ]
 
@@ -286,7 +286,6 @@ onMounted(fetchPipeline)
 <style scoped>
 @reference "tailwindcss";
 .label      { @apply block text-xs text-gray-400 mb-1 font-medium; }
-.btn-primary { @apply bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white font-medium px-4 py-2 rounded-lg transition-colors text-sm; }
 </style>
 
 

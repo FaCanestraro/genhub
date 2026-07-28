@@ -163,7 +163,7 @@
                                         @input="onColorHexInput"
                                         class="input w-36 font-mono uppercase"
                                         maxlength="7"
-                                        placeholder="#7c3aed"
+                                        placeholder="#C6FF3D"
                                     />
                                     <!-- Live preview swatch -->
                                     <div class="flex items-center gap-2">
@@ -209,7 +209,7 @@
 
                     <!-- Save -->
                     <div class="flex items-center gap-4">
-                        <button v-if="auth.can('settings', 'edit')" type="submit" :disabled="savingGeneral" class="btn-primary px-6 py-2.5">
+                        <button v-if="auth.can('settings', 'edit')" type="submit" :disabled="savingGeneral" class="btn-primary">
                             {{ savingGeneral ? 'Salvando...' : 'Salvar configurações' }}
                         </button>
                         <Transition name="fade">
@@ -367,7 +367,7 @@
                                     <tr v-for="(label, slug) in menus" :key="slug" class="border-t border-gray-800">
                                         <td class="px-3 py-2 text-gray-300">{{ label }}</td>
                                         <td v-for="action in permissionActions" :key="action.key" class="px-2 py-2 text-center">
-                                            <input type="checkbox" v-model="roleForm.permissions[slug][action.key]" class="w-4 h-4 accent-violet-600 cursor-pointer" />
+                                            <input type="checkbox" v-model="roleForm.permissions[slug][action.key]" class="w-4 h-4 accent-lime-600 cursor-pointer" />
                                         </td>
                                     </tr>
                                 </tbody>
@@ -478,7 +478,7 @@ const general = reactive({
     auto_atribuir_leads: false, email_notificacao_leads: '',
     dias_expirar_lead: 30, orcamento_padrao: 0, dominio_tracking: '',
     notificar_novo_lead: true, notificar_tarefa_vencida: true, notificar_fim_campanha: true,
-    cor_primaria: '#7c3aed',
+    cor_primaria: '#C6FF3D',
 })
 
 const notifToggles = [
@@ -732,7 +732,6 @@ onMounted(async () => {
 <style scoped>
 @reference "tailwindcss";
 .label        { @apply block text-xs text-gray-400 mb-1 font-medium; }
-.btn-primary  { @apply disabled:opacity-50 text-white font-medium px-4 py-2 rounded-lg transition-colors text-sm; }
 .btn-ghost    { @apply text-gray-400 hover:text-white font-medium px-4 py-2 rounded-lg transition-colors text-sm; background: transparent; }
 .btn-ghost:hover { background: rgba(255, 255, 255, 0.055); }
 .card {
