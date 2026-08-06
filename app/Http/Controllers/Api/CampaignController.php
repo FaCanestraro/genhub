@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Middleware\CheckPermission;
 use App\Models\Campaign;
+use App\Services\AuditLogger;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
@@ -51,6 +52,11 @@ class CampaignController extends Controller implements HasMiddleware
 
         $campaign = Campaign::create(['user_id' => $request->user()->accountId()] + $data);
 
+        AuditLogger::log('campaigns', 'campaign.created', "Campanha \"{$campaign->name}\" criada", [
+            'subject' => $campaign,
+            'input' => $data,
+        ]);
+
         return response()->json($campaign, 201);
     }
 
@@ -84,6 +90,11 @@ class CampaignController extends Controller implements HasMiddleware
 
         $campaign->update($data);
 
+        AuditLogger::log('campaigns', 'campaign.updated', "Campanha \"{$campaign->name}\" atualizada", [
+            'subject' => $campaign,
+            'input' => $data,
+        ]);
+
         return response()->json($campaign);
     }
 
@@ -91,7 +102,10 @@ class CampaignController extends Controller implements HasMiddleware
     {
         abort_if($campaign->user_id !== $request->user()->accountId(), 403);
 
+        $campaignName = $campaign->name;
         $campaign->delete();
+
+        AuditLogger::log('campaigns', 'campaign.deleted', "Campanha \"{$campaignName}\" excluída");
 
         return response()->json(null, 204);
     }

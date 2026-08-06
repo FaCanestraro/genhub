@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\AuditLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
@@ -43,12 +44,25 @@ class AuthController extends Controller
         $user = User::where('email', $data['email'])->first();
 
         if (!$user || !Hash::check($data['password'], $user->password)) {
+            if ($user) {
+                AuditLogger::log('auth', 'auth.login_failed', "Tentativa de login com senha incorreta para \"{$user->email}\"", [
+                    'account_id' => $user->accountId(),
+                    'causer_id' => $user->id,
+                    'status' => 'failed',
+                ]);
+            }
+
             throw ValidationException::withMessages([
                 'email' => ['Credenciais inválidas.'],
             ]);
         }
 
         $token = $user->createToken('auth_token')->plainTextToken;
+
+        AuditLogger::log('auth', 'auth.login', "Login realizado por \"{$user->email}\"", [
+            'account_id' => $user->accountId(),
+            'causer_id' => $user->id,
+        ]);
 
         return response()->json([
             'user' => $user->load('role'),
@@ -91,6 +105,8 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
+        AuditLogger::log('auth', 'auth.logout', "Logout realizado por \"{$request->user()->email}\"");
+
         $token = $request->user()->currentAccessToken();
 
         if ($token instanceof PersonalAccessToken) {

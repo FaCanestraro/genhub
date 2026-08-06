@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Middleware\CheckPermission;
 use App\Models\Setting;
+use App\Services\AuditLogger;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
@@ -57,6 +58,11 @@ class SettingController extends Controller implements HasMiddleware
         $merged  = array_merge($this->defaults(), $setting->data ?? [], $validated);
         $setting->update(['data' => $merged]);
 
+        AuditLogger::log('settings', 'settings.updated', 'Configurações gerais atualizadas', [
+            'subject' => $setting,
+            'input' => $validated,
+        ]);
+
         return response()->json($merged);
     }
 
@@ -84,6 +90,10 @@ class SettingController extends Controller implements HasMiddleware
             'logo_url'  => $url,
         ]);
         $setting->update(['data' => $data]);
+
+        AuditLogger::log('settings', 'settings.logo_updated', 'Logo da empresa atualizada', [
+            'subject' => $setting,
+        ]);
 
         return response()->json(['logo_url' => $url]);
     }

@@ -7,6 +7,7 @@ use App\Http\Middleware\CheckPermission;
 use App\Models\Action;
 use App\Models\Campaign;
 use App\Models\Generation;
+use App\Services\AuditLogger;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
@@ -78,6 +79,11 @@ class ActionController extends Controller implements HasMiddleware
 
         $campaign->increment('actions_count');
 
+        AuditLogger::log('campaigns', 'action.created', "Ação \"{$action->title}\" criada na campanha \"{$campaign->name}\"", [
+            'subject' => $action,
+            'input' => $data,
+        ]);
+
         return response()->json($action, 201);
     }
 
@@ -126,6 +132,11 @@ class ActionController extends Controller implements HasMiddleware
                 ->update(['action_id' => $action->id]);
         }
 
+        AuditLogger::log('campaigns', 'action.updated', "Ação \"{$action->title}\" atualizada", [
+            'subject' => $action,
+            'input' => $data,
+        ]);
+
         return response()->json($action);
     }
 
@@ -133,8 +144,11 @@ class ActionController extends Controller implements HasMiddleware
     {
         abort_if($action->user_id !== $request->user()->accountId(), 403);
 
+        $actionTitle = $action->title;
         $action->campaign->decrement('actions_count');
         $action->delete();
+
+        AuditLogger::log('campaigns', 'action.deleted', "Ação \"{$actionTitle}\" excluída");
 
         return response()->json(null, 204);
     }

@@ -274,17 +274,17 @@
                         <template v-if="result.type === 'image'">
                             <div v-for="(url, i) in result.urls" :key="i" class="relative rounded-xl overflow-hidden">
                                 <img :src="url" class="w-full rounded-xl" />
-                                <a :href="url" download class="absolute bottom-2 right-2 p-1.5 bg-black/60 hover:bg-black/80 text-white rounded-lg transition-colors backdrop-blur-sm">
+                                <button @click="downloadAsset(url)" class="absolute bottom-2 right-2 p-1.5 bg-black/60 hover:bg-black/80 text-white rounded-lg transition-colors backdrop-blur-sm">
                                     <Download class="w-4 h-4" />
-                                </a>
+                                </button>
                             </div>
                         </template>
                         <template v-else-if="result.type === 'video'">
                             <div v-for="(url, i) in result.urls" :key="i" class="relative rounded-xl overflow-hidden">
                                 <video :src="url" controls class="w-full rounded-xl" />
-                                <a :href="url" download class="absolute bottom-2 right-2 p-1.5 bg-black/60 hover:bg-black/80 text-white rounded-lg transition-colors backdrop-blur-sm">
+                                <button @click="downloadAsset(url)" class="absolute bottom-2 right-2 p-1.5 bg-black/60 hover:bg-black/80 text-white rounded-lg transition-colors backdrop-blur-sm">
                                     <Download class="w-4 h-4" />
-                                </a>
+                                </button>
                             </div>
                         </template>
                     </div>
@@ -304,6 +304,7 @@ import { RouterLink } from 'vue-router'
 import { Film, Image as ImageIcon, X, Sparkles, Loader2, Download, LayoutTemplate, Plus, ArrowUpRight } from 'lucide-vue-next'
 import api from '@/services/api'
 import { assetUrl } from '@/utils/assetUrl'
+import { downloadAsset } from '@/utils/download'
 import { useAuthStore } from '@/stores/auth'
 
 const auth = useAuthStore()

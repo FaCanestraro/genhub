@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Role;
 use App\Models\User;
+use App\Services\AuditLogger;
 use Illuminate\Http\Request;
 
 class RoleController extends Controller
@@ -47,6 +48,11 @@ class RoleController extends Controller
             'permissions' => $this->mergePermissions($data['permissions'] ?? []),
         ]);
 
+        AuditLogger::log('settings', 'role.created', "Perfil de acesso \"{$role->name}\" criado", [
+            'subject' => $role,
+            'input' => ['name' => $data['name'], 'description' => $data['description'] ?? null],
+        ]);
+
         return response()->json($role, 201);
     }
 
@@ -72,6 +78,11 @@ class RoleController extends Controller
             'permissions' => $this->mergePermissions($data['permissions'] ?? []),
         ]);
 
+        AuditLogger::log('settings', 'role.updated', "Perfil de acesso \"{$role->name}\" atualizado", [
+            'subject' => $role,
+            'input' => ['name' => $data['name'], 'description' => $data['description'] ?? null],
+        ]);
+
         return response()->json($role);
     }
 
@@ -82,7 +93,10 @@ class RoleController extends Controller
         abort_if($role->is_default, 422, 'Não é possível excluir o perfil padrão.');
         abort_if(User::where('role_id', $role->id)->exists(), 422, 'Não é possível excluir um perfil atribuído a membros da equipe. Reatribua-os primeiro.');
 
+        $roleName = $role->name;
         $role->delete();
+
+        AuditLogger::log('settings', 'role.deleted', "Perfil de acesso \"{$roleName}\" excluído");
 
         return response()->json(['message' => 'Perfil excluído com sucesso.']);
     }

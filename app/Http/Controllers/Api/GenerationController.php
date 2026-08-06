@@ -8,6 +8,7 @@ use App\Models\Action;
 use App\Models\Asset;
 use App\Models\Generation;
 use App\Models\Product;
+use App\Services\AuditLogger;
 use App\Services\GeminiService;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
@@ -98,6 +99,14 @@ class GenerationController extends Controller implements HasMiddleware
                 ]);
             }
 
+            AuditLogger::log('generate', 'generation.completed', "Geração de {$request->type} concluída para a ação \"{$action->title}\"", [
+                'subject' => $generation,
+                'input' => ['type' => $request->type, 'prompt' => $request->prompt],
+                'output' => ['assets' => count($result['assets'] ?? []), 'has_caption' => !empty($result['caption'])],
+                'ai_model' => $result['model'],
+                'duration_ms' => (int) round($generation->started_at->diffInMilliseconds(now())),
+            ]);
+
         } catch (\Exception $e) {
             $errorMsg = $e->getMessage();
 
@@ -117,6 +126,14 @@ class GenerationController extends Controller implements HasMiddleware
                 'completed_at' => now(),
             ]);
             $action->update(['status' => 'failed']);
+
+            AuditLogger::log('generate', 'generation.failed', "Falha na geração de {$request->type} para a ação \"{$action->title}\"", [
+                'subject' => $generation,
+                'input' => ['type' => $request->type, 'prompt' => $request->prompt],
+                'output' => ['error' => $errorMsg],
+                'status' => 'failed',
+                'duration_ms' => (int) round($generation->started_at->diffInMilliseconds(now())),
+            ]);
 
             return response()->json(['message' => $userMessage], 500);
         }
@@ -201,6 +218,14 @@ class GenerationController extends Controller implements HasMiddleware
                 $generation->update(['result_text' => $result['caption']]);
             }
 
+            AuditLogger::log('generate', 'generation.completed', "Geração avulsa de {$request->type} concluída", [
+                'subject' => $generation,
+                'input' => ['type' => $request->type, 'platform' => $request->platform, 'brief' => $request->brief, 'prompt' => $request->prompt],
+                'output' => ['assets' => count($result['assets'] ?? []), 'has_caption' => !empty($result['caption'])],
+                'ai_model' => $result['model'],
+                'duration_ms' => (int) round($generation->started_at->diffInMilliseconds(now())),
+            ]);
+
         } catch (\Exception $e) {
             $errorMsg = $e->getMessage();
 
@@ -218,6 +243,14 @@ class GenerationController extends Controller implements HasMiddleware
                 'status'        => 'failed',
                 'error_message' => $errorMsg,
                 'completed_at'  => now(),
+            ]);
+
+            AuditLogger::log('generate', 'generation.failed', "Falha na geração avulsa de {$request->type}", [
+                'subject' => $generation,
+                'input' => ['type' => $request->type, 'platform' => $request->platform, 'brief' => $request->brief, 'prompt' => $request->prompt],
+                'output' => ['error' => $errorMsg],
+                'status' => 'failed',
+                'duration_ms' => (int) round($generation->started_at->diffInMilliseconds(now())),
             ]);
 
             return response()->json(['message' => $userMessage], 500);

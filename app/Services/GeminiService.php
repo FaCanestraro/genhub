@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Action;
+use App\Models\AiCredential;
 use Gemini\Laravel\Facades\Gemini;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
@@ -42,6 +43,7 @@ class GeminiService
         }
         PROMPT;
 
+        $this->resolveApiKey();
         $response = Gemini::generativeModel('gemini-2.5-flash')->generateContent($prompt);
         $text = $response->text();
 
@@ -75,7 +77,7 @@ class GeminiService
         {$extraPrompt}
 
         MANDATORY REQUIREMENTS:
-        - The product packaging, label, and brand name must be razor-sharp and fully readable
+        {$this->packagingFidelityRule()}
         - Photorealistic, ultra-high detail — no illustrations, no cartoons, no CGI artifacts
         - Commercial advertising quality: perfect studio lighting or motivated natural light
         - Human skin tones must be realistic and natural (Brazilian complexion if people present)
@@ -131,6 +133,7 @@ class GeminiService
         }
         PROMPT;
 
+        $this->resolveApiKey();
         $response = Gemini::geminiPro()->generateContent($captionPrompt);
         $json = json_decode($this->extractJson($response->text()), true);
 
@@ -178,8 +181,8 @@ class GeminiService
         {$extraPrompt}
 
         MANDATORY REQUIREMENTS:
+        {$this->packagingFidelityRule(video: true)}
         - Photorealistic footage — no animation, no CGI look, no motion graphics
-        - The product must appear clearly identifiable with readable label/packaging
         - Human actors must look like real Brazilian people — natural expressions, realistic skin
         - Cinematic camera movements: motivated push-ins, orbits, rack focus, slow motion impacts
         - Professional color grade: rich, saturated, broadcast-ready
@@ -187,7 +190,7 @@ class GeminiService
         - Anamorphic lens quality, film grain, natural lens flares
         PROMPT;
 
-        $key = config('gemini.api_key');
+        $key = $this->resolveApiKey();
 
         $startResponse = Http::timeout(30)->post(
             "{$this->apiBase}/models/{$this->videoModel}:predictLongRunning?key={$key}",
@@ -267,6 +270,30 @@ class GeminiService
         ];
     }
 
+    /**
+     * Resolves which Gemini API key to use: the account's own credential (if any and active)
+     * takes priority, falling back to GEMINI_API_KEY from .env. Also pushes the resolved key
+     * into config('gemini.api_key') so the Gemini:: facade (lazily bound to that config value)
+     * picks it up on first use within this request.
+     */
+    private function resolveApiKey(): string
+    {
+        $user = auth()->user();
+
+        $credential = $user
+            ? AiCredential::where('user_id', $user->accountId())
+                ->where('provider', 'gemini')
+                ->where('is_active', true)
+                ->first()
+            : null;
+
+        $key = $credential?->api_key ?: config('gemini.api_key');
+
+        config(['gemini.api_key' => $key]);
+
+        return $key;
+    }
+
     private function pollOperation(string $operationName, string $key, int $maxWaitSeconds = 180): array
     {
         $deadline = time() + $maxWaitSeconds;
@@ -297,7 +324,9 @@ class GeminiService
 
     private function generateSingleImage(string $prompt): ?array
     {
-        $key = config('gemini.api_key');
+        $key = $this->resolveApiKey();
+
+        $prompt = trim($prompt) . "\n\n" . $this->packagingFidelityRule();
 
         $response = Http::timeout(60)->post(
             "{$this->apiBase}/models/{$this->imageModel}:predict?key={$key}",
@@ -363,6 +392,13 @@ class GeminiService
             return (int) $m[1] >= (int) $m[2] ? '16:9' : '9:16';
         }
         return '9:16';
+    }
+
+    private function packagingFidelityRule(bool $video = false): string
+    {
+        $scope = $video ? 'in every frame, from start to finish' : 'in the final image';
+
+        return "- CRITICAL — PACKAGING TEXT IS LOCKED: reproduce the product packaging, label, logo, and every word/number/symbol printed on it EXACTLY as described, pixel-identical, {$scope}. Never invent, alter, redesign, retouch, translate, rewrite, or add any wording, claim, or typography that is not part of the original packaging — treat the label text as a fixed, unmodifiable reference.";
     }
 
     private function buildProductContext(Collection $products): string

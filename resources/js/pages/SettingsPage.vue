@@ -317,6 +317,12 @@
                 </div>
             </section>
 
+            <!-- Inteligência Artificial -->
+            <AiProvidersPanel v-else-if="active === 'ia'" />
+
+            <!-- Log de Auditoria -->
+            <AuditLogPanel v-else-if="active === 'logs'" />
+
             <!-- Em desenvolvimento -->
             <section v-else>
                 <div class="mb-6">
@@ -445,26 +451,29 @@ import api from '@/services/api'
 import { useAuthStore } from '@/stores/auth'
 import { useSettingsStore } from '@/stores/settings'
 import { onCNPJInput, maskCNPJ } from '@/utils/mask'
+import AiProvidersPanel from '@/components/AiProvidersPanel.vue'
+import AuditLogPanel from '@/components/AuditLogPanel.vue'
 
 const auth          = useAuthStore()
 const settingsStore = useSettingsStore()
 const active        = ref('geral')
 
-const sections = [
+const allSections = [
     { id: 'geral',      label: 'Geral',                   icon: Settings },
     { id: 'usuarios',   label: 'Usuários',                icon: Users },
     { id: 'email',      label: 'Email',                   icon: Mail },
     { id: 'webhooks',   label: 'Webhooks',                icon: Webhook },
     { id: 'templates',  label: 'Templates',               icon: FileText },
-    { id: 'ia',         label: 'Inteligência Artificial', icon: Bot },
+    { id: 'ia',         label: 'Inteligência Artificial', icon: Bot,        menu: 'ai_providers' },
     { id: 'sociais',    label: 'Redes Sociais',           icon: Share2 },
     { id: 'campos',     label: 'Campos Customizados',     icon: LayoutList },
     { id: 'assinatura', label: 'Assinatura',              icon: CreditCard },
-    { id: 'logs',       label: 'Logs de Auditoria',       icon: ScrollText },
+    { id: 'logs',       label: 'Logs de Auditoria',       icon: ScrollText, menu: 'audit' },
     { id: 'automacao',  label: 'Automação',               icon: Zap },
 ]
 
-const currentSection = computed(() => sections.find(s => s.id === active.value))
+const sections = computed(() => allSections.filter(s => !s.menu || auth.can(s.menu, 'view')))
+const currentSection = computed(() => sections.value.find(s => s.id === active.value))
 
 // ─── Geral ─────────────────────────────────────────────────────────────────────
 

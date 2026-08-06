@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Middleware\CheckPermission;
 use App\Models\Product;
+use App\Services\AuditLogger;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
@@ -48,6 +49,11 @@ class ProductController extends Controller implements HasMiddleware
 
         $product = Product::create(['user_id' => $request->user()->accountId()] + $data);
 
+        AuditLogger::log('products', 'product.created', "Produto \"{$product->name}\" criado", [
+            'subject' => $product,
+            'input' => $data,
+        ]);
+
         return response()->json($product, 201);
     }
 
@@ -77,6 +83,11 @@ class ProductController extends Controller implements HasMiddleware
 
         $product->update($data);
 
+        AuditLogger::log('products', 'product.updated', "Produto \"{$product->name}\" atualizado", [
+            'subject' => $product,
+            'input' => $data,
+        ]);
+
         return response()->json($product);
     }
 
@@ -84,7 +95,10 @@ class ProductController extends Controller implements HasMiddleware
     {
         abort_if($product->user_id !== $request->user()->accountId(), 403);
 
+        $productName = $product->name;
         $product->delete();
+
+        AuditLogger::log('products', 'product.deleted', "Produto \"{$productName}\" excluído");
 
         return response()->json(null, 204);
     }
@@ -96,9 +110,17 @@ class ProductController extends Controller implements HasMiddleware
         $request->validate(['image' => 'required|image|max:5120']);
 
         $path = $request->file('image')->store("products/{$product->id}", 'r2');
-        $rawImages = json_decode($product->getRawOriginal('images'), true) ?? [];
-        $rawImages[] = $path;
-        $product->update(['images' => $rawImages]);
+
+        $oldImages = json_decode($product->getRawOriginal('images'), true) ?? [];
+        foreach ($oldImages as $oldPath) {
+            Storage::disk('r2')->delete($oldPath);
+        }
+
+        $product->update(['images' => [$path]]);
+
+        AuditLogger::log('products', 'product.image_updated', "Imagem do produto \"{$product->name}\" atualizada", [
+            'subject' => $product,
+        ]);
 
         return response()->json(['path' => $path, 'url' => Storage::disk('r2')->url($path)]);
     }

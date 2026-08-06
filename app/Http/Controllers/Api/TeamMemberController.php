@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\AuditLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
@@ -53,6 +54,11 @@ class TeamMemberController extends Controller
             'role_id'  => $data['role_id'],
         ]);
 
+        AuditLogger::log('settings', 'team_member.created', "Membro da equipe \"{$member->name}\" criado", [
+            'subject' => $member,
+            'input' => ['name' => $data['name'], 'email' => $data['email'], 'role_id' => $data['role_id']],
+        ]);
+
         return response()->json($member->load('role:id,name'), 201);
     }
 
@@ -86,6 +92,11 @@ class TeamMemberController extends Controller
             ...(!empty($data['password']) ? ['password' => Hash::make($data['password'])] : []),
         ]);
 
+        AuditLogger::log('settings', 'team_member.updated', "Membro da equipe \"{$team_member->name}\" atualizado", [
+            'subject' => $team_member,
+            'input' => ['name' => $data['name'], 'email' => $data['email'], 'role_id' => $data['role_id']],
+        ]);
+
         return response()->json($team_member->load('role:id,name'));
     }
 
@@ -94,7 +105,10 @@ class TeamMemberController extends Controller
         abort_if(!$request->user()->isOwner(), 403);
         abort_if($team_member->owner_id !== $request->user()->accountId(), 403);
 
+        $memberName = $team_member->name;
         $team_member->delete();
+
+        AuditLogger::log('settings', 'team_member.deleted', "Membro da equipe \"{$memberName}\" removido");
 
         return response()->json(null, 204);
     }

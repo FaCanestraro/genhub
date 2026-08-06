@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Api\ActionController;
+use App\Http\Controllers\Api\AiCredentialController;
+use App\Http\Controllers\Api\AuditLogController;
 use App\Http\Controllers\Api\LeadController;
 use App\Http\Controllers\Api\TaskController;
 use App\Http\Controllers\Api\AssetController;
@@ -68,6 +70,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('menus', [MenuController::class, 'index']);
     Route::apiResource('roles', RoleController::class)->except('show');
     Route::apiResource('team-members', TeamMemberController::class)->except('show');
+
+    Route::get('audit-logs', [AuditLogController::class, 'index']);
+
+    Route::get('ai-providers', [AiCredentialController::class, 'index']);
+    Route::post('ai-providers', [AiCredentialController::class, 'store']);
+    Route::patch('ai-providers/{ai_provider}', [AiCredentialController::class, 'update']);
+    Route::delete('ai-providers/{ai_provider}', [AiCredentialController::class, 'destroy']);
 
     Route::get('proxy-download', [ProxyDownloadController::class, 'download']);
 });

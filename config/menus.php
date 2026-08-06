@@ -16,4 +16,6 @@ return [
     'pipeline'          => 'Pipeline',
     'tasks'             => 'Tarefas',
     'settings'          => 'Configurações',
+    'ai_providers'      => 'Inteligência Artificial',
+    'audit'             => 'Log de Auditoria',
 ];
