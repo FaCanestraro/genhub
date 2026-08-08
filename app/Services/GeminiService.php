@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Storage;
 class GeminiService
 {
     private string $imageModel  = 'imagen-4.0-generate-001';
-    private string $videoModel  = 'veo-3.0-generate-001';
+    private string $videoModel  = 'veo-3.1-generate-preview';
     private string $textModel   = 'gemini-2.5-flash';
     private string $apiBase     = 'https://generativelanguage.googleapis.com/v1beta';
 
@@ -166,6 +166,11 @@ class GeminiService
         $productContext = $this->buildProductContext($products);
         $aspectRatio    = $this->veoAspectRatio($action->resolution ?? '1080x1920');
         $duration       = 8;
+        $referenceImage = $this->resolveReferenceImage($products);
+
+        $referenceImageNote = $referenceImage
+            ? "A REFERENCE IMAGE of the real product is attached to this request — use it as the exact visual source for the product's shape, packaging, label design and text. Do not invent a different product design; animate and light the product shown in the reference image."
+            : '';
 
         $prompt = <<<PROMPT
         Create a hyperrealistic professional commercial advertising video for {$action->platform}.
@@ -174,6 +179,7 @@ class GeminiService
 
         PRODUCT TO FEATURE (must be clearly visible, prominently featured throughout):
         {$productContext}
+        {$referenceImageNote}
 
         CREATIVE BRIEF (action sequence, mood, camera direction, persona):
         {$action->brief}
@@ -192,16 +198,31 @@ class GeminiService
 
         $key = $this->resolveApiKey();
 
+        $parameters = ['aspectRatio' => $aspectRatio, 'durationSeconds' => $duration];
+
+        $instance = ['prompt' => trim($prompt)];
+        if ($referenceImage) {
+            $fileUri = $this->uploadReferenceImage($referenceImage['bytes'], $referenceImage['mimeType'], $key);
+            if ($fileUri) {
+                $instance['image'] = ['uri' => $fileUri];
+            }
+        }
+
         $startResponse = Http::timeout(30)->post(
             "{$this->apiBase}/models/{$this->videoModel}:predictLongRunning?key={$key}",
-            [
-                'instances'  => [['prompt' => trim($prompt)]],
-                'parameters' => [
-                    'aspectRatio'     => $aspectRatio,
-                    'durationSeconds' => $duration,
-                ],
-            ]
+            ['instances' => [$instance], 'parameters' => $parameters]
         );
+
+        // Image-conditioned video generation isn't available for every account/model yet —
+        // if that's why the request was rejected, silently retry as text-only so generation
+        // never breaks because of this best-effort enhancement.
+        if (!$startResponse->successful() && isset($instance['image']) && str_contains($startResponse->body(), "isn't supported by this model")) {
+            unset($instance['image']);
+            $startResponse = Http::timeout(30)->post(
+                "{$this->apiBase}/models/{$this->videoModel}:predictLongRunning?key={$key}",
+                ['instances' => [$instance], 'parameters' => $parameters]
+            );
+        }
 
         if (!$startResponse->successful()) {
             throw new \RuntimeException('Erro ao iniciar geração de vídeo: ' . $startResponse->body());
@@ -223,10 +244,15 @@ class GeminiService
             $mimeType = $sample['video']['encoding'] ?? 'video/mp4';
             if (!$uri) continue;
 
-            $videoBytes = Http::withHeaders(['X-Goog-Api-Key' => $key])
+            $videoResponse = Http::withHeaders(['X-Goog-Api-Key' => $key])
                 ->timeout(120)
-                ->get($uri)
-                ->body();
+                ->get($uri);
+
+            if (!$videoResponse->successful() || $videoResponse->body() === '') {
+                continue;
+            }
+
+            $videoBytes = $videoResponse->body();
 
             $ext      = str_replace('video/', '', explode(';', $mimeType)[0]);
             $filename = 'generations/videos/' . uniqid() . '.' . $ext;
@@ -264,6 +290,12 @@ class GeminiService
             }
         }
 
+        if (empty($assets)) {
+            $raiReasons = $videoData['response']['generateVideoResponse']['raiMediaFilteredReasons'] ?? null;
+
+            throw new \RuntimeException($this->buildVideoFailureMessage($raiReasons));
+        }
+
         return [
             'model'  => $this->videoModel,
             'assets' => $assets,
@@ -292,6 +324,83 @@ class GeminiService
         config(['gemini.api_key' => $key]);
 
         return $key;
+    }
+
+    /**
+     * Downloads the first product photo (if any), so it can later be uploaded to the Gemini
+     * Files API and sent to Veo as an image-conditioning reference — the video is then
+     * generated from the real product photo instead of the model hallucinating packaging.
+     */
+    private function resolveReferenceImage(Collection $products): ?array
+    {
+        $imageUrl = $products->first(fn ($p) => !empty($p->images))?->images[0] ?? null;
+        if (!$imageUrl) {
+            return null;
+        }
+
+        try {
+            $response = Http::timeout(15)->get($imageUrl);
+            if (!$response->successful()) {
+                return null;
+            }
+
+            $mimeType = explode(';', $response->header('Content-Type') ?: 'image/jpeg')[0];
+
+            return [
+                'mimeType' => $mimeType,
+                'bytes' => $response->body(),
+            ];
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    /**
+     * Veo does not accept inline base64 images — a reference image must first be uploaded via
+     * the Gemini Files API's resumable upload protocol, which returns a `uri` that can then be
+     * referenced in the video generation request's `image` field.
+     */
+    private function uploadReferenceImage(string $bytes, string $mimeType, string $key): ?string
+    {
+        try {
+            $startResponse = Http::withHeaders([
+                'X-Goog-Upload-Protocol' => 'resumable',
+                'X-Goog-Upload-Command' => 'start',
+                'X-Goog-Upload-Header-Content-Length' => (string) strlen($bytes),
+                'X-Goog-Upload-Header-Content-Type' => $mimeType,
+            ])->timeout(15)->post("https://generativelanguage.googleapis.com/upload/v1beta/files?key={$key}", [
+                'file' => ['display_name' => 'product-reference-' . uniqid()],
+            ]);
+
+            $uploadUrl = $startResponse->header('X-Goog-Upload-URL');
+            if (!$uploadUrl) {
+                return null;
+            }
+
+            $finalizeResponse = Http::withHeaders([
+                'X-Goog-Upload-Offset' => '0',
+                'X-Goog-Upload-Command' => 'upload, finalize',
+            ])->withBody($bytes, $mimeType)->timeout(30)->post($uploadUrl);
+
+            return $finalizeResponse->json('file.uri');
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    private function buildVideoFailureMessage(?array $raiReasons): string
+    {
+        $reasonText = $raiReasons ? implode(' ', $raiReasons) : null;
+
+        if ($reasonText && (str_contains($reasonText, 'real people') || str_contains($reasonText, 'celebrity') || str_contains($reasonText, 'likeness'))) {
+            return 'O Veo bloqueou o vídeo por identificar (às vezes por engano) um nome de pessoa real ou celebridade — geralmente é o nome do produto/marca sendo interpretado errado, e não uma pessoa na cena. Esse filtro costuma ser inconsistente: tente gerar de novo, ou remova o nome da marca do brief se persistir.';
+        }
+
+        if ($reasonText) {
+            return "O vídeo não pôde ser gerado: {$reasonText}";
+        }
+
+        return 'O vídeo não pôde ser gerado. O conteúdo pode ter sido bloqueado pelos filtros de segurança da API. Tente reformular o prompt ou usar outra imagem de produto.';
     }
 
     private function pollOperation(string $operationName, string $key, int $maxWaitSeconds = 180): array

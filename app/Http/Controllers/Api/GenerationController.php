@@ -113,8 +113,8 @@ class GenerationController extends Controller implements HasMiddleware
             $userMessage = match(true) {
                 str_contains($errorMsg, 'quota') || str_contains($errorMsg, 'RESOURCE_EXHAUSTED')
                     => 'Cota da API Gemini esgotada. Para imagens e vídeos, habilite o faturamento em aistudio.google.com. Para texto, aguarde alguns segundos.',
-                str_contains($errorMsg, 'API_KEY') || str_contains($errorMsg, 'INVALID_ARGUMENT')
-                    => 'Chave de API inválida. Verifique a GEMINI_API_KEY no .env.',
+                str_contains($errorMsg, 'API_KEY_INVALID') || str_contains($errorMsg, 'API key not valid')
+                    => 'Chave de API inválida. Verifique a chave cadastrada em Configurações > Inteligência Artificial (ou a GEMINI_API_KEY no .env).',
                 str_contains($errorMsg, 'Tempo limite excedido')
                     => $errorMsg . ' O Veo pode demorar até 3 minutos.',
                 default => 'Falha na geração: ' . $errorMsg,
@@ -232,8 +232,8 @@ class GenerationController extends Controller implements HasMiddleware
             $userMessage = match(true) {
                 str_contains($errorMsg, 'quota') || str_contains($errorMsg, 'RESOURCE_EXHAUSTED')
                     => 'Cota da API Gemini esgotada. Para imagens e vídeos, habilite o faturamento em aistudio.google.com.',
-                str_contains($errorMsg, 'API_KEY') || str_contains($errorMsg, 'INVALID_ARGUMENT')
-                    => 'Chave de API inválida. Verifique a GEMINI_API_KEY no .env.',
+                str_contains($errorMsg, 'API_KEY_INVALID') || str_contains($errorMsg, 'API key not valid')
+                    => 'Chave de API inválida. Verifique a chave cadastrada em Configurações > Inteligência Artificial (ou a GEMINI_API_KEY no .env).',
                 str_contains($errorMsg, 'Tempo limite excedido')
                     => $errorMsg . ' O Veo pode demorar até 3 minutos.',
                 default => 'Falha na geração: ' . $errorMsg,

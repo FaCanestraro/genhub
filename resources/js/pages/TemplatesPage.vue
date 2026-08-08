@@ -117,11 +117,12 @@
                                 <div v-else class="flex flex-col items-center gap-2 text-gray-500">
                                     <ImageIcon class="w-8 h-8" />
                                     <span class="text-sm">Clique ou arraste um arquivo</span>
-                                    <span class="text-xs text-gray-600">PNG, JPG, GIF, MP4, MOV</span>
+                                    <span class="text-xs text-gray-600">PNG, JPG, GIF, MP4, MOV — máx. {{ MAX_PREVIEW_MB }}MB</span>
                                 </div>
                             </div>
                             <input ref="fileInput" type="file" accept="image/*,video/*" class="hidden" @change="onFileChange" />
                             <button v-if="previewUrl" type="button" @click="clearPreview" class="text-xs text-red-400 hover:text-red-300 mt-1">Remover prévia</button>
+                            <p v-if="previewError" class="text-xs text-red-400 mt-1">{{ previewError }}</p>
                         </div>
 
                         <div class="flex justify-end gap-3 pt-2">
@@ -154,6 +155,9 @@ const dragOver = ref(false)
 const fileInput = ref(null)
 const previewFile = ref(null)
 const previewUrl = ref(null)
+const previewError = ref('')
+
+const MAX_PREVIEW_MB = 50
 
 const form = ref({ title: '', prompt: '', type: 'image' })
 
@@ -177,6 +181,7 @@ function openModal(t = null) {
         : { title: '', prompt: '', type: 'image' }
     previewFile.value = null
     previewUrl.value = t?.preview_url ?? null
+    previewError.value = ''
     showModal.value = true
 }
 
@@ -192,6 +197,14 @@ function onDrop(e) {
 }
 
 function setFile(file) {
+    previewError.value = ''
+
+    if (file.size > MAX_PREVIEW_MB * 1024 * 1024) {
+        previewError.value = `Arquivo muito grande (${(file.size / 1024 / 1024).toFixed(1)}MB). Máximo permitido: ${MAX_PREVIEW_MB}MB.`
+        if (fileInput.value) fileInput.value.value = ''
+        return
+    }
+
     previewFile.value = file
     previewUrl.value = URL.createObjectURL(file)
 }
@@ -199,11 +212,13 @@ function setFile(file) {
 function clearPreview() {
     previewFile.value = null
     previewUrl.value = null
+    previewError.value = ''
     if (fileInput.value) fileInput.value.value = ''
 }
 
 async function save() {
     saving.value = true
+    previewError.value = ''
     try {
         let template
         if (editing.value) {
@@ -213,13 +228,22 @@ async function save() {
             const { data } = await api.post('/templates', form.value)
             template = data
         }
+        editing.value = template
 
         if (previewFile.value) {
-            const fd = new FormData()
-            fd.append('file', previewFile.value)
-            await api.post(`/templates/${template.id}/preview`, fd, {
-                headers: { 'Content-Type': 'multipart/form-data' },
-            })
+            try {
+                const fd = new FormData()
+                fd.append('file', previewFile.value)
+                await api.post(`/templates/${template.id}/preview`, fd, {
+                    headers: { 'Content-Type': 'multipart/form-data' },
+                })
+            } catch (e) {
+                previewError.value = e.response?.data?.message
+                    ?? e.response?.data?.errors?.file?.[0]
+                    ?? `Não foi possível enviar a prévia. Verifique se o arquivo tem no máximo ${MAX_PREVIEW_MB}MB.`
+                saving.value = false
+                return
+            }
         }
 
         showModal.value = false
