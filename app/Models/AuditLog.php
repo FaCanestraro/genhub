@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class AuditLog extends Model
 {
     protected $fillable = [
-        'account_id', 'causer_id', 'area', 'action', 'status', 'description',
+        'company_id', 'causer_id', 'area', 'action', 'status', 'description',
         'input', 'output', 'ai_model', 'duration_ms',
         'subject_type', 'subject_id', 'ip_address', 'user_agent',
     ];
@@ -17,9 +17,9 @@ class AuditLog extends Model
         'output' => 'array',
     ];
 
-    public function account()
+    public function company()
     {
-        return $this->belongsTo(User::class, 'account_id');
+        return $this->belongsTo(Company::class);
     }
 
     public function causer()

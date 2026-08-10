@@ -1,17 +1,25 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import api from '@/services/api'
+import { useCompanyStore } from '@/stores/company'
 
 export const useAuthStore = defineStore('auth', () => {
     const user = ref(null)
     const token = ref(localStorage.getItem('token'))
 
     const isAuthenticated = computed(() => !!token.value)
-    const isOwner = computed(() => !user.value?.owner_id)
+    const isPlatformAdmin = computed(() => !!user.value?.is_platform_admin)
+    const isClient = computed(() => user.value ? !!user.value.is_client : true)
+
+    // Ownership/permissions are per-company now (a user can own one company and just be a
+    // member of another), so they're derived from whichever company is currently active.
+    const isOwner = computed(() => !!useCompanyStore().current?.is_owner)
 
     function can(menu, action) {
-        if (isOwner.value) return true
-        return !!user.value?.role?.permissions?.[menu]?.[action]
+        const company = useCompanyStore().current
+        if (!company) return false
+        if (company.is_owner) return true
+        return !!company.role?.permissions?.[menu]?.[action]
     }
 
     async function login(email, password) {
@@ -38,7 +46,8 @@ export const useAuthStore = defineStore('auth', () => {
         token.value = null
         user.value = null
         localStorage.removeItem('token')
+        useCompanyStore().clear()
     }
 
-    return { user, token, isAuthenticated, isOwner, can, login, register, fetchMe, logout }
+    return { user, token, isAuthenticated, isOwner, isPlatformAdmin, isClient, can, login, register, fetchMe, logout }
 })

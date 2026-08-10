@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Company;
 use App\Models\User;
 use App\Services\AuditLogger;
 use Illuminate\Http\Request;
@@ -26,10 +27,13 @@ class AuthController extends Controller
             'password' => Hash::make($data['password']),
         ]);
 
+        $company = Company::create();
+        $company->users()->attach($user->id, ['is_owner' => true]);
+
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
-            'user' => $user->load('role'),
+            'user' => $user,
             'token' => $token,
         ], 201);
     }
@@ -46,7 +50,6 @@ class AuthController extends Controller
         if (!$user || !Hash::check($data['password'], $user->password)) {
             if ($user) {
                 AuditLogger::log('auth', 'auth.login_failed', "Tentativa de login com senha incorreta para \"{$user->email}\"", [
-                    'account_id' => $user->accountId(),
                     'causer_id' => $user->id,
                     'status' => 'failed',
                 ]);
@@ -60,19 +63,39 @@ class AuthController extends Controller
         $token = $user->createToken('auth_token')->plainTextToken;
 
         AuditLogger::log('auth', 'auth.login', "Login realizado por \"{$user->email}\"", [
-            'account_id' => $user->accountId(),
             'causer_id' => $user->id,
         ]);
 
         return response()->json([
-            'user' => $user->load('role'),
+            'user' => $user,
             'token' => $token,
         ]);
     }
 
     public function me(Request $request)
     {
-        return response()->json($request->user()->load('role'));
+        return response()->json($request->user());
+    }
+
+    /**
+     * Companies the authenticated user belongs to, with their role/permissions in each — powers
+     * the post-login company chooser and the always-visible switcher.
+     */
+    public function companies(Request $request)
+    {
+        $memberships = $request->user()->companyMemberships()->with(['company', 'role'])->get();
+
+        return response()->json($memberships->map(fn ($m) => [
+            'id' => $m->company->id,
+            'name' => $m->company->name,
+            'cnpj' => $m->company->cnpj,
+            'is_owner' => $m->is_owner,
+            'role' => $m->role ? [
+                'id' => $m->role->id,
+                'name' => $m->role->name,
+                'permissions' => $m->role->permissions,
+            ] : null,
+        ])->values());
     }
 
     public function updateProfile(Request $request)
@@ -105,7 +128,9 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        AuditLogger::log('auth', 'auth.logout', "Logout realizado por \"{$request->user()->email}\"");
+        AuditLogger::log('auth', 'auth.logout', "Logout realizado por \"{$request->user()->email}\"", [
+            'causer_id' => $request->user()->id,
+        ]);
 
         $token = $request->user()->currentAccessToken();
 

@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class AiCredential extends Model
 {
     protected $fillable = [
-        'user_id', 'provider', 'label', 'api_key', 'capabilities', 'is_active',
+        'company_id', 'provider', 'label', 'api_key', 'capabilities', 'is_active',
     ];
 
     protected $hidden = ['api_key'];
@@ -18,8 +18,8 @@ class AiCredential extends Model
         'is_active' => 'boolean',
     ];
 
-    public function user()
+    public function company()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Company::class);
     }
 }

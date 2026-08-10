@@ -25,7 +25,7 @@ class LeadController extends Controller implements HasMiddleware
 
     public function index(Request $request)
     {
-        $query = Lead::where('user_id', $request->user()->accountId())
+        $query = Lead::where('company_id', $request->company()->id)
             ->with('campaign:id,name')
             ->latest();
 
@@ -47,7 +47,7 @@ class LeadController extends Controller implements HasMiddleware
 
     public function pipeline(Request $request)
     {
-        $leads = Lead::where('user_id', $request->user()->accountId())
+        $leads = Lead::where('company_id', $request->company()->id)
             ->select('id','nome','email','telefone','status','fonte','responsavel','created_at')
             ->latest()
             ->get()
@@ -70,14 +70,14 @@ class LeadController extends Controller implements HasMiddleware
             'campaign_id' => 'nullable|exists:campaigns,id',
         ]);
 
-        $lead = Lead::create(['user_id' => $request->user()->accountId()] + $data);
+        $lead = Lead::create(['company_id' => $request->company()->id] + $data);
 
         return response()->json($lead, 201);
     }
 
     public function show(Request $request, Lead $lead)
     {
-        abort_if($lead->user_id !== $request->user()->accountId(), 403);
+        abort_if($lead->company_id !== $request->company()->id, 403);
         return response()->json(
             $lead->load('campaign:id,name', 'tasks', 'activities.user:id,name')
         );
@@ -85,7 +85,7 @@ class LeadController extends Controller implements HasMiddleware
 
     public function update(Request $request, Lead $lead)
     {
-        abort_if($lead->user_id !== $request->user()->accountId(), 403);
+        abort_if($lead->company_id !== $request->company()->id, 403);
 
         $data = $request->validate([
             'nome'        => 'sometimes|string|max:255',
@@ -118,7 +118,7 @@ class LeadController extends Controller implements HasMiddleware
 
     public function destroy(Request $request, Lead $lead)
     {
-        abort_if($lead->user_id !== $request->user()->accountId(), 403);
+        abort_if($lead->company_id !== $request->company()->id, 403);
         $lead->delete();
         return response()->json(null, 204);
     }

@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Storage;
 
 class GeminiService
 {
-    private string $imageModel  = 'imagen-4.0-generate-001';
+    private string $imageModel  = 'gemini-3.1-flash-image';
     private string $videoModel  = 'veo-3.1-generate-preview';
     private string $textModel   = 'gemini-2.5-flash';
     private string $apiBase     = 'https://generativelanguage.googleapis.com/v1beta';
@@ -310,10 +310,10 @@ class GeminiService
      */
     private function resolveApiKey(): string
     {
-        $user = auth()->user();
+        $company = request()?->company();
 
-        $credential = $user
-            ? AiCredential::where('user_id', $user->accountId())
+        $credential = $company
+            ? AiCredential::where('company_id', $company->id)
                 ->where('provider', 'gemini')
                 ->where('is_active', true)
                 ->first()
@@ -438,24 +438,27 @@ class GeminiService
         $prompt = trim($prompt) . "\n\n" . $this->packagingFidelityRule();
 
         $response = Http::timeout(60)->post(
-            "{$this->apiBase}/models/{$this->imageModel}:predict?key={$key}",
+            "{$this->apiBase}/models/{$this->imageModel}:generateContent?key={$key}",
             [
-                'instances'  => [['prompt' => $prompt]],
-                'parameters' => ['sampleCount' => 1],
+                'contents' => [['parts' => [['text' => $prompt]]]],
             ]
         );
 
         if (!$response->successful()) {
-            throw new \RuntimeException('Erro na API Imagen: ' . $response->body());
+            throw new \RuntimeException('Erro na API Gemini (imagem): ' . $response->body());
         }
 
-        $predictions = $response->json('predictions') ?? [];
+        $parts = $response->json('candidates.0.content.parts') ?? [];
+        $refusalText = null;
 
-        foreach ($predictions as $prediction) {
-            $imageBase64 = $prediction['bytesBase64Encoded'] ?? null;
-            $mimeType    = $prediction['mimeType'] ?? 'image/png';
+        foreach ($parts as $part) {
+            $imageBase64 = $part['inlineData']['data'] ?? null;
+            $mimeType    = $part['inlineData']['mimeType'] ?? 'image/png';
 
-            if (!$imageBase64) continue;
+            if (!$imageBase64) {
+                $refusalText ??= $part['text'] ?? null;
+                continue;
+            }
 
             $ext      = str_replace('image/', '', explode(';', $mimeType)[0]);
             $filename = 'generations/' . uniqid() . '.' . $ext;
@@ -469,6 +472,10 @@ class GeminiService
                 'mime_type' => $mimeType,
                 'size'      => Storage::disk('r2')->size($filename),
             ];
+        }
+
+        if ($refusalText) {
+            throw new \RuntimeException("A imagem não pôde ser gerada: {$refusalText}");
         }
 
         return null;

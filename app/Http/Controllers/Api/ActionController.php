@@ -26,7 +26,7 @@ class ActionController extends Controller implements HasMiddleware
 
     public function allActions(Request $request)
     {
-        $actions = Action::where('user_id', $request->user()->accountId())
+        $actions = Action::where('company_id', $request->company()->id)
             ->with('latestGeneration', 'campaign')
             ->latest()
             ->get();
@@ -36,7 +36,7 @@ class ActionController extends Controller implements HasMiddleware
 
     public function index(Request $request, Campaign $campaign)
     {
-        abort_if($campaign->user_id !== $request->user()->accountId(), 403);
+        abort_if($campaign->company_id !== $request->company()->id, 403);
 
         $actions = $campaign->actions()
             ->with('latestGeneration.assets')
@@ -48,7 +48,7 @@ class ActionController extends Controller implements HasMiddleware
 
     public function store(Request $request, Campaign $campaign)
     {
-        abort_if($campaign->user_id !== $request->user()->accountId(), 403);
+        abort_if($campaign->company_id !== $request->company()->id, 403);
 
         $data = $request->validate([
             'type'                 => 'required|in:post,reel,carousel,story,tiktok_video',
@@ -68,11 +68,11 @@ class ActionController extends Controller implements HasMiddleware
 
         $action = $campaign->actions()->create([
             ...$data,
-            'user_id' => $request->user()->accountId(),
+            'company_id' => $request->company()->id,
         ]);
 
         if ($attachIds) {
-            Generation::where('user_id', $request->user()->accountId())
+            Generation::where('company_id', $request->company()->id)
                 ->whereIn('id', $attachIds)
                 ->update(['action_id' => $action->id]);
         }
@@ -89,7 +89,7 @@ class ActionController extends Controller implements HasMiddleware
 
     public function show(Request $request, Action $action)
     {
-        abort_if($action->user_id !== $request->user()->accountId(), 403);
+        abort_if($action->company_id !== $request->company()->id, 403);
 
         $action->load('generations.assets', 'campaign');
 
@@ -103,7 +103,7 @@ class ActionController extends Controller implements HasMiddleware
 
     public function update(Request $request, Action $action)
     {
-        abort_if($action->user_id !== $request->user()->accountId(), 403);
+        abort_if($action->company_id !== $request->company()->id, 403);
 
         $data = $request->validate([
             'title'                   => 'sometimes|string|max:255',
@@ -127,7 +127,7 @@ class ActionController extends Controller implements HasMiddleware
         $action->update($data);
 
         if ($attachIds) {
-            Generation::where('user_id', $request->user()->accountId())
+            Generation::where('company_id', $request->company()->id)
                 ->whereIn('id', $attachIds)
                 ->update(['action_id' => $action->id]);
         }
@@ -142,7 +142,7 @@ class ActionController extends Controller implements HasMiddleware
 
     public function destroy(Request $request, Action $action)
     {
-        abort_if($action->user_id !== $request->user()->accountId(), 403);
+        abort_if($action->company_id !== $request->company()->id, 403);
 
         $actionTitle = $action->title;
         $action->campaign->decrement('actions_count');

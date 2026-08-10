@@ -24,7 +24,7 @@ class CampaignController extends Controller implements HasMiddleware
 
     public function index(Request $request)
     {
-        $campaigns = Campaign::where('user_id', $request->user()->accountId())
+        $campaigns = Campaign::where('company_id', $request->company()->id)
             ->withCount('actions')
             ->when($request->status, fn ($q) => $q->where('status', $request->status))
             ->latest()
@@ -50,7 +50,7 @@ class CampaignController extends Controller implements HasMiddleware
             'goal_sales' => 'nullable|integer|min:0',
         ]);
 
-        $campaign = Campaign::create(['user_id' => $request->user()->accountId()] + $data);
+        $campaign = Campaign::create(['company_id' => $request->company()->id] + $data);
 
         AuditLogger::log('campaigns', 'campaign.created', "Campanha \"{$campaign->name}\" criada", [
             'subject' => $campaign,
@@ -62,7 +62,7 @@ class CampaignController extends Controller implements HasMiddleware
 
     public function show(Request $request, Campaign $campaign)
     {
-        abort_if($campaign->user_id !== $request->user()->accountId(), 403);
+        abort_if($campaign->company_id !== $request->company()->id, 403);
 
         $campaign->load(['actions' => fn ($q) => $q->with('latestGeneration')->latest()]);
 
@@ -71,7 +71,7 @@ class CampaignController extends Controller implements HasMiddleware
 
     public function update(Request $request, Campaign $campaign)
     {
-        abort_if($campaign->user_id !== $request->user()->accountId(), 403);
+        abort_if($campaign->company_id !== $request->company()->id, 403);
 
         $data = $request->validate([
             'name' => 'sometimes|string|max:255',
@@ -100,7 +100,7 @@ class CampaignController extends Controller implements HasMiddleware
 
     public function destroy(Request $request, Campaign $campaign)
     {
-        abort_if($campaign->user_id !== $request->user()->accountId(), 403);
+        abort_if($campaign->company_id !== $request->company()->id, 403);
 
         $campaignName = $campaign->name;
         $campaign->delete();

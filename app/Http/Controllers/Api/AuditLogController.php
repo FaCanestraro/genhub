@@ -20,7 +20,7 @@ class AuditLogController extends Controller implements HasMiddleware
 
     public function index(Request $request)
     {
-        $query = AuditLog::where('account_id', $request->user()->accountId())
+        $query = AuditLog::where('company_id', $request->company()->id)
             ->with('causer:id,name')
             ->latest();
 

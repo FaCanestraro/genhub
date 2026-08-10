@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\CompanyUser;
 use App\Models\Role;
-use App\Models\User;
 use App\Services\AuditLogger;
 use Illuminate\Http\Request;
 
@@ -12,14 +12,14 @@ class RoleController extends Controller
 {
     public function index(Request $request)
     {
-        abort_if(!$request->user()->isOwner(), 403);
+        abort_if(!$request->companyMembership()->is_owner, 403);
 
         Role::firstOrCreate(
-            ['user_id' => $request->user()->accountId(), 'is_default' => true],
+            ['company_id' => $request->company()->id, 'is_default' => true],
             ['name' => 'Administrador', 'description' => 'Acesso completo a todas as áreas do sistema.', 'permissions' => $this->fullPermissions()]
         );
 
-        $roles = Role::where('user_id', $request->user()->accountId())
+        $roles = Role::where('company_id', $request->company()->id)
             ->orderByDesc('is_default')
             ->orderBy('name')
             ->get();
@@ -29,7 +29,7 @@ class RoleController extends Controller
 
     public function store(Request $request)
     {
-        abort_if(!$request->user()->isOwner(), 403);
+        abort_if(!$request->companyMembership()->is_owner, 403);
 
         $data = $request->validate([
             'name'                     => 'required|string|max:255',
@@ -42,7 +42,7 @@ class RoleController extends Controller
         ]);
 
         $role = Role::create([
-            'user_id'     => $request->user()->accountId(),
+            'company_id'  => $request->company()->id,
             'name'        => $data['name'],
             'description' => $data['description'] ?? null,
             'permissions' => $this->mergePermissions($data['permissions'] ?? []),
@@ -58,8 +58,8 @@ class RoleController extends Controller
 
     public function update(Request $request, Role $role)
     {
-        abort_if(!$request->user()->isOwner(), 403);
-        abort_if($role->user_id !== $request->user()->accountId(), 403);
+        abort_if(!$request->companyMembership()->is_owner, 403);
+        abort_if($role->company_id !== $request->company()->id, 403);
         abort_if($role->is_default, 422, 'Não é possível alterar o perfil padrão.');
 
         $data = $request->validate([
@@ -88,10 +88,10 @@ class RoleController extends Controller
 
     public function destroy(Request $request, Role $role)
     {
-        abort_if(!$request->user()->isOwner(), 403);
-        abort_if($role->user_id !== $request->user()->accountId(), 403);
+        abort_if(!$request->companyMembership()->is_owner, 403);
+        abort_if($role->company_id !== $request->company()->id, 403);
         abort_if($role->is_default, 422, 'Não é possível excluir o perfil padrão.');
-        abort_if(User::where('role_id', $role->id)->exists(), 422, 'Não é possível excluir um perfil atribuído a membros da equipe. Reatribua-os primeiro.');
+        abort_if(CompanyUser::where('role_id', $role->id)->exists(), 422, 'Não é possível excluir um perfil atribuído a membros da equipe. Reatribua-os primeiro.');
 
         $roleName = $role->name;
         $role->delete();

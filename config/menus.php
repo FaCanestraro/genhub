@@ -9,7 +9,6 @@ return [
     'generate_prompts'  => 'Gerador de Prompts',
     'history'           => 'Histórico',
     'products'          => 'Produtos',
-    'templates'         => 'Modelos de Arte',
     'gallery'           => 'Galeria',
     'campaigns'         => 'Campanhas',
     'leads'             => 'Leads',

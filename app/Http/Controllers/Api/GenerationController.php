@@ -8,15 +8,41 @@ use App\Models\Action;
 use App\Models\Asset;
 use App\Models\Generation;
 use App\Models\Product;
+use App\Models\AiCredential;
 use App\Services\AuditLogger;
 use App\Services\GeminiService;
+use App\Services\MuApiService;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 
 class GenerationController extends Controller implements HasMiddleware
 {
-    public function __construct(private GeminiService $gemini) {}
+    public function __construct(private GeminiService $gemini, private MuApiService $muapi) {}
+
+    // ponytail: only 2 real providers exist, so "active muapi credential wins" is enough —
+    // add a proper provider registry/config if a 3rd provider shows up.
+    private function hasMuApiCredential(): bool
+    {
+        return AiCredential::where('company_id', request()->company()->id)
+            ->where('provider', 'muapi')
+            ->where('is_active', true)
+            ->exists();
+    }
+
+    private function generateImage($action, $products, ?string $prompt): array
+    {
+        return $this->hasMuApiCredential()
+            ? $this->muapi->generateImage($action, $products, $prompt)
+            : $this->gemini->generateImage($action, $products, $prompt);
+    }
+
+    private function generateVideo($action, $products, ?string $prompt): array
+    {
+        return $this->hasMuApiCredential()
+            ? $this->muapi->generateVideo($action, $products, $prompt)
+            : $this->gemini->generateVideo($action, $products, $prompt);
+    }
 
     public static function middleware(): array
     {
@@ -30,7 +56,7 @@ class GenerationController extends Controller implements HasMiddleware
 
     public function generate(Request $request, Action $action)
     {
-        abort_if($action->user_id !== $request->user()->accountId(), 403);
+        abort_if($action->company_id !== $request->company()->id, 403);
 
         $request->validate([
             'type'   => 'required|in:image,text,carousel,video',
@@ -46,7 +72,7 @@ class GenerationController extends Controller implements HasMiddleware
 
         $generation = Generation::create([
             'action_id' => $action->id,
-            'user_id' => $request->user()->accountId(),
+            'company_id' => $request->company()->id,
             'type' => $request->type,
             'status' => 'processing',
             'prompt' => $request->prompt,
@@ -54,15 +80,15 @@ class GenerationController extends Controller implements HasMiddleware
         ]);
 
         try {
-            $products = Product::where('user_id', $request->user()->accountId())
+            $products = Product::where('company_id', $request->company()->id)
                 ->whereIn('id', $action->product_ids ?? [])
                 ->get();
 
             $result = match ($request->type) {
                 'text'     => $this->gemini->generateCaption($action, $products, $request->prompt),
-                'image'    => $this->gemini->generateImage($action, $products, $request->prompt),
+                'image'    => $this->generateImage($action, $products, $request->prompt),
                 'carousel' => $this->gemini->generateCarousel($action, $products, $request->prompt),
-                'video'    => $this->gemini->generateVideo($action, $products, $request->prompt),
+                'video'    => $this->generateVideo($action, $products, $request->prompt),
             };
 
             $generation->update([
@@ -77,7 +103,7 @@ class GenerationController extends Controller implements HasMiddleware
                 foreach ($result['assets'] as $assetData) {
                     Asset::create([
                         'generation_id' => $generation->id,
-                        'user_id' => $request->user()->accountId(),
+                        'company_id' => $request->company()->id,
                         'type' => $assetData['type'],
                         'disk' => $assetData['disk'],
                         'path' => $assetData['path'],
@@ -170,7 +196,7 @@ class GenerationController extends Controller implements HasMiddleware
         $generation = Generation::create([
             'action_id'  => null,
             'session_id' => $request->session_id,
-            'user_id'    => $request->user()->accountId(),
+            'company_id'    => $request->company()->id,
             'type'       => $request->type,
             'status'     => 'processing',
             'prompt'     => $request->brief . ($request->prompt ? "\n\n" . $request->prompt : ''),
@@ -178,15 +204,15 @@ class GenerationController extends Controller implements HasMiddleware
         ]);
 
         try {
-            $products = Product::where('user_id', $request->user()->accountId())
+            $products = Product::where('company_id', $request->company()->id)
                 ->whereIn('id', $request->product_ids ?? [])
                 ->get();
 
             $result = match ($request->type) {
                 'text'     => $this->gemini->generateCaption($action, $products, $request->prompt),
-                'image'    => $this->gemini->generateImage($action, $products, $request->prompt),
+                'image'    => $this->generateImage($action, $products, $request->prompt),
                 'carousel' => $this->gemini->generateCarousel($action, $products, $request->prompt),
-                'video'    => $this->gemini->generateVideo($action, $products, $request->prompt),
+                'video'    => $this->generateVideo($action, $products, $request->prompt),
             };
 
             $generation->update([
@@ -201,7 +227,7 @@ class GenerationController extends Controller implements HasMiddleware
                 foreach ($result['assets'] as $assetData) {
                     Asset::create([
                         'generation_id' => $generation->id,
-                        'user_id'       => $request->user()->accountId(),
+                        'company_id'       => $request->company()->id,
                         'type'          => $assetData['type'],
                         'disk'          => $assetData['disk'],
                         'path'          => $assetData['path'],
@@ -263,7 +289,7 @@ class GenerationController extends Controller implements HasMiddleware
     {
         $request->validate(['title' => 'required|string|max:100']);
 
-        Generation::where('user_id', $request->user()->accountId())
+        Generation::where('company_id', $request->company()->id)
             ->where('session_id', $sessionId)
             ->update(['session_title' => $request->title]);
 
@@ -272,7 +298,7 @@ class GenerationController extends Controller implements HasMiddleware
 
     public function destroySession(Request $request, string $sessionId)
     {
-        $generations = Generation::where('user_id', $request->user()->accountId())
+        $generations = Generation::where('company_id', $request->company()->id)
             ->where('session_id', $sessionId)
             ->with('assets')
             ->get();
@@ -290,7 +316,7 @@ class GenerationController extends Controller implements HasMiddleware
 
     public function standaloneHistory(Request $request)
     {
-        $query = Generation::where('user_id', $request->user()->accountId())
+        $query = Generation::where('company_id', $request->company()->id)
             ->with('assets')
             ->latest();
 
@@ -307,7 +333,7 @@ class GenerationController extends Controller implements HasMiddleware
 
     public function detach(Request $request, Generation $generation)
     {
-        abort_if($generation->user_id !== $request->user()->accountId(), 403);
+        abort_if($generation->company_id !== $request->company()->id, 403);
 
         $generation->update(['action_id' => null]);
 
@@ -316,7 +342,7 @@ class GenerationController extends Controller implements HasMiddleware
 
     public function destroy(Request $request, Generation $generation)
     {
-        abort_if($generation->user_id !== $request->user()->accountId(), 403);
+        abort_if($generation->company_id !== $request->company()->id, 403);
 
         $generation->assets()->each(function ($asset) {
             \Illuminate\Support\Facades\Storage::disk($asset->disk)->delete($asset->path);
@@ -330,14 +356,14 @@ class GenerationController extends Controller implements HasMiddleware
 
     public function show(Request $request, Generation $generation)
     {
-        abort_if($generation->user_id !== $request->user()->accountId(), 403);
+        abort_if($generation->company_id !== $request->company()->id, 403);
 
         return response()->json($generation->load('assets'));
     }
 
     public function index(Request $request)
     {
-        $query = Generation::where('user_id', $request->user()->accountId())
+        $query = Generation::where('company_id', $request->company()->id)
             ->with('assets', 'action.campaign')
             ->latest();
 

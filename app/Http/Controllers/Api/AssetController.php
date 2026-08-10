@@ -21,7 +21,7 @@ class AssetController extends Controller implements HasMiddleware
 
     public function destroy(Request $request, Asset $asset)
     {
-        abort_if($asset->user_id !== $request->user()->accountId(), 403);
+        abort_if($asset->company_id !== $request->company()->id, 403);
 
         Storage::disk($asset->disk)->delete($asset->path);
         $asset->delete();

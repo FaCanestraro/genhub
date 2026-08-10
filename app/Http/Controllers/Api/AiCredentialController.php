@@ -25,7 +25,7 @@ class AiCredentialController extends Controller implements HasMiddleware
 
     public function index(Request $request)
     {
-        $credentials = AiCredential::where('user_id', $request->user()->accountId())
+        $credentials = AiCredential::where('company_id', $request->company()->id)
             ->get()
             ->keyBy('provider');
 
@@ -57,10 +57,8 @@ class AiCredentialController extends Controller implements HasMiddleware
         $provider = config("ai_providers.{$data['provider']}");
         abort_if(!$provider['available'], 422, 'Este provedor ainda não está disponível.');
 
-        $accountId = $request->user()->accountId();
-
         $credential = AiCredential::updateOrCreate(
-            ['user_id' => $accountId, 'provider' => $data['provider']],
+            ['company_id' => $request->company()->id, 'provider' => $data['provider']],
             [
                 'label' => $provider['label'],
                 'api_key' => $data['api_key'],
@@ -79,7 +77,7 @@ class AiCredentialController extends Controller implements HasMiddleware
 
     public function update(Request $request, AiCredential $ai_provider)
     {
-        abort_if($ai_provider->user_id !== $request->user()->accountId(), 403);
+        abort_if($ai_provider->company_id !== $request->company()->id, 403);
 
         $data = $request->validate([
             'is_active' => 'sometimes|boolean',
@@ -98,7 +96,7 @@ class AiCredentialController extends Controller implements HasMiddleware
 
     public function destroy(Request $request, AiCredential $ai_provider)
     {
-        abort_if($ai_provider->user_id !== $request->user()->accountId(), 403);
+        abort_if($ai_provider->company_id !== $request->company()->id, 403);
 
         $label = $ai_provider->label;
         $provider = $ai_provider->provider;

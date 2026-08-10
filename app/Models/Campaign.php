@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Campaign extends Model
 {
     protected $fillable = [
-        'user_id', 'name', 'description', 'objective', 'status',
+        'company_id', 'name', 'description', 'objective', 'status',
         'start_date', 'end_date', 'budget',
         'utm_source', 'utm_medium', 'utm_campaign',
         'goal_leads', 'goal_sales', 'leads_count', 'actions_count',
@@ -19,9 +19,9 @@ class Campaign extends Model
         'budget' => 'decimal:2',
     ];
 
-    public function user()
+    public function company()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Company::class);
     }
 
     public function actions()

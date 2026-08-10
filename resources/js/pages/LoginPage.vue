@@ -68,7 +68,9 @@ async function handleLogin() {
     error.value = ''
     try {
         await auth.login(form.value.email, form.value.password)
-        router.push('/dashboard')
+        // The router guard fetches companies and redirects away from /choose-area on its own
+        // if this account doesn't actually face a choice (single company, not also an admin).
+        router.push('/choose-area')
     } catch (e) {
         error.value = e.response?.data?.message || 'Erro ao entrar. Verifique suas credenciais.'
     } finally {

@@ -1,9 +1,11 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useCompanyStore } from '@/stores/company'
 
 const routes = [
     { path: '/login', component: () => import('@/pages/LoginPage.vue'), meta: { guest: true } },
     { path: '/register', component: () => import('@/pages/RegisterPage.vue'), meta: { guest: true } },
+    { path: '/choose-area', component: () => import('@/pages/ChooseAreaPage.vue'), meta: { requiresAuth: true } },
     {
         path: '/',
         component: () => import('@/layouts/AppLayout.vue'),
@@ -15,7 +17,6 @@ const routes = [
             { path: 'generate-prompts', component: () => import('@/pages/GeneratePage2.vue'), meta: { menu: 'generate_prompts' } },
             { path: 'history', component: () => import('@/pages/HistoryPage.vue'), meta: { menu: 'history' } },
             { path: 'products', component: () => import('@/pages/ProductsPage.vue'), meta: { menu: 'products' } },
-            { path: 'templates', component: () => import('@/pages/TemplatesPage.vue'), meta: { menu: 'templates' } },
             { path: 'gallery', component: () => import('@/pages/GalleryPage.vue'), meta: { menu: 'gallery' } },
             { path: 'campaigns', component: () => import('@/pages/CampaignsPage.vue'), meta: { menu: 'campaigns' } },
             { path: 'campaigns/:id', component: () => import('@/pages/CampaignDetailPage.vue'), meta: { menu: 'campaigns' } },
@@ -29,6 +30,17 @@ const routes = [
             { path: 'sem-acesso', component: () => import('@/pages/NoAccessPage.vue') },
         ],
     },
+    {
+        path: '/admin',
+        component: () => import('@/layouts/AdminLayout.vue'),
+        meta: { requiresAuth: true, requiresAdmin: true },
+        children: [
+            { path: '', redirect: 'clients' },
+            { path: 'clients', component: () => import('@/pages/admin/AdminClientsPage.vue') },
+            { path: 'templates', component: () => import('@/pages/admin/AdminTemplatesPage.vue') },
+            { path: 'users', component: () => import('@/pages/admin/AdminUsersPage.vue') },
+        ],
+    },
 ]
 
 const router = createRouter({
@@ -36,19 +48,51 @@ const router = createRouter({
     routes,
 })
 
+// Whether this account needs an explicit choice before landing anywhere: either it can reach
+// both the admin panel and the client system, or it belongs to more than one company.
+function needsAreaChoice(auth, companyStore) {
+    return (auth.isPlatformAdmin && auth.isClient) || (auth.isClient && companyStore.hasMultiple)
+}
+
+// Where a user should land once no choice is needed (or right after making one).
+export function landingPath(auth, companyStore) {
+    if (needsAreaChoice(auth, companyStore)) return '/choose-area'
+    if (auth.isPlatformAdmin) return '/admin/clients'
+    return '/dashboard'
+}
+
 router.beforeEach(async (to) => {
     const auth = useAuthStore()
+    const companyStore = useCompanyStore()
+
+    if (auth.isAuthenticated && !auth.user) {
+        await auth.fetchMe().catch(() => {})
+    }
+
+    if (auth.isAuthenticated && auth.isClient && !companyStore.companies.length) {
+        await companyStore.fetchCompanies().catch(() => {})
+    }
 
     if (to.meta.requiresAuth && !auth.isAuthenticated) {
         return '/login'
     }
 
     if (to.meta.guest && auth.isAuthenticated) {
+        return landingPath(auth, companyStore)
+    }
+
+    // Only accounts that actually face a choice should see the chooser.
+    if (to.path === '/choose-area' && !needsAreaChoice(auth, companyStore)) {
+        return landingPath(auth, companyStore)
+    }
+
+    if (to.meta.requiresAdmin && !auth.isPlatformAdmin) {
         return '/dashboard'
     }
 
-    if (to.meta.requiresAuth && auth.isAuthenticated && !auth.user) {
-        await auth.fetchMe().catch(() => {})
+    // Platform-admin-only accounts (no client company) never see the client-facing system.
+    if (to.meta.requiresAuth && !to.meta.requiresAdmin && to.path !== '/choose-area' && !auth.isClient) {
+        return '/admin/clients'
     }
 
     if (to.meta.menu && !auth.can(to.meta.menu, 'view')) {

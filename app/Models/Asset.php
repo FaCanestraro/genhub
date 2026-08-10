@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Storage;
 class Asset extends Model
 {
     protected $fillable = [
-        'generation_id', 'user_id', 'type', 'disk', 'path',
+        'generation_id', 'company_id', 'type', 'disk', 'path',
         'mime_type', 'size', 'width', 'height', 'duration', 'metadata',
     ];
 
@@ -23,9 +23,9 @@ class Asset extends Model
         return $this->belongsTo(Generation::class);
     }
 
-    public function user()
+    public function company()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Company::class);
     }
 
     public function getUrlAttribute(): string

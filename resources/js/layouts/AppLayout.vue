@@ -26,6 +26,35 @@
                 </template>
             </div>
 
+            <!-- Company switcher -->
+            <div v-if="companyStore.companies.length" class="px-3 pt-3">
+                <div class="relative">
+                    <button @click="showCompanyMenu = !showCompanyMenu" type="button" class="nav-item w-full flex items-center justify-between">
+                        <span class="flex items-center gap-2 min-w-0">
+                            <Building2 class="w-4 h-4 flex-shrink-0" />
+                            <span class="truncate">{{ companyStore.current?.name || '(sem nome)' }}</span>
+                        </span>
+                        <ChevronsUpDown v-if="companyStore.hasMultiple" class="w-3.5 h-3.5 flex-shrink-0 text-gray-500" />
+                    </button>
+                    <div
+                        v-if="showCompanyMenu && companyStore.hasMultiple"
+                        class="absolute left-0 right-0 mt-1 rounded-lg overflow-hidden z-20 py-1"
+                        style="background: #14121d; border: 1px solid var(--border-subtle)"
+                    >
+                        <button
+                            v-for="company in companyStore.companies"
+                            :key="company.id"
+                            @click="switchCompany(company.id)"
+                            class="w-full text-left px-3 py-2 text-sm hover:bg-white/5 transition-colors flex items-center justify-between gap-2"
+                            :class="company.id === companyStore.currentCompanyId ? 'text-white' : 'text-gray-400'"
+                        >
+                            <span class="truncate">{{ company.name || '(sem nome)' }}</span>
+                            <Check v-if="company.id === companyStore.currentCompanyId" class="w-3.5 h-3.5 flex-shrink-0" />
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <!-- Nav -->
             <nav class="flex-1 px-3 py-4 overflow-y-auto">
 
@@ -55,13 +84,17 @@
 
             </nav>
 
-            <!-- Footer: status + logout -->
+            <!-- Footer: status + painel admin + logout -->
             <div class="px-3 pb-4" style="border-top: 1px solid var(--border-subtle)">
                 <!-- system status -->
                 <div class="flex items-center gap-2 px-3 pt-3 pb-2">
                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0" style="box-shadow: 0 0 5px #34d399"></span>
                     <span class="tech-label">Sistema operacional</span>
                 </div>
+                <RouterLink v-if="auth.isPlatformAdmin && auth.isClient" to="/admin/clients" class="nav-item">
+                    <ShieldCheck class="w-4 h-4 flex-shrink-0" />
+                    Painel Admin
+                </RouterLink>
                 <button
                     @click="handleLogout"
                     class="nav-item w-full text-left"
@@ -80,16 +113,28 @@
 </template>
 
 <script setup>
-import { onMounted, computed } from 'vue'
+import { onMounted, ref, computed } from 'vue'
 import { useRouter, useRoute, RouterLink, RouterView } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useCompanyStore } from '@/stores/company'
 import { useSettingsStore } from '@/stores/settings'
-import { LayoutDashboard, Package, Megaphone, LogOut, Zap, UserCircle, Sparkles, History, CheckSquare, Settings, Wand2, LayoutTemplate, Images, Users, KanbanSquare } from 'lucide-vue-next'
+import { LayoutDashboard, Package, Megaphone, LogOut, Zap, UserCircle, Sparkles, History, CheckSquare, Settings, Wand2, Images, Users, KanbanSquare, ShieldCheck, Building2, ChevronsUpDown, Check } from 'lucide-vue-next'
 
-const router   = useRouter()
-const route    = useRoute()
-const auth     = useAuthStore()
-const settings = useSettingsStore()
+const router       = useRouter()
+const route        = useRoute()
+const auth         = useAuthStore()
+const companyStore = useCompanyStore()
+const settings     = useSettingsStore()
+
+const showCompanyMenu = ref(false)
+
+function switchCompany(companyId) {
+    showCompanyMenu.value = false
+    if (companyId === companyStore.currentCompanyId) return
+    companyStore.select(companyId)
+    // Force a full reload so every page re-fetches under the newly selected company.
+    window.location.href = '/dashboard'
+}
 
 const mainNav = [
     { path: '/dashboard', label: 'Dashboard',       icon: LayoutDashboard, menu: 'dashboard' },
@@ -97,7 +142,6 @@ const mainNav = [
     { path: '/generate-prompts', label: 'Gerador de Prompts', icon: Wand2, menu: 'generate_prompts' },
     { path: '/history',   label: 'Histórico',        icon: History, menu: 'history' },
     { path: '/products',  label: 'Produtos',          icon: Package, menu: 'products' },
-    { path: '/templates', label: 'Modelos de Arte',   icon: LayoutTemplate, menu: 'templates' },
     { path: '/gallery',   label: 'Galeria',           icon: Images, menu: 'gallery' },
     { path: '/leads',     label: 'Leads',             icon: Users, menu: 'leads' },
     { path: '/pipeline',  label: 'Pipeline',          icon: KanbanSquare, menu: 'pipeline' },

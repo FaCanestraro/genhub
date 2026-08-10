@@ -23,7 +23,7 @@ class TaskController extends Controller implements HasMiddleware
 
     public function index(Request $request)
     {
-        $query = Task::where('user_id', $request->user()->accountId())
+        $query = Task::where('company_id', $request->company()->id)
             ->with('lead:id,nome')
             ->latest('prazo');
 
@@ -62,14 +62,14 @@ class TaskController extends Controller implements HasMiddleware
             'prazo'       => 'nullable|date',
         ]);
 
-        $task = Task::create(['user_id' => $request->user()->accountId()] + $data);
+        $task = Task::create(['company_id' => $request->company()->id] + $data);
 
         return response()->json($task->load('lead:id,nome'), 201);
     }
 
     public function update(Request $request, Task $task)
     {
-        abort_if($task->user_id !== $request->user()->accountId(), 403);
+        abort_if($task->company_id !== $request->company()->id, 403);
 
         $data = $request->validate([
             'titulo'      => 'sometimes|string|max:255',
@@ -87,14 +87,14 @@ class TaskController extends Controller implements HasMiddleware
 
     public function destroy(Request $request, Task $task)
     {
-        abort_if($task->user_id !== $request->user()->accountId(), 403);
+        abort_if($task->company_id !== $request->company()->id, 403);
         $task->delete();
         return response()->json(null, 204);
     }
 
     public function toggle(Request $request, Task $task)
     {
-        abort_if($task->user_id !== $request->user()->accountId(), 403);
+        abort_if($task->company_id !== $request->company()->id, 403);
         $task->update(['concluida' => !$task->concluida]);
         return response()->json($task);
     }

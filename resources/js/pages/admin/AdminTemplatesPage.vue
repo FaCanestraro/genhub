@@ -2,11 +2,11 @@
     <div class="p-8 max-w-7xl mx-auto w-full">
         <div class="flex items-center justify-between mb-8">
             <div>
-                <p class="text-xs font-semibold tracking-widest uppercase mb-1" style="color: var(--text-muted)">Criação</p>
+                <p class="text-xs font-semibold tracking-widest uppercase mb-1" style="color: var(--text-muted)">Painel Admin</p>
                 <h1 class="page-hero-title text-2xl tracking-tight leading-tight">Modelos de Arte</h1>
-                <p class="text-sm mt-1" style="color: var(--text-secondary)">Cadastre prompts e prévias para geração rápida</p>
+                <p class="text-sm mt-1" style="color: var(--text-secondary)">Catálogo global — visível na Galeria de todos os clientes.</p>
             </div>
-            <button v-if="auth.can('templates', 'create')" @click="openModal()" class="btn-primary flex items-center gap-2">
+            <button @click="openModal()" class="btn-primary flex items-center gap-2">
                 <Plus class="w-4 h-4" />
                 Novo Modelo
             </button>
@@ -16,7 +16,7 @@
         <div v-if="!loading && templates.length === 0" class="text-center py-20">
             <LayoutTemplate class="w-12 h-12 text-gray-600 mx-auto mb-4" />
             <p class="text-gray-400">Nenhum modelo cadastrado ainda.</p>
-            <button v-if="auth.can('templates', 'create')" @click="openModal()" class="btn-primary mt-4">Criar modelo</button>
+            <button @click="openModal()" class="btn-primary mt-4">Criar modelo</button>
         </div>
 
         <!-- Grid -->
@@ -51,10 +51,10 @@
                         </span>
                     </div>
                     <div class="absolute top-2 right-2 flex gap-1">
-                        <button v-if="auth.can('templates', 'edit')" @click="openModal(t)" class="p-1.5 text-gray-400 hover:text-white bg-black/50 hover:bg-black/80 rounded-lg transition-colors backdrop-blur-sm">
+                        <button @click="openModal(t)" class="p-1.5 text-gray-400 hover:text-white bg-black/50 hover:bg-black/80 rounded-lg transition-colors backdrop-blur-sm">
                             <Pencil class="w-4 h-4" />
                         </button>
-                        <button v-if="auth.can('templates', 'delete')" @click="deleteTemplate(t)" class="p-1.5 text-gray-400 hover:text-red-400 bg-black/50 hover:bg-black/80 rounded-lg transition-colors backdrop-blur-sm">
+                        <button @click="deleteTemplate(t)" class="p-1.5 text-gray-400 hover:text-red-400 bg-black/50 hover:bg-black/80 rounded-lg transition-colors backdrop-blur-sm">
                             <Trash2 class="w-4 h-4" />
                         </button>
                     </div>
@@ -142,10 +142,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { Plus, Pencil, Trash2, Image as ImageIcon, Film, LayoutTemplate } from 'lucide-vue-next'
 import api from '@/services/api'
-import { assetUrl } from '@/utils/assetUrl'
-import { useAuthStore } from '@/stores/auth'
 
-const auth = useAuthStore()
 const templates = ref([])
 const loading = ref(false)
 const showModal = ref(false)
@@ -169,7 +166,7 @@ const previewIsVideo = computed(() => {
 
 async function fetchTemplates() {
     loading.value = true
-    const { data } = await api.get('/templates')
+    const { data } = await api.get('/admin/templates')
     templates.value = data
     loading.value = false
 }
@@ -222,10 +219,10 @@ async function save() {
     try {
         let template
         if (editing.value) {
-            const { data } = await api.put(`/templates/${editing.value.id}`, form.value)
+            const { data } = await api.put(`/admin/templates/${editing.value.id}`, form.value)
             template = data
         } else {
-            const { data } = await api.post('/templates', form.value)
+            const { data } = await api.post('/admin/templates', form.value)
             template = data
         }
         editing.value = template
@@ -234,7 +231,7 @@ async function save() {
             try {
                 const fd = new FormData()
                 fd.append('file', previewFile.value)
-                await api.post(`/templates/${template.id}/preview`, fd, {
+                await api.post(`/admin/templates/${template.id}/preview`, fd, {
                     headers: { 'Content-Type': 'multipart/form-data' },
                 })
             } catch (e) {
@@ -254,8 +251,8 @@ async function save() {
 }
 
 async function deleteTemplate(t) {
-    if (!confirm(`Excluir "${t.title}"?`)) return
-    await api.delete(`/templates/${t.id}`)
+    if (!confirm(`Excluir "${t.title}"? Isso remove o modelo da Galeria de todos os clientes.`)) return
+    await api.delete(`/admin/templates/${t.id}`)
     fetchTemplates()
 }
 

@@ -2,9 +2,12 @@
 
 namespace App\Providers;
 
+use App\Models\Company;
+use App\Models\CompanyUser;
 use Gemini\Contracts\ClientContract;
 use Gemini\Factory as GeminiFactory;
 use GuzzleHttp\Client as GuzzleClient;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
@@ -15,6 +18,16 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Company currently active for this request, resolved by the ResolveCurrentCompany
+        // middleware from the X-Company-Id header. Only set on company-scoped routes.
+        Request::macro('company', function (): ?Company {
+            return $this->attributes->get('company');
+        });
+
+        Request::macro('companyMembership', function (): ?CompanyUser {
+            return $this->attributes->get('companyMembership');
+        });
+
         if ($this->app->environment('production')) {
             URL::forceScheme('https');
         }

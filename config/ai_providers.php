@@ -14,4 +14,9 @@ return [
         'capabilities' => ['text', 'image'],
         'available' => false,
     ],
+    'muapi' => [
+        'label' => 'MuAPI (multi-IA)',
+        'capabilities' => ['image', 'video'], // ponytail: texto/carrossel ficam de fora até a MuAPI publicar doc
+        'available' => true,
+    ],
 ];

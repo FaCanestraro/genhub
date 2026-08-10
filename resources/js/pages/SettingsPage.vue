@@ -401,22 +401,37 @@
                 <h2 class="text-lg font-semibold text-white mb-5">{{ editingMember ? 'Editar' : 'Novo' }} Membro da Equipe</h2>
 
                 <form @submit.prevent="saveMember" class="space-y-4">
-                    <div>
-                        <label class="label">Nome *</label>
-                        <input v-model="memberForm.name" type="text" required class="input" placeholder="Nome do membro" />
-                    </div>
-                    <div>
-                        <label class="label">E-mail *</label>
-                        <input v-model="memberForm.email" type="email" required class="input" placeholder="email@exemplo.com" />
-                    </div>
-                    <div>
-                        <label class="label">{{ editingMember ? 'Nova senha (opcional)' : 'Senha *' }}</label>
-                        <input v-model="memberForm.password" type="password" :required="!editingMember" minlength="8" class="input" placeholder="Mínimo 8 caracteres" />
-                    </div>
-                    <div>
-                        <label class="label">Confirmar senha{{ editingMember ? '' : ' *' }}</label>
-                        <input v-model="memberForm.password_confirmation" type="password" :required="!editingMember && !!memberForm.password" minlength="8" class="input" placeholder="Repita a senha" />
-                    </div>
+                    <template v-if="editingMember">
+                        <div>
+                            <p class="label">Nome</p>
+                            <p class="text-sm text-white">{{ editingMember.name }}</p>
+                        </div>
+                        <div>
+                            <p class="label">E-mail</p>
+                            <p class="text-sm text-white">{{ editingMember.email }}</p>
+                        </div>
+                        <p class="text-xs text-gray-600">Nome, e-mail e senha são da conta da pessoa e só ela pode alterá-los (na tela de perfil dela) — aqui você só muda o perfil de acesso nesta empresa.</p>
+                    </template>
+                    <template v-else>
+                        <div>
+                            <label class="label">Nome *</label>
+                            <input v-model="memberForm.name" type="text" required class="input" placeholder="Nome do membro" />
+                        </div>
+                        <div>
+                            <label class="label">E-mail *</label>
+                            <input v-model="memberForm.email" type="email" required class="input" placeholder="email@exemplo.com" />
+                        </div>
+                        <div>
+                            <label class="label">Senha</label>
+                            <input v-model="memberForm.password" type="password" minlength="8" class="input" placeholder="Mínimo 8 caracteres" />
+                        </div>
+                        <div>
+                            <label class="label">Confirmar senha</label>
+                            <input v-model="memberForm.password_confirmation" type="password" minlength="8" class="input" placeholder="Repita a senha" />
+                        </div>
+                        <p class="text-xs text-gray-600">Se o e-mail já for de um usuário existente, ele só será vinculado a esta empresa (a senha informada é ignorada nesse caso).</p>
+                    </template>
+
                     <div>
                         <label class="label">Perfil de acesso *</label>
                         <select v-model="memberForm.role_id" required class="input">

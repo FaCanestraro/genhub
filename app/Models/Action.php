@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Action extends Model
 {
     protected $fillable = [
-        'campaign_id', 'user_id', 'type', 'platform', 'status',
+        'campaign_id', 'company_id', 'type', 'platform', 'status',
         'title', 'brief', 'caption', 'hashtags', 'product_ids',
         'resolution', 'quantity', 'scheduled_at', 'published_at',
     ];
@@ -24,9 +24,9 @@ class Action extends Model
         return $this->belongsTo(Campaign::class);
     }
 
-    public function user()
+    public function company()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Company::class);
     }
 
     public function generations()

@@ -23,7 +23,7 @@ class LeadActivityController extends Controller implements HasMiddleware
 
     public function index(Request $request, Lead $lead)
     {
-        abort_if($lead->user_id !== $request->user()->accountId(), 403);
+        abort_if($lead->company_id !== $request->company()->id, 403);
 
         return response()->json(
             $lead->activities()->with('user:id,name')->latest()->get()
@@ -32,7 +32,7 @@ class LeadActivityController extends Controller implements HasMiddleware
 
     public function store(Request $request, Lead $lead)
     {
-        abort_if($lead->user_id !== $request->user()->accountId(), 403);
+        abort_if($lead->company_id !== $request->company()->id, 403);
 
         $data = $request->validate([
             'titulo'    => 'required|string|max:255',
@@ -53,7 +53,7 @@ class LeadActivityController extends Controller implements HasMiddleware
 
     public function destroy(Request $request, Lead $lead, LeadActivity $activity)
     {
-        abort_if($lead->user_id !== $request->user()->accountId(), 403);
+        abort_if($lead->company_id !== $request->company()->id, 403);
         $activity->delete();
         return response()->json(null, 204);
     }

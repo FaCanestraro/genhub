@@ -25,7 +25,7 @@ class ProductController extends Controller implements HasMiddleware
 
     public function index(Request $request)
     {
-        $products = Product::where('user_id', $request->user()->accountId())
+        $products = Product::where('company_id', $request->company()->id)
             ->when($request->search, fn ($q) => $q->where('name', 'like', "%{$request->search}%"))
             ->latest()
             ->paginate(20);
@@ -47,7 +47,7 @@ class ProductController extends Controller implements HasMiddleware
             'attributes' => 'nullable|array',
         ]);
 
-        $product = Product::create(['user_id' => $request->user()->accountId()] + $data);
+        $product = Product::create(['company_id' => $request->company()->id] + $data);
 
         AuditLogger::log('products', 'product.created', "Produto \"{$product->name}\" criado", [
             'subject' => $product,
@@ -59,14 +59,14 @@ class ProductController extends Controller implements HasMiddleware
 
     public function show(Request $request, Product $product)
     {
-        abort_if($product->user_id !== $request->user()->accountId(), 403);
+        abort_if($product->company_id !== $request->company()->id, 403);
 
         return response()->json($product);
     }
 
     public function update(Request $request, Product $product)
     {
-        abort_if($product->user_id !== $request->user()->accountId(), 403);
+        abort_if($product->company_id !== $request->company()->id, 403);
 
         $data = $request->validate([
             'name' => 'sometimes|string|max:255',
@@ -93,7 +93,7 @@ class ProductController extends Controller implements HasMiddleware
 
     public function destroy(Request $request, Product $product)
     {
-        abort_if($product->user_id !== $request->user()->accountId(), 403);
+        abort_if($product->company_id !== $request->company()->id, 403);
 
         $productName = $product->name;
         $product->delete();
@@ -105,7 +105,7 @@ class ProductController extends Controller implements HasMiddleware
 
     public function uploadImage(Request $request, Product $product)
     {
-        abort_if($product->user_id !== $request->user()->accountId(), 403);
+        abort_if($product->company_id !== $request->company()->id, 403);
 
         $request->validate(['image' => 'required|image|max:5120']);
 

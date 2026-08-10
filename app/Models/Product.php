@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Storage;
 class Product extends Model
 {
     protected $fillable = [
-        'user_id', 'name', 'sku', 'description', 'category',
+        'company_id', 'name', 'sku', 'description', 'category',
         'price', 'price_discount', 'url', 'images', 'attributes', 'active',
     ];
 
@@ -28,8 +28,8 @@ class Product extends Model
             : Storage::disk('r2')->url($path), $paths);
     }
 
-    public function user()
+    public function company()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Company::class);
     }
 }

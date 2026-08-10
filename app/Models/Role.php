@@ -6,15 +6,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class Role extends Model
 {
-    protected $fillable = ['user_id', 'name', 'description', 'permissions', 'is_default'];
+    protected $fillable = ['company_id', 'name', 'description', 'permissions', 'is_default'];
 
     protected $casts = [
         'permissions' => 'array',
         'is_default'  => 'boolean',
     ];
 
-    public function user()
+    public function company()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Company::class);
     }
 }

@@ -9,13 +9,13 @@ class CheckPermission
 {
     public function handle(Request $request, Closure $next, string $menu, string $action)
     {
-        $user = $request->user();
+        $membership = $request->companyMembership();
 
-        if ($user->isOwner()) {
+        if ($membership->is_owner) {
             return $next($request);
         }
 
-        if (! ($user->role?->permissions[$menu][$action] ?? false)) {
+        if (! ($membership->role?->permissions[$menu][$action] ?? false)) {
             abort(403, 'Você não tem permissão para esta ação.');
         }
 

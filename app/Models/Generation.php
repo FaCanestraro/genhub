@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Generation extends Model
 {
     protected $fillable = [
-        'action_id', 'session_id', 'session_title', 'user_id', 'type', 'status', 'prompt',
+        'action_id', 'session_id', 'session_title', 'company_id', 'type', 'status', 'prompt',
         'result_text', 'model_used', 'metadata', 'error_message',
         'started_at', 'completed_at',
     ];
@@ -23,9 +23,9 @@ class Generation extends Model
         return $this->belongsTo(Action::class);
     }
 
-    public function user()
+    public function company()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Company::class);
     }
 
     public function assets()

@@ -15,7 +15,7 @@ class AuditLogger
         $subject = $opts['subject'] ?? null;
 
         return AuditLog::create([
-            'account_id' => $opts['account_id'] ?? $user?->accountId(),
+            'company_id' => $opts['company_id'] ?? $request?->company()?->id,
             'causer_id' => $opts['causer_id'] ?? $user?->id,
             'area' => $area,
             'action' => $action,

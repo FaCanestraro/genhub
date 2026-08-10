@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Task extends Model
 {
     protected $fillable = [
-        'user_id', 'lead_id', 'titulo', 'descricao',
+        'company_id', 'lead_id', 'titulo', 'descricao',
         'responsavel', 'prazo', 'concluida',
     ];
 
@@ -16,6 +16,6 @@ class Task extends Model
         'concluida' => 'boolean',
     ];
 
-    public function user() { return $this->belongsTo(User::class); }
+    public function company() { return $this->belongsTo(Company::class); }
     public function lead() { return $this->belongsTo(Lead::class); }
 }

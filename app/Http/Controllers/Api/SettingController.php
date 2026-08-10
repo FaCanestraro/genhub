@@ -23,12 +23,17 @@ class SettingController extends Controller implements HasMiddleware
 
     public function show(Request $request)
     {
+        $company = $request->company();
         $setting = Setting::firstOrCreate(
-            ['user_id' => $request->user()->accountId()],
+            ['company_id' => $company->id],
             ['data' => $this->defaults()]
         );
 
-        $data = $setting->data ?? $this->defaults();
+        $data = array_merge($this->defaults(), $setting->data ?? [], [
+            'nome_empresa' => $company->name ?? '',
+            'cnpj' => $company->cnpj ?? '',
+        ]);
+
         if (!empty($data['logo_path'])) {
             $data['logo_url'] = Storage::disk('r2')->url($data['logo_path']);
         }
@@ -54,16 +59,29 @@ class SettingController extends Controller implements HasMiddleware
             'cor_primaria'             => 'nullable|string|max:7',
         ]);
 
-        $setting = Setting::firstOrCreate(['user_id' => $request->user()->accountId()]);
-        $merged  = array_merge($this->defaults(), $setting->data ?? [], $validated);
-        $setting->update(['data' => $merged]);
+        $company = $request->company();
+        $company->fill([
+            'name' => $validated['nome_empresa'] ?? $company->name,
+            'cnpj' => $validated['cnpj'] ?? $company->cnpj,
+        ])->save();
+
+        $settingsData = collect($validated)->except(['nome_empresa', 'cnpj'])->toArray();
+
+        $setting = Setting::firstOrCreate(['company_id' => $company->id]);
+        $merged  = array_merge($this->defaults(), $setting->data ?? [], $settingsData);
+        $setting->update(['data' => collect($merged)->except(['nome_empresa', 'cnpj'])->toArray()]);
+
+        $response = array_merge($merged, [
+            'nome_empresa' => $company->name ?? '',
+            'cnpj' => $company->cnpj ?? '',
+        ]);
 
         AuditLogger::log('settings', 'settings.updated', 'Configurações gerais atualizadas', [
             'subject' => $setting,
             'input' => $validated,
         ]);
 
-        return response()->json($merged);
+        return response()->json($response);
     }
 
     public function uploadLogo(Request $request)
@@ -72,7 +90,8 @@ class SettingController extends Controller implements HasMiddleware
             'logo' => 'required|image|mimes:jpeg,png,jpg,svg,webp|max:2048',
         ]);
 
-        $setting = Setting::firstOrCreate(['user_id' => $request->user()->accountId()]);
+        $company = $request->company();
+        $setting = Setting::firstOrCreate(['company_id' => $company->id]);
 
         // Delete old logo if exists
         if (!empty($setting->data['logo_path'])) {
@@ -80,7 +99,7 @@ class SettingController extends Controller implements HasMiddleware
         }
 
         $path = $request->file('logo')->store(
-            'logos/' . $request->user()->accountId(),
+            'logos/' . $company->id,
             'r2'
         );
 
