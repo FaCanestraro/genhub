@@ -301,6 +301,7 @@ import { useRoute, RouterLink } from 'vue-router'
 import { Sparkles, Loader2, Download, Trash2, Copy, Film, Clock, Package, X, Pencil } from 'lucide-vue-next'
 import api from '@/services/api'
 import { downloadAsset } from '@/utils/download'
+import { pollGeneration } from '@/utils/pollGeneration'
 import StatusBadge from '@/components/StatusBadge.vue'
 import PlatformIcon from '@/components/PlatformIcon.vue'
 import TypeBadge from '@/components/TypeBadge.vue'
@@ -396,6 +397,10 @@ async function generate() {
 
         const { data } = await api.post(`/actions/${actionId.value}/generate`, payload)
         generations.value.unshift(data)
+
+        const final = await pollGeneration(data.id)
+        const idx = generations.value.findIndex(g => g.id === data.id)
+        if (idx !== -1) generations.value[idx] = final
         await fetchAction()
     } catch (e) {
         await fetchAction()

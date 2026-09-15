@@ -8,7 +8,11 @@ use Illuminate\Support\Facades\Storage;
 class Template extends Model
 {
     protected $fillable = [
-        'user_id', 'title', 'prompt', 'type', 'preview_path',
+        'user_id', 'title', 'prompt', 'type', 'preview_path', 'is_favorite',
+    ];
+
+    protected $casts = [
+        'is_favorite' => 'boolean',
     ];
 
     protected $appends = ['preview_url'];

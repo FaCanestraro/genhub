@@ -65,7 +65,11 @@
                     class="group rounded-2xl overflow-hidden list-row"
                 >
                     <!-- Thumbnail quadrada -->
-                    <div class="relative aspect-square bg-gray-800">
+                    <div
+                        class="relative aspect-square bg-gray-800"
+                        :class="{ 'cursor-pointer': totalAssets(gen) > 0 }"
+                        @click="openViewer(gen)"
+                    >
                         <img
                             v-if="firstImage(gen)"
                             :src="firstImage(gen).url"
@@ -73,8 +77,8 @@
                         />
                         <div v-else-if="firstVideo(gen)" class="w-full h-full relative">
                             <video :src="firstVideo(gen).url" class="w-full h-full object-cover" muted></video>
-                            <div class="absolute inset-0 flex items-center justify-center bg-black/40">
-                                <Film class="w-8 h-8 text-white" />
+                            <div class="absolute inset-0 flex items-center justify-center bg-black/40 group-hover:bg-black/55 transition-colors">
+                                <Play class="w-8 h-8 text-white" />
                             </div>
                         </div>
                         <div v-else class="w-full h-full flex items-center justify-center">
@@ -87,7 +91,7 @@
                             <div class="flex justify-end">
                                 <button
                                     v-if="auth.can('generate', 'delete')"
-                                    @click="deleteGen(gen)"
+                                    @click.stop="deleteGen(gen)"
                                     class="p-1.5 bg-red-500/20 hover:bg-red-500/40 rounded-lg transition-colors"
                                     title="Excluir"
                                 >
@@ -100,6 +104,7 @@
                                 <RouterLink
                                     v-if="gen.action"
                                     :to="`/campaigns/${gen.action.campaign_id}/actions/${gen.action.id}`"
+                                    @click.stop
                                     class="flex items-center gap-1 text-xs bg-white/10 hover:bg-white/20 text-white px-2 py-1 rounded-lg transition-colors"
                                 >
                                     <ExternalLink class="w-3 h-3" />
@@ -108,6 +113,7 @@
                                 <RouterLink
                                     v-else-if="gen.session_id"
                                     :to="`/generate?session=${gen.session_id}`"
+                                    @click.stop
                                     class="flex items-center gap-1 text-xs bg-white/10 hover:bg-white/20 text-white px-2 py-1 rounded-lg transition-colors"
                                 >
                                     <MessageSquare class="w-3 h-3" />
@@ -116,7 +122,7 @@
                                 <button
                                     v-for="asset in downloadableAssets(gen)"
                                     :key="asset.id"
-                                    @click="downloadAsset(asset.url)"
+                                    @click.stop="downloadAsset(asset.url)"
                                     class="flex items-center gap-1 text-xs bg-white/10 hover:bg-white/20 text-white px-2 py-1 rounded-lg transition-colors"
                                 >
                                     <Download class="w-3 h-3" />
@@ -179,13 +185,74 @@
                 </button>
             </div>
         </div>
+
+        <!-- Visualizador de mídia (lightbox) -->
+        <Teleport to="body">
+            <div
+                v-if="viewer"
+                class="fixed inset-0 z-50 bg-black/85 backdrop-blur-xl flex items-center justify-center p-4"
+                @click.self="closeViewer"
+            >
+                <button
+                    @click="closeViewer"
+                    class="absolute top-4 right-4 p-2 text-white/70 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
+                >
+                    <X class="w-5 h-5" />
+                </button>
+
+                <button
+                    v-if="viewerAssets.length > 1"
+                    @click.stop="prevAsset"
+                    class="absolute left-2 sm:left-4 p-2 text-white/70 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
+                >
+                    <ChevronLeft class="w-6 h-6" />
+                </button>
+                <button
+                    v-if="viewerAssets.length > 1"
+                    @click.stop="nextAsset"
+                    class="absolute right-2 sm:right-4 p-2 text-white/70 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
+                >
+                    <ChevronRight class="w-6 h-6" />
+                </button>
+
+                <div class="max-w-4xl w-full flex flex-col items-center gap-3" @click.stop>
+                    <video
+                        v-if="currentViewerAsset?.type === 'video'"
+                        :key="currentViewerAsset.id"
+                        :src="currentViewerAsset.url"
+                        controls
+                        autoplay
+                        playsinline
+                        class="max-w-full max-h-[75vh] rounded-xl bg-black"
+                    />
+                    <img
+                        v-else-if="currentViewerAsset"
+                        :src="currentViewerAsset.url"
+                        class="max-w-full max-h-[75vh] rounded-xl object-contain"
+                    />
+
+                    <div class="flex items-center gap-3">
+                        <span v-if="viewerAssets.length > 1" class="text-xs text-white/60">
+                            {{ viewer.index + 1 }} / {{ viewerAssets.length }}
+                        </span>
+                        <button
+                            @click="downloadAsset(currentViewerAsset.url)"
+                            class="flex items-center gap-1.5 text-xs bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-lg transition-colors"
+                        >
+                            <Download class="w-3.5 h-3.5" />
+                            Baixar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </Teleport>
     </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
-import { History, Sparkles, Film, Image, FileText, Layers, Trash2, Download, Loader2, Megaphone, ExternalLink, MessageSquare } from 'lucide-vue-next'
+import { History, Sparkles, Film, Image, FileText, Layers, Trash2, Download, Loader2, Megaphone, ExternalLink, MessageSquare, Play, X, ChevronLeft, ChevronRight } from 'lucide-vue-next'
 import api from '@/services/api'
 import { downloadAsset } from '@/utils/download'
 import StatusBadge from '@/components/StatusBadge.vue'
@@ -238,6 +305,35 @@ function extraAssets(gen) {
 function downloadableAssets(gen) {
     return (gen.assets || []).slice(0, 3)
 }
+
+// ─── Visualizador de mídia ─────────────────────────────────────────────────
+
+const viewer = ref(null) // { gen, index }
+const viewerAssets = computed(() => viewer.value?.gen.assets || [])
+const currentViewerAsset = computed(() => viewerAssets.value[viewer.value?.index] ?? null)
+
+function openViewer(gen) {
+    if (!(gen.assets || []).length) return
+    viewer.value = { gen, index: 0 }
+}
+
+function closeViewer() {
+    viewer.value = null
+}
+
+function nextAsset() {
+    if (!viewer.value) return
+    viewer.value.index = (viewer.value.index + 1) % viewerAssets.value.length
+}
+
+function prevAsset() {
+    if (!viewer.value) return
+    viewer.value.index = (viewer.value.index - 1 + viewerAssets.value.length) % viewerAssets.value.length
+}
+
+watch(viewer, (val) => {
+    document.body.style.overflow = val ? 'hidden' : ''
+})
 
 async function fetchGenerations(reset = false) {
     loading.value = true

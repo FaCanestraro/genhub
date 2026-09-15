@@ -46,6 +46,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('products/{product}/images', [ProductController::class, 'uploadImage']);
 
         Route::get('templates', [TemplateController::class, 'index']);
+        Route::patch('templates/{template}/favorite', [TemplateController::class, 'toggleFavorite']);
 
         Route::apiResource('campaigns', CampaignController::class);
         Route::get('actions', [ActionController::class, 'allActions']);

@@ -2,13 +2,14 @@
 
 namespace App\Services;
 
+use App\Contracts\VideoClipRenderer;
 use App\Models\Action;
 use App\Models\AiCredential;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 
-class MuApiService
+class MuApiService implements VideoClipRenderer
 {
     private string $imageModel = 'flux-schnell';
     private string $apiBase = 'https://api.muapi.ai/v1';
@@ -19,7 +20,7 @@ class MuApiService
     private string $videoModelI2V = 'vidu-q2-turbo-image-to-video';
     private string $videoApiBase = 'https://api.muapi.ai/api/v1';
 
-    public function generateImage(Action $action, Collection $products, ?string $extraPrompt): array
+    public function generateImage(Action $action, Collection $products, ?string $extraPrompt, int $companyId): array
     {
         $productContext = $products->map(fn ($p) => "- {$p->name}: {$p->description} (R$ {$p->price})")->join("\n")
             ?: 'Nenhum produto específico selecionado.';
@@ -32,7 +33,7 @@ class MuApiService
         Reproduce the product packaging/label text exactly as-is — never alter, invent, or redesign it.
         PROMPT);
 
-        $response = Http::withToken($this->resolveApiKey())
+        $response = Http::withToken($this->resolveApiKey($companyId))
             ->timeout(60)
             ->post("{$this->apiBase}/images/generations", [
                 'model' => $this->imageModel,
@@ -73,7 +74,7 @@ class MuApiService
         ];
     }
 
-    public function generateVideo(Action $action, Collection $products, ?string $extraPrompt): array
+    public function generateVideo(Action $action, Collection $products, ?string $extraPrompt, int $companyId): array
     {
         $productContext = $products->map(fn ($p) => "- {$p->name}: {$p->description} (R$ {$p->price})")->join("\n")
             ?: 'Nenhum produto específico selecionado.';
@@ -88,7 +89,7 @@ class MuApiService
         Reproduce the product packaging/label text exactly as-is — never alter, invent, or redesign it.
         PROMPT);
 
-        $key = $this->resolveApiKey();
+        $key = $this->resolveApiKey($companyId);
         $model = $imageUrl ? $this->videoModelI2V : $this->videoModelT2V;
 
         $body = ['prompt' => $prompt, 'duration' => $duration];
@@ -139,6 +140,43 @@ class MuApiService
         ];
     }
 
+    public function renderVideoClip(string $prompt, int $companyId, array $options = []): array
+    {
+        $key = $this->resolveApiKey($companyId);
+        $imageUrl = $options['image_url'] ?? null;
+        $duration = $options['duration'] ?? 8;
+        $model = $imageUrl ? $this->videoModelI2V : $this->videoModelT2V;
+
+        $body = ['prompt' => $prompt, 'duration' => $duration];
+        if ($imageUrl) {
+            $body['image_url'] = $imageUrl;
+        }
+
+        $startResponse = Http::withHeaders(['x-api-key' => $key])
+            ->timeout(30)
+            ->post("{$this->videoApiBase}/{$model}", $body);
+
+        if (!$startResponse->successful()) {
+            throw new \RuntimeException('Erro ao iniciar geração de clipe na MuAPI: ' . $startResponse->body());
+        }
+
+        $requestId = $startResponse->json('request_id');
+        if (!$requestId) {
+            throw new \RuntimeException('Resposta inválida da MuAPI: sem request_id.');
+        }
+
+        $result = $this->pollVideoJob($requestId, $key);
+
+        foreach ($result['outputs'] ?? [] as $url) {
+            $videoResponse = Http::timeout(120)->get($url);
+            if (!$videoResponse->successful() || $videoResponse->body() === '') continue;
+
+            return ['bytes' => $videoResponse->body(), 'mime_type' => 'video/mp4'];
+        }
+
+        throw new \RuntimeException('O clipe não pôde ser gerado pela MuAPI.');
+    }
+
     private function pollVideoJob(string $requestId, string $key, int $maxWaitSeconds = 180): array
     {
         $deadline = time() + $maxWaitSeconds;
@@ -146,11 +184,22 @@ class MuApiService
         while (time() < $deadline) {
             sleep(5);
 
-            $response = Http::withHeaders(['x-api-key' => $key])
-                ->timeout(15)
-                ->get("{$this->videoApiBase}/predictions/{$requestId}/result");
+            try {
+                $response = Http::withHeaders(['x-api-key' => $key])
+                    ->timeout(15)
+                    ->get("{$this->videoApiBase}/predictions/{$requestId}/result");
+            } catch (\Illuminate\Http\Client\ConnectionException) {
+                // Blip de rede numa checagem de status isolada não deve derrubar a geração
+                // inteira — tenta de novo no próximo poll, dentro do prazo total.
+                continue;
+            }
 
             if (!$response->successful()) {
+                // Erros transitórios (rate limit, instabilidade momentânea da API) também só
+                // tentam de novo; erros que não vão se resolver sozinhos falham na hora.
+                if (in_array($response->status(), [429, 500, 502, 503, 504], true)) {
+                    continue;
+                }
                 throw new \RuntimeException('Erro ao verificar status do vídeo na MuAPI: ' . $response->body());
             }
 
@@ -182,16 +231,12 @@ class MuApiService
         };
     }
 
-    private function resolveApiKey(): string
+    private function resolveApiKey(int $companyId): string
     {
-        $company = request()?->company();
-
-        $key = $company
-            ? AiCredential::where('company_id', $company->id)
-                ->where('provider', 'muapi')
-                ->where('is_active', true)
-                ->first()?->api_key
-            : null;
+        $key = AiCredential::where('company_id', $companyId)
+            ->where('provider', 'muapi')
+            ->where('is_active', true)
+            ->first()?->api_key;
 
         abort_if(!$key, 422, 'Cadastre uma chave da MuAPI em Configurações > Inteligência Artificial.');
 

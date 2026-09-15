@@ -328,6 +328,7 @@ import { useRoute } from 'vue-router'
 import { Sparkles, Loader2, Download, Trash2, Copy, Film, Image, Package, MessageSquare, Plus, AlertTriangle, Pencil, Check, X } from 'lucide-vue-next'
 import api from '@/services/api'
 import { downloadAsset } from '@/utils/download'
+import { pollGeneration } from '@/utils/pollGeneration'
 import { useAuthStore } from '@/stores/auth'
 
 const auth = useAuthStore()
@@ -598,6 +599,11 @@ async function generate() {
 
         currentGenerations.value.push(data)
         updateSessionMeta(currentSessionId.value, brief)
+        await scrollToBottom()
+
+        const final = await pollGeneration(data.id)
+        const idx = currentGenerations.value.findIndex(g => g.id === data.id)
+        if (idx !== -1) currentGenerations.value[idx] = final
         await scrollToBottom()
     } catch (e) {
         alert(e.response?.data?.message || 'Erro na geração.')

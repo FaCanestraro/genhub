@@ -51,7 +51,9 @@ class AiCredentialController extends Controller implements HasMiddleware
     {
         $data = $request->validate([
             'provider' => ['required', Rule::in(array_keys(config('ai_providers')))],
-            'api_key' => 'required|string|max:1000',
+            'api_key' => $request->provider === 'comfyui'
+                ? 'required|url|max:1000'
+                : 'required|string|max:1000',
         ]);
 
         $provider = config("ai_providers.{$data['provider']}");

@@ -19,4 +19,9 @@ return [
         'capabilities' => ['image', 'video'], // ponytail: texto/carrossel ficam de fora até a MuAPI publicar doc
         'available' => true,
     ],
+    'comfyui' => [
+        'label' => 'ComfyUI (local)',
+        'capabilities' => ['image', 'video'],
+        'available' => true,
+    ],
 ];

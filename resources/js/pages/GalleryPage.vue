@@ -64,6 +64,15 @@
                                 class="masonry-card"
                                 @click="openDetail(t)"
                             >
+                                <button
+                                    @click.stop="toggleFavorite(t)"
+                                    class="favorite-btn"
+                                    :class="{ 'is-favorite': t.is_favorite }"
+                                    :title="t.is_favorite ? 'Remover dos favoritos' : 'Favoritar'"
+                                >
+                                    <Star class="w-3.5 h-3.5" :fill="t.is_favorite ? 'currentColor' : 'none'" />
+                                </button>
+
                                 <video
                                     v-if="t.type === 'video' && t.preview_url"
                                     :src="t.preview_url"
@@ -153,12 +162,22 @@
                                     <p class="tech-label mb-1.5">Modelo</p>
                                     <h2 class="text-xl font-bold text-white leading-tight">{{ detail.title }}</h2>
                                 </div>
-                                <button
-                                    @click="closeDetail"
-                                    class="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-gray-500 hover:text-white hover:bg-white/[0.08] transition-colors"
-                                >
-                                    <X class="w-4 h-4" />
-                                </button>
+                                <div class="flex items-center gap-1 flex-shrink-0">
+                                    <button
+                                        @click="toggleFavorite(detail)"
+                                        class="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
+                                        :class="detail.is_favorite ? 'text-amber-400 hover:bg-amber-400/10' : 'text-gray-500 hover:text-white hover:bg-white/[0.08]'"
+                                        :title="detail.is_favorite ? 'Remover dos favoritos' : 'Favoritar'"
+                                    >
+                                        <Star class="w-4 h-4" :fill="detail.is_favorite ? 'currentColor' : 'none'" />
+                                    </button>
+                                    <button
+                                        @click="closeDetail"
+                                        class="w-8 h-8 rounded-lg flex items-center justify-center text-gray-500 hover:text-white hover:bg-white/[0.08] transition-colors"
+                                    >
+                                        <X class="w-4 h-4" />
+                                    </button>
+                                </div>
                             </div>
 
                             <hr class="divider-subtle my-4" />
@@ -301,10 +320,11 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { RouterLink } from 'vue-router'
-import { Film, Image as ImageIcon, X, Sparkles, Loader2, Download, LayoutTemplate, Plus, ArrowUpRight } from 'lucide-vue-next'
+import { Film, Image as ImageIcon, X, Sparkles, Loader2, Download, LayoutTemplate, Plus, ArrowUpRight, Star } from 'lucide-vue-next'
 import api from '@/services/api'
 import { assetUrl } from '@/utils/assetUrl'
 import { downloadAsset } from '@/utils/download'
+import { pollGeneration } from '@/utils/pollGeneration'
 import { useAuthStore } from '@/stores/auth'
 
 const auth = useAuthStore()
@@ -359,6 +379,17 @@ async function fetchData() {
     loading.value   = false
 }
 
+async function toggleFavorite(t) {
+    try {
+        const { data } = await api.patch(`/templates/${t.id}/favorite`, {})
+        t.is_favorite = data.is_favorite
+        // Mantém favoritos primeiro sem precisar recarregar a lista inteira (sort é estável).
+        templates.value = [...templates.value].sort((a, b) => (b.is_favorite ? 1 : 0) - (a.is_favorite ? 1 : 0))
+    } catch (e) {
+        alert(e.response?.data?.message || 'Erro ao favoritar o modelo.')
+    }
+}
+
 function openDetail(t) {
     detail.value         = t
     expandPrompt.value   = false
@@ -391,20 +422,27 @@ async function generate() {
             if (product.price_discount) brief += ` (desconto: R$ ${Number(product.price_discount).toFixed(2)})`
         }
 
+        const genType = detail.value.type
+
         const { data } = await api.post('/generate', {
-            type:         detail.value.type,
+            type:         genType,
             platform:     'instagram',
-            content_type: detail.value.type === 'video' ? 'reel' : 'post',
+            content_type: genType === 'video' ? 'reel' : 'post',
             resolution:   selectedResolution.value,
             brief,
             product_ids:  product ? [product.id] : [],
         })
 
-        const urls = data.assets?.map(a => a.url ?? assetUrl(a.path)) ?? []
-        result.value = { type: detail.value.type, urls }
-        closeDetail()
+        const final = await pollGeneration(data.id)
+
+        if (final.status === 'failed') {
+            throw new Error(final.error_message || 'Erro na geração.')
+        }
+
+        const urls = final.assets?.map(a => a.url ?? assetUrl(a.path)) ?? []
+        result.value = { type: genType, urls }
     } catch (e) {
-        alert(e.response?.data?.message || 'Erro na geração.')
+        alert(e.response?.data?.message || e.message || 'Erro na geração.')
     } finally {
         generating.value = false
     }
@@ -615,6 +653,38 @@ onMounted(fetchData)
     background: rgba(59, 130, 246, 0.18);
     color: #93c5fd;
     border: 1px solid rgba(59, 130, 246, 0.28);
+}
+
+/* ── Favorite button ───────────────────────────────────────────── */
+.favorite-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 2;
+    width: 28px;
+    height: 28px;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(3, 2, 18, 0.55);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #fff;
+    opacity: 0;
+    transition: opacity 0.18s ease, color 0.18s ease, background 0.18s ease, transform 0.12s ease;
+}
+.masonry-card:hover .favorite-btn,
+.favorite-btn.is-favorite {
+    opacity: 1;
+}
+.favorite-btn.is-favorite {
+    color: #fbbf24;
+    background: rgba(120, 53, 15, 0.35);
+    border-color: rgba(251, 191, 36, 0.35);
+}
+.favorite-btn:hover {
+    transform: scale(1.08);
 }
 
 /* ── Detail backdrop ───────────────────────────────────────────── */

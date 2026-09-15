@@ -42,8 +42,8 @@
 
                 <form v-if="provider.available" @submit.prevent="saveKey(provider)" class="mt-4 pt-4 border-t border-gray-800 flex items-end gap-3">
                     <div class="flex-1">
-                        <label class="label">{{ provider.has_key ? 'Rotacionar chave de API' : 'Chave de API' }}</label>
-                        <input v-model="forms[provider.provider]" type="password" class="input" :placeholder="provider.has_key ? '••••••••••••••••' : 'Cole a chave de API aqui'" />
+                        <label class="label">{{ fieldLabel(provider) }}</label>
+                        <input v-model="forms[provider.provider]" :type="provider.provider === 'comfyui' ? 'text' : 'password'" class="input" :placeholder="fieldPlaceholder(provider)" />
                     </div>
                     <button type="submit" :disabled="!forms[provider.provider] || saving === provider.provider" class="btn-primary px-4 py-2">
                         {{ saving === provider.provider ? 'Salvando...' : 'Salvar' }}
@@ -55,6 +55,9 @@
 
                 <p v-if="provider.provider === 'gemini' && !provider.has_key" class="text-xs text-gray-600 mt-2">
                     Sem chave cadastrada, o sistema usa a chave padrão configurada no servidor.
+                </p>
+                <p v-if="provider.provider === 'comfyui'" class="text-xs text-gray-600 mt-2">
+                    Aponte para a instância do ComfyUI rodando na sua máquina (ex: http://127.0.0.1:8188). O servidor precisa conseguir acessar essa URL.
                 </p>
             </div>
         </div>
@@ -78,6 +81,16 @@ const forms     = reactive({})
 
 const CAPABILITY_LABELS = { text: 'Texto', image: 'Imagem', video: 'Vídeo', carousel: 'Carrossel' }
 function capabilityLabel(c) { return CAPABILITY_LABELS[c] ?? c }
+
+function fieldLabel(provider) {
+    if (provider.provider === 'comfyui') return provider.has_key ? 'Atualizar URL do ComfyUI' : 'URL do ComfyUI'
+    return provider.has_key ? 'Rotacionar chave de API' : 'Chave de API'
+}
+
+function fieldPlaceholder(provider) {
+    if (provider.provider === 'comfyui') return provider.has_key ? '••••••••' : 'http://127.0.0.1:8188'
+    return provider.has_key ? '••••••••••••••••' : 'Cole a chave de API aqui'
+}
 
 async function loadProviders() {
     loading.value = true
