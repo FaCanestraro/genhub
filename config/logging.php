@@ -5,7 +5,7 @@ use Monolog\Handler\StreamHandler;
 use Monolog\Handler\SyslogUdpHandler;
 use Monolog\Processor\PsrLogMessageProcessor;
 
-return [
+$config = [
 
     /*
     |--------------------------------------------------------------------------
@@ -130,3 +130,13 @@ return [
     ],
 
 ];
+
+// Aplica o dateFormat com timezone (Y-m-d\TH:i:sP) em todos os canais.
+$config['channels'] = array_map(function ($channel) {
+    return ['tap' => array_merge(
+        [\App\Logging\TimezoneFormatter::class],
+        $channel['tap'] ?? []
+    )] + $channel;
+}, $config['channels']);
+
+return $config;
