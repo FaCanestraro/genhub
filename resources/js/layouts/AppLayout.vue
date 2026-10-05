@@ -12,18 +12,7 @@
                     class="h-14 w-auto max-w-[180px] object-contain"
                     alt="Logo"
                 />
-                <template v-else>
-                    <div
-                        class="brand-orb w-8 h-8 flex items-center justify-center flex-shrink-0"
-                        :style="{ background: `radial-gradient(circle, color-mix(in srgb, ${settings.primaryColor || 'var(--brand)'} 70%, white) 0%, ${settings.primaryColor || 'var(--brand)'} 60%, transparent 100%)`, boxShadow: `0 0 22px color-mix(in srgb, ${settings.primaryColor || 'var(--brand)'} 55%, transparent)` }"
-                    >
-                        <Zap class="w-4 h-4 text-white" />
-                    </div>
-                    <div>
-                        <p class="text-white font-semibold text-sm tracking-wide leading-none">GenHub</p>
-                        <p class="tech-label mt-0.5">AI Platform</p>
-                    </div>
-                </template>
+                <img v-else src="/creatiq-logo.png" alt="CREATIQ" class="h-12 w-auto" />
             </div>
 
             <!-- Company switcher -->
@@ -118,7 +107,7 @@ import { useRouter, useRoute, RouterLink, RouterView } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useCompanyStore } from '@/stores/company'
 import { useSettingsStore } from '@/stores/settings'
-import { LayoutDashboard, Package, Megaphone, LogOut, Zap, UserCircle, Sparkles, History, CheckSquare, Settings, Wand2, Images, Users, KanbanSquare, ShieldCheck, Building2, ChevronsUpDown, Check } from 'lucide-vue-next'
+import { LayoutDashboard, Package, Megaphone, LogOut, UserCircle, Sparkles, History, CheckSquare, Settings, Wand2, Images, Users, KanbanSquare, ShieldCheck, Building2, ChevronsUpDown, Check } from 'lucide-vue-next'
 
 const router       = useRouter()
 const route        = useRoute()

@@ -6,16 +6,8 @@
 
             <!-- Logo -->
             <div class="flex items-center justify-center gap-2.5 px-4 py-5" style="border-bottom: 1px solid var(--border-subtle)">
-                <div
-                    class="brand-orb w-8 h-8 flex items-center justify-center flex-shrink-0"
-                    style="background: radial-gradient(circle, color-mix(in srgb, var(--brand) 70%, white) 0%, var(--brand) 60%, transparent 100%); box-shadow: 0 0 22px color-mix(in srgb, var(--brand) 55%, transparent)"
-                >
-                    <ShieldCheck class="w-4 h-4 text-white" />
-                </div>
-                <div>
-                    <p class="text-white font-semibold text-sm tracking-wide leading-none">GenHub</p>
-                    <p class="tech-label mt-0.5">Painel Admin</p>
-                </div>
+                <img src="/creatiq-logo.png" alt="CREATIQ" class="h-10 w-auto" />
+                <p class="tech-label">Admin</p>
             </div>
 
             <!-- Nav -->
@@ -60,7 +52,7 @@
 <script setup>
 import { useRouter, useRoute, RouterLink, RouterView } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { Users2, LayoutTemplate, LogOut, ShieldCheck, ArrowLeftRight, UserCog } from 'lucide-vue-next'
+import { Users2, LayoutTemplate, LogOut, ArrowLeftRight, UserCog } from 'lucide-vue-next'
 
 const router = useRouter()
 const route  = useRoute()

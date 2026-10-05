@@ -2,10 +2,7 @@
     <div class="min-h-screen bg-gray-950 flex items-center justify-center p-4">
         <div class="w-full max-w-md">
             <div class="text-center mb-8">
-                <div class="inline-flex items-center justify-center w-12 h-12 bg-violet-600 rounded-xl mb-4">
-                    <Zap class="w-7 h-7 text-white" />
-                </div>
-                <h1 class="text-2xl font-bold text-white">GenHub</h1>
+                <RouterLink to="/"><img src="/creatiq-logo.png" alt="CREATIQ" class="h-20 w-auto mx-auto mb-2" /></RouterLink>
                 <p class="text-gray-400 mt-1">Geração de conteúdo com IA</p>
             </div>
 
@@ -55,7 +52,6 @@
 import { ref } from 'vue'
 import { useRouter, RouterLink } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { Zap } from 'lucide-vue-next'
 
 const router = useRouter()
 const auth = useAuthStore()

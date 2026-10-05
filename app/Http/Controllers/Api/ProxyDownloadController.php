@@ -56,7 +56,7 @@ class ProxyDownloadController
 
         $mimeBase = explode(';', $contentType)[0];
         $ext      = $this->extensionFromMime($mimeBase);
-        $filename = 'genhub-' . now()->format('YmdHis') . '.' . $ext;
+        $filename = 'creatiq-' . now()->format('YmdHis') . '.' . $ext;
 
         return response()->stream(function () use ($url) {
             set_time_limit(0);

@@ -3,6 +3,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useCompanyStore } from '@/stores/company'
 
 const routes = [
+    { path: '/', component: () => import('@/pages/LandingPage.vue'), meta: { guest: true } },
     { path: '/login', component: () => import('@/pages/LoginPage.vue'), meta: { guest: true } },
     { path: '/register', component: () => import('@/pages/RegisterPage.vue'), meta: { guest: true } },
     { path: '/choose-area', component: () => import('@/pages/ChooseAreaPage.vue'), meta: { requiresAuth: true } },
@@ -11,7 +12,6 @@ const routes = [
         component: () => import('@/layouts/AppLayout.vue'),
         meta: { requiresAuth: true },
         children: [
-            { path: '', redirect: '/dashboard' },
             { path: 'dashboard', component: () => import('@/pages/DashboardPage.vue'), meta: { menu: 'dashboard' } },
             { path: 'generate', component: () => import('@/pages/GeneratePage.vue'), meta: { menu: 'generate' } },
             { path: 'generate-prompts', component: () => import('@/pages/GeneratePage2.vue'), meta: { menu: 'generate_prompts' } },

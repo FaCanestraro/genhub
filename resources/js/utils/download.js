@@ -14,7 +14,7 @@ export async function downloadAsset(url, filename) {
         const blob       = response.data
         const contentDisposition = response.headers['content-disposition'] ?? ''
         const match      = contentDisposition.match(/filename="?([^"]+)"?/)
-        const name       = filename || match?.[1] || `genhub-${Date.now()}.bin`
+        const name       = filename || match?.[1] || `creatiq-${Date.now()}.bin`
 
         const objectUrl = URL.createObjectURL(blob)
         const a = document.createElement('a')
