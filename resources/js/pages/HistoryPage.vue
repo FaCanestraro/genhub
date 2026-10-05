@@ -120,6 +120,14 @@
                                     Retomar
                                 </RouterLink>
                                 <button
+                                    v-if="canPublish(gen)"
+                                    @click.stop="publishing = gen"
+                                    class="flex items-center gap-1 text-xs bg-white/10 hover:bg-white/20 text-white px-2 py-1 rounded-lg transition-colors"
+                                >
+                                    <Send class="w-3 h-3" />
+                                    Publicar
+                                </button>
+                                <button
                                     v-for="asset in downloadableAssets(gen)"
                                     :key="asset.id"
                                     @click.stop="downloadAsset(asset.url)"
@@ -242,20 +250,31 @@
                             <Download class="w-3.5 h-3.5" />
                             Baixar
                         </button>
+                        <button
+                            v-if="canPublish(viewer.gen)"
+                            @click="publishing = viewer.gen"
+                            class="flex items-center gap-1.5 text-xs bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-lg transition-colors"
+                        >
+                            <Send class="w-3.5 h-3.5" />
+                            Publicar
+                        </button>
                     </div>
                 </div>
             </div>
         </Teleport>
+
+        <PublishModal v-if="publishing" :generation="publishing" @close="publishing = null" />
     </div>
 </template>
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
-import { History, Sparkles, Film, Image, FileText, Layers, Trash2, Download, Loader2, Megaphone, ExternalLink, MessageSquare, Play, X, ChevronLeft, ChevronRight } from 'lucide-vue-next'
+import { History, Sparkles, Film, Image, FileText, Layers, Trash2, Download, Loader2, Megaphone, ExternalLink, MessageSquare, Play, X, ChevronLeft, ChevronRight, Send } from 'lucide-vue-next'
 import api from '@/services/api'
 import { downloadAsset } from '@/utils/download'
 import StatusBadge from '@/components/StatusBadge.vue'
+import PublishModal from '@/components/PublishModal.vue'
 import { useAuthStore } from '@/stores/auth'
 
 const auth = useAuthStore()
@@ -300,6 +319,12 @@ function extraAssets(gen) {
     const all = gen.assets || []
     const first = firstImage(gen) || firstVideo(gen)
     return all.filter(a => a.id !== first?.id).slice(0, 3)
+}
+
+const publishing = ref(null)
+
+function canPublish(gen) {
+    return gen.status === 'completed' && auth.can('social', 'create') && (gen.assets || []).some(a => ['image', 'video'].includes(a.type))
 }
 
 function downloadableAssets(gen) {

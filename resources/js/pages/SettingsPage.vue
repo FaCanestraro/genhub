@@ -320,6 +320,9 @@
             <!-- Inteligência Artificial -->
             <AiProvidersPanel v-else-if="active === 'ia'" />
 
+            <!-- Redes Sociais -->
+            <SocialAccountsPanel v-else-if="active === 'sociais'" />
+
             <!-- Log de Auditoria -->
             <AuditLogPanel v-else-if="active === 'logs'" />
 
@@ -456,7 +459,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRoute } from 'vue-router'
 import {
     Settings, Users, Mail, Webhook, FileText, Bot, Share2,
     LayoutList, CreditCard, ScrollText, Zap,
@@ -468,10 +471,13 @@ import { useSettingsStore } from '@/stores/settings'
 import { onCNPJInput, maskCNPJ } from '@/utils/mask'
 import AiProvidersPanel from '@/components/AiProvidersPanel.vue'
 import AuditLogPanel from '@/components/AuditLogPanel.vue'
+import SocialAccountsPanel from '@/components/SocialAccountsPanel.vue'
 
 const auth          = useAuthStore()
 const settingsStore = useSettingsStore()
-const active        = ref('geral')
+const route         = useRoute()
+// ?section=x abre direto numa aba; o retorno do OAuth da Meta (?code/&state) cai em Redes Sociais.
+const active        = ref(route.query.section || (route.query.state ? 'sociais' : 'geral'))
 
 const allSections = [
     { id: 'geral',      label: 'Geral',                   icon: Settings },
@@ -480,7 +486,7 @@ const allSections = [
     { id: 'webhooks',   label: 'Webhooks',                icon: Webhook },
     { id: 'templates',  label: 'Templates',               icon: FileText },
     { id: 'ia',         label: 'Inteligência Artificial', icon: Bot,        menu: 'ai_providers' },
-    { id: 'sociais',    label: 'Redes Sociais',           icon: Share2 },
+    { id: 'sociais',    label: 'Redes Sociais',           icon: Share2,     menu: 'social' },
     { id: 'campos',     label: 'Campos Customizados',     icon: LayoutList },
     { id: 'assinatura', label: 'Assinatura',              icon: CreditCard },
     { id: 'logs',       label: 'Logs de Auditoria',       icon: ScrollText, menu: 'audit' },

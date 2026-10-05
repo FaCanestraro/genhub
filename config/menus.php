@@ -16,5 +16,6 @@ return [
     'tasks'             => 'Tarefas',
     'settings'          => 'Configurações',
     'ai_providers'      => 'Inteligência Artificial',
+    'social'            => 'Redes Sociais',
     'audit'             => 'Log de Auditoria',
 ];

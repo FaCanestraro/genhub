@@ -20,6 +20,8 @@ use App\Http\Controllers\Api\MenuController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\TeamMemberController;
 use App\Http\Controllers\Api\ProxyDownloadController;
+use App\Http\Controllers\Api\PublicationController;
+use App\Http\Controllers\Api\SocialAccountController;
 use App\Http\Middleware\EnsureClientAccess;
 use App\Http\Middleware\ResolveCurrentCompany;
 use Illuminate\Support\Facades\Route;
@@ -87,6 +89,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('ai-providers', [AiCredentialController::class, 'store']);
         Route::patch('ai-providers/{ai_provider}', [AiCredentialController::class, 'update']);
         Route::delete('ai-providers/{ai_provider}', [AiCredentialController::class, 'destroy']);
+
+        Route::get('social-accounts', [SocialAccountController::class, 'index']);
+        Route::get('social-accounts/connect-url', [SocialAccountController::class, 'connectUrl']);
+        Route::post('social-accounts/callback', [SocialAccountController::class, 'callback']);
+        Route::delete('social-accounts/{socialAccount}', [SocialAccountController::class, 'destroy']);
+
+        Route::post('publications', [PublicationController::class, 'store']);
+        Route::get('publications/{publication}', [PublicationController::class, 'show']);
 
         Route::get('proxy-download', [ProxyDownloadController::class, 'download']);
     });
