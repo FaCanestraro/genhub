@@ -6,7 +6,8 @@ const routes = [
     { path: '/', component: () => import('@/pages/LandingPage.vue'), meta: { guest: true } },
     { path: '/login', component: () => import('@/pages/LoginPage.vue'), meta: { guest: true } },
     { path: '/register', component: () => import('@/pages/RegisterPage.vue'), meta: { guest: true } },
-    { path: '/choose-area', component: () => import('@/pages/ChooseAreaPage.vue'), meta: { requiresAuth: true } },
+    // Step 2 of the login page (same component, so the brand panel keeps animating).
+    { path: '/choose-area', component: () => import('@/pages/LoginPage.vue'), meta: { requiresAuth: true } },
     {
         path: '/',
         component: () => import('@/layouts/AppLayout.vue'),

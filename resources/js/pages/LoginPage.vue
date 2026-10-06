@@ -5,13 +5,17 @@
         <div class="flex-1 min-w-0 flex flex-col px-6 py-6 sm:px-10">
             <div class="flex items-center justify-between gap-4">
                 <RouterLink to="/"><img src="/creatiq-logo.png" alt="CREATIQ" class="h-9 w-auto" /></RouterLink>
-                <RouterLink to="/" class="mono inline-flex items-center gap-1.5 min-h-11 px-2 text-xs tracking-[.06em] text-muted hover:text-white transition-colors">
+                <RouterLink v-if="step === 'login'" to="/" class="mono inline-flex items-center gap-1.5 min-h-11 px-2 text-xs tracking-[.06em] text-muted hover:text-white transition-colors">
                     <ArrowLeft class="w-3.5 h-3.5" /> voltar ao site
                 </RouterLink>
+                <button v-else type="button" @click="switchAccount" class="mono inline-flex items-center gap-1.5 min-h-11 px-2 text-xs tracking-[.06em] text-muted hover:text-white transition-colors">
+                    <LogOut class="w-3.5 h-3.5" /> sair
+                </button>
             </div>
 
             <div class="flex-1 flex items-center justify-center py-12">
-                <form @submit.prevent="handleLogin" class="w-full max-w-sm flex flex-col gap-6">
+              <Transition name="step" mode="out-in">
+                <form v-if="step === 'login'" key="login" @submit.prevent="handleLogin" class="w-full max-w-sm flex flex-col gap-6">
                     <div class="flex flex-col gap-3">
                         <span class="eyebrow">$ creatiq login</span>
                         <h1 class="m-0 text-[2.4rem] leading-[1.05] font-bold tracking-[-.03em] text-white">Bem-vindo de volta.</h1>
@@ -66,6 +70,45 @@
                         <ArrowRight v-if="!loading" class="w-4 h-4" />
                     </button>
                 </form>
+
+                <!-- Step 2: pick a company (or the admin panel) -->
+                <div v-else key="choose" class="w-full max-w-sm flex flex-col gap-6">
+                    <div class="flex flex-col gap-3">
+                        <span class="eyebrow">$ creatiq select</span>
+                        <h1 class="m-0 text-[2.4rem] leading-[1.05] font-bold tracking-[-.03em] text-white">Olá, {{ firstName }}.</h1>
+                        <p class="m-0 text-muted">{{ companyStore.hasMultiple ? 'Sua conta tem acesso a mais de uma empresa. Onde você quer entrar?' : 'Onde você quer entrar?' }}</p>
+                    </div>
+
+                    <div class="flex flex-col gap-2 max-h-[22rem] overflow-y-auto -m-1 p-1" role="list">
+                        <button v-for="company in companyStore.companies" :key="company.id" type="button" role="listitem" @click="enterCompany(company.id)" class="choice group">
+                            <span class="choice-avatar">{{ initials(company.name) }}</span>
+                            <span class="min-w-0 flex-1">
+                                <span class="block text-white font-medium truncate">{{ company.name || '(sem nome cadastrado)' }}</span>
+                                <span class="block text-xs text-muted">{{ company.is_owner ? 'Proprietário' : (company.role?.name ?? 'Membro da equipe') }}</span>
+                            </span>
+                            <ArrowRight class="w-4 h-4 text-muted transition-transform group-hover:translate-x-0.5 group-hover:text-white" />
+                        </button>
+                    </div>
+
+                    <template v-if="auth.isPlatformAdmin">
+                        <div class="flex items-center gap-3">
+                            <span class="flex-1 h-px bg-white/10"></span>
+                            <span class="mono text-[11px] tracking-[.1em] text-dim">OU</span>
+                            <span class="flex-1 h-px bg-white/10"></span>
+                        </div>
+                        <button type="button" @click="router.push('/admin/clients')" class="choice group">
+                            <span class="choice-avatar"><ShieldCheck class="w-4 h-4" /></span>
+                            <span class="min-w-0 flex-1">
+                                <span class="block text-white font-medium">Painel Admin</span>
+                                <span class="block text-xs text-muted">Todos os clientes da plataforma</span>
+                            </span>
+                            <ArrowRight class="w-4 h-4 text-muted transition-transform group-hover:translate-x-0.5 group-hover:text-white" />
+                        </button>
+                    </template>
+
+                    <button type="button" @click="switchAccount" class="self-center text-sm text-muted hover:text-white transition-colors">Entrar com outra conta</button>
+                </div>
+              </Transition>
             </div>
 
             <p class="mono m-0 text-[11px] tracking-[.08em] text-dim">© {{ new Date().getFullYear() }} CREATIQ · AI ENGINE</p>
@@ -110,10 +153,11 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { useRouter, RouterLink } from 'vue-router'
+import { ref, computed } from 'vue'
+import { useRouter, useRoute, RouterLink } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { ArrowLeft, ArrowRight, Eye, EyeOff, AlertCircle, Loader2, Play } from 'lucide-vue-next'
+import { useCompanyStore } from '@/stores/company'
+import { ArrowLeft, ArrowRight, Eye, EyeOff, AlertCircle, Loader2, Play, ShieldCheck, LogOut } from 'lucide-vue-next'
 
 // Real creatives made with our templates, exported small (~30 KB each) to public/showcase.
 const CREATIVES = {
@@ -136,6 +180,25 @@ const loading = ref(false)
 const error = ref('')
 const showPassword = ref(false)
 const form = ref({ email: '', password: '' })
+
+// /login and /choose-area render this same page: step 2 swaps the form for the company list
+// while the brand panel keeps animating.
+const route = useRoute()
+const companyStore = useCompanyStore()
+const step = computed(() => route.path === '/choose-area' ? 'choose' : 'login')
+const firstName = computed(() => auth.user?.name?.split(' ')[0] ?? '')
+const initials = (name = '') => name ? name.split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase() : '?'
+
+function enterCompany(companyId) {
+    companyStore.select(companyId)
+    router.push('/dashboard')
+}
+
+async function switchAccount() {
+    await auth.logout()
+    form.value.password = ''
+    router.push('/login')
+}
 
 async function handleLogin() {
     loading.value = true
@@ -205,6 +268,45 @@ async function handleLogin() {
 .btn-accent:hover:not(:disabled) { background: color-mix(in srgb, var(--accent) 85%, black); }
 .btn-accent:disabled { opacity: .6; cursor: progress; }
 .btn-accent:focus-visible { outline: 2px solid var(--accent-soft); outline-offset: 3px; }
+
+/* ── Step 2: company choice ── */
+.choice {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    min-height: 64px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    text-align: left;
+    border: 1px solid #2E2843;
+    background: #0E0C17;
+    transition: border-color .15s, background-color .15s;
+}
+.choice:hover { border-color: var(--accent-soft); background: color-mix(in srgb, var(--accent) 10%, #0E0C17); }
+.choice:focus-visible { outline: 2px solid var(--accent-soft); outline-offset: 2px; }
+.choice-avatar {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--accent-soft);
+    background: color-mix(in srgb, var(--accent) 18%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+.step-enter-active, .step-leave-active { transition: opacity .22s ease, transform .22s ease; }
+.step-enter-from { opacity: 0; transform: translateX(16px); }
+.step-leave-to { opacity: 0; transform: translateX(-16px); }
+@media (prefers-reduced-motion: reduce) {
+    .step-enter-active, .step-leave-active { transition: opacity .15s; }
+    .step-enter-from, .step-leave-to { transform: none; }
+}
 
 /* ── Creative wall ─────────────────────────────────────────────── */
 .wall {
