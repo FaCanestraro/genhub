@@ -45,8 +45,8 @@
 
         <!-- Modal -->
         <Teleport to="body">
-            <div v-if="showModal" class="fixed inset-0 bg-black/30 backdrop-blur-xl flex items-center justify-center z-50 p-4" @click.self="showModal = false">
-                <div class="glass-modal rounded-2xl w-full max-w-md p-6">
+            <div v-if="showModal" class="fixed inset-0 dialog-backdrop flex items-center justify-center z-50 p-4" @click.self="showModal = false">
+                <div class="glass-dialog rounded-2xl w-full max-w-md p-6">
                     <h2 class="text-lg font-semibold text-white mb-5">Novo Admin</h2>
 
                     <form @submit.prevent="save" class="space-y-4">
@@ -78,8 +78,8 @@
 
         <!-- Modal: conceder a cliente existente -->
         <Teleport to="body">
-            <div v-if="showGrantModal" class="fixed inset-0 bg-black/30 backdrop-blur-xl flex items-center justify-center z-50 p-4" @click.self="showGrantModal = false">
-                <div class="glass-modal rounded-2xl w-full max-w-md p-6">
+            <div v-if="showGrantModal" class="fixed inset-0 dialog-backdrop flex items-center justify-center z-50 p-4" @click.self="showGrantModal = false">
+                <div class="glass-dialog rounded-2xl w-full max-w-md p-6">
                     <h2 class="text-lg font-semibold text-white mb-2">Conceder acesso a cliente existente</h2>
                     <p class="text-sm text-gray-500 mb-5">A conta continua sendo cliente normalmente — só ganha acesso extra ao painel admin.</p>
 

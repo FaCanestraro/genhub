@@ -5,7 +5,6 @@ namespace App\Services;
 use App\Contracts\VideoClipRenderer;
 use App\Models\Action;
 use App\Models\AiCredential;
-use Gemini\Laravel\Facades\Gemini;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -45,9 +44,7 @@ class GeminiService implements VideoClipRenderer
         }
         PROMPT;
 
-        $this->resolveApiKey($companyId);
-        $response = Gemini::generativeModel('gemini-2.5-flash')->generateContent($prompt);
-        $text = $response->text();
+        $text = $this->generateText($prompt, $companyId);
 
         $json = json_decode($this->extractJson($text), true);
 
@@ -135,9 +132,8 @@ class GeminiService implements VideoClipRenderer
         }
         PROMPT;
 
-        $this->resolveApiKey($companyId);
-        $response = Gemini::geminiPro()->generateContent($captionPrompt);
-        $json = json_decode($this->extractJson($response->text()), true);
+        $text = $this->generateText($captionPrompt, $companyId);
+        $json = json_decode($this->extractJson($text), true);
 
         $assets = [];
         foreach ($json['slides'] ?? [] as $slide) {
@@ -157,7 +153,7 @@ class GeminiService implements VideoClipRenderer
 
         return [
             'model' => $this->imageModel,
-            'text' => $response->text(),
+            'text' => $text,
             'caption' => $json['caption'] ?? null,
             'hashtags' => $json['hashtags'] ?? [],
             'assets' => $assets,
@@ -230,9 +226,7 @@ class GeminiService implements VideoClipRenderer
                     return null;
                 }
 
-                config(['gemini.api_key' => $key]);
-                $response = Gemini::generativeModel('gemini-2.5-flash')->generateContent($planPrompt);
-                $text = $response->text();
+                $text = $this->generateText($planPrompt, $companyId);
             }
 
             $json = json_decode($this->extractJson($text), true);
@@ -535,9 +529,7 @@ class GeminiService implements VideoClipRenderer
 
     /**
      * Resolves which Gemini API key to use: the account's own credential (if any and active)
-     * takes priority, falling back to GEMINI_API_KEY from .env. Also pushes the resolved key
-     * into config('gemini.api_key') so the Gemini:: facade (lazily bound to that config value)
-     * picks it up on first use within this request.
+     * takes priority, falling back to GEMINI_API_KEY from .env.
      */
     private function resolveApiKey(int $companyId): string
     {
@@ -546,11 +538,7 @@ class GeminiService implements VideoClipRenderer
             ->where('is_active', true)
             ->first();
 
-        $key = $credential?->api_key ?: config('gemini.api_key');
-
-        config(['gemini.api_key' => $key]);
-
-        return $key;
+        return $credential?->api_key ?: config('gemini.api_key');
     }
 
     /**
@@ -688,6 +676,31 @@ class GeminiService implements VideoClipRenderer
         }
 
         throw new \RuntimeException("Tempo limite excedido aguardando o vídeo ({$maxWaitSeconds}s). Tente novamente.");
+    }
+
+    /**
+     * Chama o modelo de texto direto na REST API com a chave da empresa. Não usa a facade
+     * Gemini:: de propósito: o client dela é singleton no container e, no worker de fila
+     * (processo longo), congela a chave resolvida na primeira vez — jobs seguintes de outras
+     * empresas acabavam usando a chave errada (ou a vazia do .env) e tomavam API_KEY_INVALID.
+     */
+    private function generateText(string $prompt, int $companyId): string
+    {
+        $key = $this->resolveApiKey($companyId);
+
+        $response = Http::timeout(60)->post(
+            "{$this->apiBase}/models/{$this->textModel}:generateContent?key={$key}",
+            ['contents' => [['parts' => [['text' => $prompt]]]]]
+        );
+
+        if (!$response->successful()) {
+            throw new \RuntimeException('Erro na API Gemini (texto): ' . $response->body());
+        }
+
+        return collect($response->json('candidates.0.content.parts') ?? [])
+            ->pluck('text')
+            ->filter()
+            ->implode("\n");
     }
 
     private function generateSingleImage(string $prompt, int $companyId): ?array

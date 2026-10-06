@@ -76,7 +76,7 @@
                             class="w-full h-full object-cover"
                         />
                         <div v-else-if="firstVideo(gen)" class="w-full h-full relative">
-                            <video :src="firstVideo(gen).url" class="w-full h-full object-cover" muted></video>
+                            <video :src="`${firstVideo(gen).url}#t=0.1`" class="w-full h-full object-cover" muted playsinline preload="metadata"></video>
                             <div class="absolute inset-0 flex items-center justify-center bg-black/40 group-hover:bg-black/55 transition-colors">
                                 <Play class="w-8 h-8 text-white" />
                             </div>

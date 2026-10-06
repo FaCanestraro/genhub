@@ -28,11 +28,17 @@ class GenerationController extends Controller implements HasMiddleware
         abort_if($action->company_id !== $request->company()->id, 403);
 
         $request->validate([
-            'type'   => 'required|in:image,text,carousel,video',
-            'prompt' => 'nullable|string|max:2000',
+            'type'     => 'required|in:image,text,carousel,video',
+            'prompt'   => 'nullable|string|max:2000',
+            'quantity' => 'nullable|integer|min:1|max:10',
         ]);
 
-        $action->update(['status' => 'generating']);
+        // The job reads the action's quantity (images per run / carousel slides) when it runs,
+        // so persist what the user picked for this generation.
+        $action->update(array_filter([
+            'status'   => 'generating',
+            'quantity' => $request->integer('quantity') ?: null,
+        ]));
 
         $generation = Generation::create([
             'action_id' => $action->id,

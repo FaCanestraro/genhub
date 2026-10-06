@@ -223,98 +223,83 @@
             </section>
 
             <!-- Usuários -->
-            <section v-else-if="active === 'usuarios'">
-                <div class="mb-6">
-                    <h1 class="text-xl font-bold text-white">Usuários</h1>
-                    <p class="text-gray-400 text-sm mt-1">Gerencie quem tem acesso ao sistema.</p>
+            <section v-else-if="active === 'usuarios'" class="max-w-3xl flex flex-col gap-6">
+                <div>
+                    <h1 class="page-hero-title text-2xl">Usuários</h1>
+                    <p class="text-sm mt-1" style="color: var(--text-secondary)">Gerencie quem acessa o sistema e o que cada pessoa pode fazer.</p>
                 </div>
 
-                <div class="max-w-2xl space-y-6">
-                    <div class="card">
-                        <h3 class="section-title mb-4">Conta atual</h3>
-                        <div class="flex items-center gap-4">
-                            <div class="w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg flex-shrink-0 text-white"
-                                :style="{ backgroundColor: settingsStore.primaryColor + '33', color: settingsStore.primaryColor }">
-                                {{ auth.user?.name?.charAt(0)?.toUpperCase() }}
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <p class="text-white font-medium">{{ auth.user?.name }}</p>
-                                <p class="text-gray-400 text-sm">{{ auth.user?.email }}</p>
-                                <p v-if="general.nome_empresa" class="text-gray-500 text-xs mt-0.5">{{ general.nome_empresa }}</p>
-                            </div>
-                            <span class="text-xs px-2.5 py-1 rounded-full font-medium"
-                                :style="{ backgroundColor: settingsStore.primaryColor + '22', color: settingsStore.primaryColor }">Admin</span>
+                <!-- Conta atual -->
+                <Panel title="Sua conta" :icon="UserCircle" to="/profile" link-label="Editar perfil">
+                    <div class="flex items-center gap-4">
+                        <span class="avatar !w-12 !h-12 !text-lg">{{ initials(auth.user?.name) }}</span>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-white font-medium truncate">{{ auth.user?.name }}</p>
+                            <p class="text-sm truncate" style="color: var(--text-secondary)">{{ auth.user?.email }}</p>
                         </div>
-                        <div class="mt-4 pt-4 border-t border-gray-800">
-                            <router-link to="/profile" class="text-sm transition-colors hover:opacity-80" :style="{ color: settingsStore.primaryColor }">
-                                Editar perfil →
-                            </router-link>
-                        </div>
+                        <span class="role-badge">{{ auth.isOwner ? 'Proprietário' : 'Membro' }}</span>
                     </div>
+                </Panel>
 
-                    <div v-if="auth.isOwner" class="card">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="section-title">Membros da equipe</h3>
-                            <button type="button" @click="openMemberModal()" class="text-xs font-medium px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5"
-                                :style="{ backgroundColor: settingsStore.primaryColor + '22', color: settingsStore.primaryColor }">
-                                <Plus class="w-3.5 h-3.5" /> Novo membro
-                            </button>
-                        </div>
-                        <div v-if="loadingMembers" class="py-8 text-center text-gray-500 text-sm">Carregando...</div>
-                        <div v-else-if="!members.length" class="py-8 text-center">
-                            <Users class="w-10 h-10 text-gray-700 mx-auto mb-3" />
-                            <p class="text-gray-400 text-sm">Convide membros da equipe para colaborar.</p>
-                        </div>
-                        <div v-else class="space-y-2">
-                            <div v-for="member in members" :key="member.id" class="flex items-center justify-between gap-3 py-2.5 px-3 rounded-lg bg-gray-800/50">
-                                <div class="min-w-0">
-                                    <p class="text-sm text-white truncate">{{ member.name }}</p>
-                                    <p class="text-xs text-gray-500 truncate">{{ member.email }} · {{ member.role?.name }}</p>
-                                </div>
-                                <div class="flex items-center gap-1 flex-shrink-0">
-                                    <button type="button" @click="openMemberModal(member)" class="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-gray-700 transition-colors">
-                                        <Pencil class="w-3.5 h-3.5" />
-                                    </button>
-                                    <button type="button" @click="deleteMember(member)" class="p-1.5 rounded-lg text-gray-500 hover:text-red-400 hover:bg-gray-700 transition-colors">
-                                        <Trash2 class="w-3.5 h-3.5" />
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        <p v-if="errorMembers" class="text-sm text-red-400 mt-3">{{ errorMembers }}</p>
-                    </div>
+                <!-- Membros -->
+                <Panel v-if="auth.isOwner" :title="members.length ? `Equipe · ${members.length}` : 'Equipe'" :icon="Users">
+                    <template #actions>
+                        <button type="button" @click="openMemberModal()" class="btn-secondary !py-1.5 !px-3 !text-xs"><Plus class="w-3.5 h-3.5" /> Novo membro</button>
+                    </template>
 
-                    <div v-if="auth.isOwner" class="card">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="section-title">Perfis de acesso</h3>
-                            <button type="button" @click="openRoleModal()" class="text-xs font-medium px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5"
-                                :style="{ backgroundColor: settingsStore.primaryColor + '22', color: settingsStore.primaryColor }">
-                                <Plus class="w-3.5 h-3.5" /> Novo perfil
-                            </button>
-                        </div>
-                        <div v-if="loadingRoles" class="py-8 text-center text-gray-500 text-sm">Carregando...</div>
-                        <div v-else class="space-y-2">
-                            <div v-for="role in roles" :key="role.id" class="flex items-center justify-between gap-3 py-2.5 px-3 rounded-lg bg-gray-800/50">
-                                <div class="min-w-0">
-                                    <div class="flex items-center gap-2">
-                                        <p class="text-sm text-white truncate">{{ role.name }}</p>
-                                        <span v-if="role.is_default" class="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-700 text-gray-400 flex-shrink-0">Padrão</span>
-                                    </div>
-                                    <p v-if="role.description" class="text-xs text-gray-500 truncate">{{ role.description }}</p>
-                                </div>
-                                <div v-if="!role.is_default" class="flex items-center gap-1 flex-shrink-0">
-                                    <button type="button" @click="openRoleModal(role)" class="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-gray-700 transition-colors">
-                                        <Pencil class="w-3.5 h-3.5" />
-                                    </button>
-                                    <button type="button" @click="deleteRole(role)" class="p-1.5 rounded-lg text-gray-500 hover:text-red-400 hover:bg-gray-700 transition-colors">
-                                        <Trash2 class="w-3.5 h-3.5" />
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        <p v-if="errorRoles" class="text-sm text-red-400 mt-3">{{ errorRoles }}</p>
+                    <div v-if="loadingMembers" class="flex flex-col gap-2">
+                        <div v-for="i in 2" :key="i" class="shimmer h-14 rounded-xl"></div>
                     </div>
-                </div>
+                    <EmptyState v-else-if="!members.length" :icon="Users" title="Só você por aqui" text="Adicione pessoas da equipe para colaborar nas campanhas e criações." />
+                    <ul v-else class="flex flex-col gap-1.5">
+                        <li v-for="member in members" :key="member.id" class="list-row flex items-center gap-3 px-3 py-2.5 rounded-xl">
+                            <span class="avatar">{{ initials(member.name) }}</span>
+                            <div class="min-w-0 flex-1">
+                                <p class="text-sm text-white truncate">{{ member.name }}</p>
+                                <p class="text-xs truncate" style="color: var(--text-muted)">{{ member.email }}</p>
+                            </div>
+                            <span class="role-badge hidden sm:inline-flex">{{ member.role?.name ?? 'Sem perfil' }}</span>
+                            <div class="flex items-center flex-shrink-0">
+                                <button type="button" @click="openMemberModal(member)" class="icon-btn !w-8 !h-8" :aria-label="`Alterar perfil de ${member.name}`"><Pencil class="w-3.5 h-3.5" /></button>
+                                <button type="button" @click="deleteMember(member)" class="icon-btn !w-8 !h-8 hover:!text-red-400" :aria-label="`Remover ${member.name} da equipe`"><Trash2 class="w-3.5 h-3.5" /></button>
+                            </div>
+                        </li>
+                    </ul>
+                    <p v-if="errorMembers" class="text-sm text-red-400 mt-3">{{ errorMembers }}</p>
+                </Panel>
+
+                <!-- Perfis -->
+                <Panel v-if="auth.isOwner" title="Perfis de acesso" :icon="ShieldCheck">
+                    <template #actions>
+                        <button type="button" @click="openRoleModal()" class="btn-secondary !py-1.5 !px-3 !text-xs"><Plus class="w-3.5 h-3.5" /> Novo perfil</button>
+                    </template>
+
+                    <div v-if="loadingRoles" class="flex flex-col gap-2">
+                        <div v-for="i in 2" :key="i" class="shimmer h-16 rounded-xl"></div>
+                    </div>
+                    <ul v-else class="flex flex-col gap-1.5">
+                        <li v-for="role in roles" :key="role.id" class="list-row flex items-center gap-3 px-3 py-3 rounded-xl">
+                            <div class="min-w-0 flex-1">
+                                <div class="flex items-center gap-2">
+                                    <p class="text-sm text-white truncate">{{ role.name }}</p>
+                                    <span v-if="role.is_default" class="text-[10px] px-1.5 py-0.5 rounded-full flex-shrink-0" style="color: var(--text-secondary); background: var(--surface-2)">Padrão</span>
+                                </div>
+                                <p class="text-xs truncate mt-0.5" style="color: var(--text-muted)">
+                                    {{ role.description || permissionSummary(role) }}
+                                </p>
+                            </div>
+                            <span class="text-xs flex-shrink-0 hidden sm:inline" style="color: var(--text-muted)">
+                                {{ membersByRole[role.id] || 0 }} {{ (membersByRole[role.id] || 0) === 1 ? 'pessoa' : 'pessoas' }}
+                            </span>
+                            <div v-if="!role.is_default" class="flex items-center flex-shrink-0">
+                                <button type="button" @click="openRoleModal(role)" class="icon-btn !w-8 !h-8" :aria-label="`Editar perfil ${role.name}`"><Pencil class="w-3.5 h-3.5" /></button>
+                                <button type="button" @click="deleteRole(role)" class="icon-btn !w-8 !h-8 hover:!text-red-400" :aria-label="`Excluir perfil ${role.name}`"><Trash2 class="w-3.5 h-3.5" /></button>
+                            </div>
+                            <Lock v-else class="w-3.5 h-3.5 mx-2.5 flex-shrink-0" style="color: var(--text-muted)" aria-label="Perfil padrão, não editável" />
+                        </li>
+                    </ul>
+                    <p v-if="errorRoles" class="text-sm text-red-400 mt-3">{{ errorRoles }}</p>
+                </Panel>
             </section>
 
             <!-- Inteligência Artificial -->
@@ -341,115 +326,166 @@
 
     <!-- Modal: Perfil de acesso -->
     <Teleport to="body">
-        <div v-if="showRoleModal" class="fixed inset-0 bg-black/30 backdrop-blur-xl flex items-center justify-center z-50 p-4" @click.self="showRoleModal = false">
-            <div class="glass-modal rounded-2xl w-full max-w-2xl p-6 max-h-[90vh] overflow-y-auto">
-                <h2 class="text-lg font-semibold text-white mb-5">{{ editingRole ? 'Editar' : 'Novo' }} Perfil de Acesso</h2>
-
-                <form @submit.prevent="saveRole" class="space-y-4">
+        <div v-if="showRoleModal" class="fixed inset-0 dialog-backdrop flex items-center justify-center z-50 p-4" @click.self="showRoleModal = false">
+            <form @submit.prevent="saveRole" class="glass-dialog rounded-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden" role="dialog" aria-modal="true" :aria-label="editingRole ? 'Editar perfil de acesso' : 'Novo perfil de acesso'">
+                <header class="flex items-start justify-between gap-3 px-6 pt-6 pb-4">
                     <div>
-                        <label class="label">Nome *</label>
-                        <input v-model="roleForm.name" type="text" required class="input" placeholder="Ex: Operador" />
+                        <p class="tech-label mb-1">Perfil de acesso</p>
+                        <h2 class="page-hero-title text-lg">{{ editingRole ? `Editar ${editingRole.name}` : 'Novo perfil' }}</h2>
                     </div>
-                    <div>
-                        <label class="label">Descrição</label>
-                        <input v-model="roleForm.description" type="text" class="input" placeholder="Descreva a função deste perfil" />
+                    <button type="button" @click="showRoleModal = false" class="icon-btn -mr-2" aria-label="Fechar"><X class="w-4 h-4" /></button>
+                </header>
+
+                <div class="flex-1 overflow-y-auto px-6 pb-4 flex flex-col gap-5">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label for="role-name" class="field-label">Nome *</label>
+                            <input id="role-name" v-model="roleForm.name" type="text" required class="input" placeholder="Ex: Operador de loja" />
+                        </div>
+                        <div>
+                            <label for="role-description" class="field-label">Descrição</label>
+                            <input id="role-description" v-model="roleForm.description" type="text" class="input" placeholder="O que esse perfil faz" />
+                        </div>
                     </div>
 
-                    <div>
-                        <label class="label mb-2">Permissões por área</label>
-                        <div class="rounded-lg border border-gray-800 overflow-hidden">
-                            <table class="w-full text-sm">
+                    <div class="flex flex-col gap-3">
+                        <div class="flex flex-wrap items-center justify-between gap-3">
+                            <p class="field-label !mb-0">Permissões <span class="tabular-nums" style="color: var(--text-muted)">· {{ checkedCount }} de {{ totalPerms }}</span></p>
+                            <div class="flex flex-wrap gap-1.5" aria-label="Atalhos">
+                                <button type="button" @click="applyPreset('all')" class="filter-chip !min-h-8 !py-1 !text-xs">Acesso total</button>
+                                <button type="button" @click="applyPreset('view')" class="filter-chip !min-h-8 !py-1 !text-xs">Somente visualizar</button>
+                                <button type="button" @click="applyPreset('none')" class="filter-chip !min-h-8 !py-1 !text-xs">Limpar</button>
+                            </div>
+                        </div>
+
+                        <!-- Marcar todas -->
+                        <label class="perm-master">
+                            <input type="checkbox" class="perm-check" :checked="allState === 'all'" :indeterminate="allState === 'some'" @change="setAll($event.target.checked)" />
+                            <span>
+                                <span class="block text-sm font-medium text-white">Marcar todas as permissões</span>
+                                <span class="block text-xs" style="color: var(--text-muted)">Ver, criar, editar e excluir em todas as áreas</span>
+                            </span>
+                        </label>
+
+                        <div class="rounded-xl overflow-x-auto" style="border: 1px solid var(--border-subtle)">
+                            <table class="w-full text-sm min-w-[520px]">
                                 <thead>
-                                    <tr class="bg-gray-800/50 text-gray-400 text-xs uppercase tracking-wide">
-                                        <th class="text-left font-medium px-3 py-2">Área</th>
-                                        <th v-for="action in permissionActions" :key="action.key" class="px-2 py-2 text-center font-medium">
-                                            <button type="button" @click="toggleColumn(action.key)" class="hover:text-white transition-colors">
+                                    <tr class="text-xs" style="background: var(--surface-1); color: var(--text-secondary)">
+                                        <th scope="col" class="text-left font-medium px-4 py-2.5">Área</th>
+                                        <th v-for="action in permissionActions" :key="action.key" scope="col" class="px-2 py-2.5 font-medium">
+                                            <label class="inline-flex flex-col items-center gap-1.5 cursor-pointer">
                                                 {{ action.label }}
-                                            </button>
+                                                <input type="checkbox" class="perm-check" :checked="columnState(action.key) === 'all'" :indeterminate="columnState(action.key) === 'some'" @change="setColumn(action.key, $event.target.checked)" :aria-label="`${action.label} em todas as áreas`" />
+                                            </label>
+                                        </th>
+                                        <th scope="col" class="px-3 py-2.5 font-medium">
+                                            <span class="inline-flex flex-col items-center gap-1.5">Tudo<span class="h-[18px]"></span></span>
                                         </th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="(label, slug) in menus" :key="slug" class="border-t border-gray-800">
-                                        <td class="px-3 py-2 text-gray-300">{{ label }}</td>
-                                        <td v-for="action in permissionActions" :key="action.key" class="px-2 py-2 text-center">
-                                            <input type="checkbox" v-model="roleForm.permissions[slug][action.key]" class="w-4 h-4 accent-violet-600 cursor-pointer" />
+                                    <tr v-for="(label, slug) in menus" :key="slug" class="perm-row">
+                                        <th scope="row" class="text-left font-normal px-4 py-2.5 text-gray-200">{{ label }}</th>
+                                        <td v-for="action in permissionActions" :key="action.key" class="px-2 py-2.5 text-center">
+                                            <input type="checkbox" class="perm-check" :checked="roleForm.permissions[slug][action.key]" @change="setPerm(slug, action.key, $event.target.checked)" :aria-label="`${action.label} em ${label}`" />
+                                        </td>
+                                        <td class="px-3 py-2.5 text-center">
+                                            <input type="checkbox" class="perm-check" :checked="rowState(slug) === 'all'" :indeterminate="rowState(slug) === 'some'" @change="setRow(slug, $event.target.checked)" :aria-label="`Todas as permissões em ${label}`" />
                                         </td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
+                        <p class="text-xs" style="color: var(--text-muted)">Criar, editar ou excluir já marca "Ver" na mesma área: sem ver, a pessoa não chega à tela.</p>
                     </div>
 
-                    <p v-if="errorRole" class="text-sm text-red-400">{{ errorRole }}</p>
+                    <p v-if="errorRole" class="text-sm text-red-400" role="alert">{{ errorRole }}</p>
+                </div>
 
-                    <div class="flex justify-end gap-3 pt-2">
-                        <button type="button" @click="showRoleModal = false" class="btn-ghost">Cancelar</button>
-                        <button type="submit" :disabled="savingRole" class="btn-primary">
-                            {{ savingRole ? 'Salvando...' : 'Salvar' }}
-                        </button>
-                    </div>
-                </form>
-            </div>
+                <footer class="flex justify-end gap-3 px-6 py-4" style="border-top: 1px solid var(--border-subtle)">
+                    <button type="button" @click="showRoleModal = false" class="btn-secondary">Cancelar</button>
+                    <button type="submit" :disabled="savingRole" class="btn-primary px-5 py-2.5 rounded-xl text-sm font-semibold text-white">
+                        {{ savingRole ? 'Salvando...' : editingRole ? 'Salvar alterações' : 'Criar perfil' }}
+                    </button>
+                </footer>
+            </form>
         </div>
     </Teleport>
 
     <!-- Modal: Membro da equipe -->
     <Teleport to="body">
-        <div v-if="showMemberModal" class="fixed inset-0 bg-black/30 backdrop-blur-xl flex items-center justify-center z-50 p-4" @click.self="showMemberModal = false">
-            <div class="glass-modal rounded-2xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
-                <h2 class="text-lg font-semibold text-white mb-5">{{ editingMember ? 'Editar' : 'Novo' }} Membro da Equipe</h2>
-
-                <form @submit.prevent="saveMember" class="space-y-4">
-                    <template v-if="editingMember">
-                        <div>
-                            <p class="label">Nome</p>
-                            <p class="text-sm text-white">{{ editingMember.name }}</p>
-                        </div>
-                        <div>
-                            <p class="label">E-mail</p>
-                            <p class="text-sm text-white">{{ editingMember.email }}</p>
-                        </div>
-                        <p class="text-xs text-gray-600">Nome, e-mail e senha são da conta da pessoa e só ela pode alterá-los (na tela de perfil dela) — aqui você só muda o perfil de acesso nesta empresa.</p>
-                    </template>
-                    <template v-else>
-                        <div>
-                            <label class="label">Nome *</label>
-                            <input v-model="memberForm.name" type="text" required class="input" placeholder="Nome do membro" />
-                        </div>
-                        <div>
-                            <label class="label">E-mail *</label>
-                            <input v-model="memberForm.email" type="email" required class="input" placeholder="email@exemplo.com" />
-                        </div>
-                        <div>
-                            <label class="label">Senha</label>
-                            <input v-model="memberForm.password" type="password" minlength="8" class="input" placeholder="Mínimo 8 caracteres" />
-                        </div>
-                        <div>
-                            <label class="label">Confirmar senha</label>
-                            <input v-model="memberForm.password_confirmation" type="password" minlength="8" class="input" placeholder="Repita a senha" />
-                        </div>
-                        <p class="text-xs text-gray-600">Se o e-mail já for de um usuário existente, ele só será vinculado a esta empresa (a senha informada é ignorada nesse caso).</p>
-                    </template>
-
+        <div v-if="showMemberModal" class="fixed inset-0 dialog-backdrop flex items-center justify-center z-50 p-4" @click.self="showMemberModal = false">
+            <form @submit.prevent="saveMember" class="glass-dialog rounded-2xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto flex flex-col gap-5" role="dialog" aria-modal="true" :aria-label="editingMember ? 'Alterar perfil do membro' : 'Novo membro'">
+                <header class="flex items-start justify-between gap-3">
                     <div>
-                        <label class="label">Perfil de acesso *</label>
-                        <select v-model="memberForm.role_id" required class="input">
-                            <option value="" disabled>Selecione um perfil</option>
-                            <option v-for="role in roles" :key="role.id" :value="role.id">{{ role.name }}</option>
-                        </select>
+                        <p class="tech-label mb-1">Equipe</p>
+                        <h2 class="page-hero-title text-lg">{{ editingMember ? 'Alterar perfil' : 'Novo membro' }}</h2>
                     </div>
+                    <button type="button" @click="showMemberModal = false" class="icon-btn -mr-2" aria-label="Fechar"><X class="w-4 h-4" /></button>
+                </header>
 
-                    <p v-if="errorMember" class="text-sm text-red-400">{{ errorMember }}</p>
+                <div v-if="editingMember" class="flex items-center gap-3 p-3 rounded-xl" style="background: var(--surface-1); border: 1px solid var(--border-subtle)">
+                    <span class="avatar">{{ initials(editingMember.name) }}</span>
+                    <div class="min-w-0">
+                        <p class="text-sm text-white truncate">{{ editingMember.name }}</p>
+                        <p class="text-xs truncate" style="color: var(--text-muted)">{{ editingMember.email }}</p>
+                    </div>
+                </div>
+                <p v-if="editingMember" class="text-xs -mt-2" style="color: var(--text-muted)">Nome, e-mail e senha pertencem à conta da pessoa. Aqui você altera só o perfil de acesso nesta empresa.</p>
 
-                    <div class="flex justify-end gap-3 pt-2">
-                        <button type="button" @click="showMemberModal = false" class="btn-ghost">Cancelar</button>
-                        <button type="submit" :disabled="savingMember" class="btn-primary">
-                            {{ savingMember ? 'Salvando...' : 'Salvar' }}
+                <template v-else>
+                    <div>
+                        <label for="member-name" class="field-label">Nome *</label>
+                        <input id="member-name" v-model="memberForm.name" type="text" required class="input" placeholder="Nome da pessoa" />
+                    </div>
+                    <div>
+                        <label for="member-email" class="field-label">E-mail *</label>
+                        <input id="member-email" v-model="memberForm.email" type="email" required class="input" placeholder="email@supermercado.com.br" />
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label for="member-password" class="field-label">Senha</label>
+                            <input id="member-password" v-model="memberForm.password" type="password" minlength="8" autocomplete="new-password" class="input" placeholder="Mínimo 8 caracteres" />
+                        </div>
+                        <div>
+                            <label for="member-password2" class="field-label">Confirmar senha</label>
+                            <input id="member-password2" v-model="memberForm.password_confirmation" type="password" minlength="8" autocomplete="new-password" class="input" placeholder="Repita a senha" />
+                        </div>
+                    </div>
+                    <p class="text-xs -mt-2" style="color: var(--text-muted)">Se o e-mail já tiver conta, a pessoa só é vinculada a esta empresa e a senha é ignorada.</p>
+                </template>
+
+                <div>
+                    <p class="field-label">Perfil de acesso *</p>
+                    <div class="flex flex-col gap-2" role="radiogroup" aria-label="Perfil de acesso">
+                        <button
+                            v-for="role in roles"
+                            :key="role.id"
+                            type="button"
+                            role="radio"
+                            :aria-checked="memberForm.role_id === role.id"
+                            @click="memberForm.role_id = role.id"
+                            class="role-option"
+                            :class="{ active: memberForm.role_id === role.id }"
+                        >
+                            <span class="role-radio"></span>
+                            <span class="min-w-0">
+                                <span class="block text-sm text-white">{{ role.name }}</span>
+                                <span class="block text-xs truncate" style="color: var(--text-muted)">{{ role.description || permissionSummary(role) }}</span>
+                            </span>
                         </button>
                     </div>
-                </form>
-            </div>
+                </div>
+
+                <p v-if="errorMember" class="text-sm text-red-400" role="alert">{{ errorMember }}</p>
+
+                <div class="flex justify-end gap-3">
+                    <button type="button" @click="showMemberModal = false" class="btn-secondary">Cancelar</button>
+                    <button type="submit" :disabled="savingMember || !memberForm.role_id" class="btn-primary px-5 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-50">
+                        {{ savingMember ? 'Salvando...' : editingMember ? 'Salvar' : 'Adicionar' }}
+                    </button>
+                </div>
+            </form>
         </div>
     </Teleport>
 </template>
@@ -460,7 +496,7 @@ import { RouterLink } from 'vue-router'
 import {
     Settings, Users, Mail, Webhook, FileText, Bot, Share2,
     LayoutList, CreditCard, ScrollText, Zap,
-    Loader2, CheckCircle, Upload, Plus, Pencil, Trash2
+    Loader2, CheckCircle, Upload, Plus, Pencil, Trash2, X, Lock, ShieldCheck, UserCircle
 } from 'lucide-vue-next'
 import api from '@/services/api'
 import { useAuthStore } from '@/stores/auth'
@@ -468,6 +504,8 @@ import { useSettingsStore } from '@/stores/settings'
 import { onCNPJInput, maskCNPJ } from '@/utils/mask'
 import AiProvidersPanel from '@/components/AiProvidersPanel.vue'
 import AuditLogPanel from '@/components/AuditLogPanel.vue'
+import Panel from '@/components/ui/Panel.vue'
+import EmptyState from '@/components/ui/EmptyState.vue'
 
 const auth          = useAuthStore()
 const settingsStore = useSettingsStore()
@@ -640,10 +678,49 @@ function openRoleModal(role = null) {
     showRoleModal.value = true
 }
 
-function toggleColumn(actionKey) {
-    const allChecked = Object.keys(menus.value).every(slug => roleForm.permissions[slug][actionKey])
-    Object.keys(menus.value).forEach(slug => { roleForm.permissions[slug][actionKey] = !allChecked })
+// ── Permission matrix helpers ──
+const ACTION_KEYS = permissionActions.map(a => a.key)
+const slugs = () => Object.keys(menus.value)
+const stateOf = (values) => values.every(Boolean) ? 'all' : values.some(Boolean) ? 'some' : 'none'
+
+const totalPerms = computed(() => slugs().length * ACTION_KEYS.length)
+const checkedCount = computed(() => slugs().reduce((n, slug) => n + ACTION_KEYS.filter(k => roleForm.permissions[slug]?.[k]).length, 0))
+const allState = computed(() => stateOf(slugs().flatMap(slug => ACTION_KEYS.map(k => roleForm.permissions[slug]?.[k]))))
+const columnState = (key) => stateOf(slugs().map(slug => roleForm.permissions[slug]?.[key]))
+const rowState = (slug) => stateOf(ACTION_KEYS.map(k => roleForm.permissions[slug]?.[k]))
+
+// Create/edit/delete without view is useless (the route guard requires view), so keep them consistent.
+function setPerm(slug, key, value) {
+    const perms = roleForm.permissions[slug]
+    perms[key] = value
+    if (value && key !== 'view') perms.view = true
+    if (!value && key === 'view') ACTION_KEYS.forEach(k => { perms[k] = false })
 }
+const setRow = (slug, value) => ACTION_KEYS.forEach(k => { roleForm.permissions[slug][k] = value })
+const setColumn = (key, value) => slugs().forEach(slug => setPerm(slug, key, value))
+const setAll = (value) => slugs().forEach(slug => setRow(slug, value))
+
+function applyPreset(preset) {
+    slugs().forEach(slug => ACTION_KEYS.forEach(k => {
+        roleForm.permissions[slug][k] = preset === 'all' || (preset === 'view' && k === 'view')
+    }))
+}
+
+// One-line description of what a role can do, for lists without a description.
+function permissionSummary(role) {
+    const perms = role.permissions || {}
+    const areas = slugs()
+    if (!areas.length) return ''
+    const count = (k) => areas.filter(slug => perms[slug]?.[k]).length
+    if (areas.every(slug => ACTION_KEYS.every(k => perms[slug]?.[k]))) return 'Acesso total a todas as áreas'
+    const view = count('view')
+    if (!view) return 'Sem permissões'
+    const edits = count('create') + count('edit') + count('delete')
+    return `Vê ${view} de ${areas.length} áreas${edits ? '' : ' · somente visualização'}`
+}
+
+const membersByRole = computed(() => members.value.reduce((acc, m) => ({ ...acc, [m.role_id]: (acc[m.role_id] || 0) + 1 }), {}))
+const initials = (name = '') => name.split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase() || '?'
 
 async function saveRole() {
     savingRole.value = true
@@ -772,6 +849,102 @@ onMounted(async () => {
         0 12px 48px     rgba(0,   0,   0,   0.55);
 }
 .section-title { @apply text-sm font-semibold text-gray-300 uppercase tracking-wide; }
+
+.avatar {
+    width: 2.25rem;
+    height: 2.25rem;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: color-mix(in srgb, var(--brand) 60%, white);
+    background: color-mix(in srgb, var(--brand) 18%, transparent);
+    border: 1px solid color-mix(in srgb, var(--brand) 30%, transparent);
+}
+.role-badge {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    padding: 2px 10px;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: color-mix(in srgb, var(--brand) 60%, white);
+    background: color-mix(in srgb, var(--brand) 14%, transparent);
+}
+
+/* Custom checkbox: native accent-color paints "checked" and "partial" the same, so draw both. */
+.perm-check {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    flex-shrink: 0;
+    cursor: pointer;
+    vertical-align: middle;
+    border-radius: 5px;
+    border: 1.5px solid rgba(255, 255, 255, 0.28);
+    background: transparent center / 12px no-repeat;
+    transition: background-color 0.12s, border-color 0.12s;
+}
+.perm-check:hover { border-color: rgba(255, 255, 255, 0.5); }
+.perm-check:focus-visible { outline: 2px solid color-mix(in srgb, var(--brand) 60%, white); outline-offset: 2px; }
+.perm-check:checked {
+    border-color: var(--brand);
+    background-color: var(--brand);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E");
+}
+/* Partial selection: amber + dash, clearly different from "all checked" */
+.perm-check:indeterminate {
+    border-color: #fbbf24;
+    background-color: #fbbf24;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231a1405' stroke-width='3.5' stroke-linecap='round'%3E%3Cline x1='6' y1='12' x2='18' y2='12'/%3E%3C/svg%3E");
+}
+.perm-master {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    cursor: pointer;
+    background: color-mix(in srgb, var(--brand) 8%, transparent);
+    border: 1px solid color-mix(in srgb, var(--brand) 28%, transparent);
+}
+.perm-row { border-top: 1px solid var(--border-subtle); transition: background-color 0.12s; }
+.perm-row:hover { background: rgba(255, 255, 255, 0.025); }
+
+.role-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    text-align: left;
+    border: 1px solid var(--border-subtle);
+    background: var(--surface-1);
+    transition: border-color 0.15s, background-color 0.15s;
+}
+.role-option:hover { border-color: var(--border-soft); }
+.role-option.active {
+    border-color: color-mix(in srgb, var(--brand) 60%, transparent);
+    background: color-mix(in srgb, var(--brand) 12%, transparent);
+}
+.role-radio {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    border-radius: 9999px;
+    border: 2px solid var(--text-muted);
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+.role-option.active .role-radio {
+    border-color: var(--brand);
+    box-shadow: inset 0 0 0 3px #0c0a16, inset 0 0 0 8px var(--brand);
+}
 .fade-enter-active, .fade-leave-active { transition: opacity 0.3s; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
 </style>

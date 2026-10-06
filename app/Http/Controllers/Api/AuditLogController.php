@@ -32,6 +32,10 @@ class AuditLogController extends Controller implements HasMiddleware
             $query->where('status', $request->status);
         }
 
+        if ($request->filled('search')) {
+            $query->where('description', 'like', '%'.$request->search.'%');
+        }
+
         if ($request->filled('causer_id')) {
             $query->where('causer_id', $request->causer_id);
         }

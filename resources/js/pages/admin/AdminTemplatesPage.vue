@@ -69,8 +69,8 @@
 
         <!-- Modal -->
         <Teleport to="body">
-            <div v-if="showModal" class="fixed inset-0 bg-black/30 backdrop-blur-xl flex items-center justify-center z-50 p-4" @click.self="showModal = false">
-                <div class="glass-modal rounded-2xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
+            <div v-if="showModal" class="fixed inset-0 dialog-backdrop flex items-center justify-center z-50 p-4" @click.self="showModal = false">
+                <div class="glass-dialog rounded-2xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
                     <h2 class="text-lg font-semibold text-white mb-5">{{ editing ? 'Editar' : 'Novo' }} Modelo</h2>
 
                     <form @submit.prevent="save" class="space-y-4">
