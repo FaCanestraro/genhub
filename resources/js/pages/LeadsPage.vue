@@ -1,7 +1,7 @@
 ﻿<template>
-    <div class="p-8">
+    <div class="p-4 sm:p-6 lg:p-8">
         <!-- Header -->
-        <div class="flex items-center justify-between mb-8">
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
             <div>
                 <h1 class="page-hero-title text-2xl flex items-center gap-3">
                     <Users class="w-6 h-6 text-violet-400" />
@@ -16,16 +16,16 @@
         </div>
 
         <!-- Filtros -->
-        <div class="flex items-center gap-3 mb-6">
-            <div class="relative w-64 flex-shrink-0">
+        <div class="flex flex-wrap items-center gap-3 mb-6">
+            <div class="relative w-full sm:w-64 flex-shrink-0">
                 <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                 <input v-model="filters.search" @input="reload" placeholder="Buscar nome, email..." class="input pl-9" />
             </div>
-            <select v-model="filters.status" @change="reload" class="filter-select w-44">
+            <select v-model="filters.status" @change="reload" class="filter-select flex-1 min-w-0 sm:flex-none sm:w-44">
                 <option value="">Todos os status</option>
                 <option v-for="s in statuses" :key="s.value" :value="s.value">{{ s.label }}</option>
             </select>
-            <select v-model="filters.fonte" @change="reload" class="filter-select w-40">
+            <select v-model="filters.fonte" @change="reload" class="filter-select flex-1 min-w-0 sm:flex-none sm:w-40">
                 <option value="">Todas as fontes</option>
                 <option v-for="f in fontes" :key="f.value" :value="f.value">{{ f.label }}</option>
             </select>
@@ -43,7 +43,30 @@
                 <button v-if="auth.can('leads', 'create')" @click="openModal()" class="btn-primary mt-4">Criar primeiro lead</button>
             </div>
 
-            <table v-else class="w-full text-sm">
+            <!-- Phones: one card per lead instead of a wide table -->
+            <template v-else>
+            <ul class="md:hidden divide-y divide-gray-800">
+                <li v-for="lead in leads" :key="lead.id">
+                    <RouterLink :to="`/leads/${lead.id}`" class="flex items-start gap-3 px-4 py-3.5 hover:bg-gray-800/50 transition-colors">
+                        <div class="w-9 h-9 rounded-full bg-violet-600/20 flex items-center justify-center text-violet-400 font-semibold text-sm flex-shrink-0">
+                            {{ lead.nome.charAt(0).toUpperCase() }}
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="font-medium text-white truncate">{{ lead.nome }}</span>
+                                <span :class="statusClass(lead.status)" class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium flex-shrink-0">{{ statusLabel(lead.status) }}</span>
+                            </div>
+                            <p v-if="lead.email || lead.telefone" class="text-sm text-gray-400 truncate mt-0.5">{{ lead.email || lead.telefone }}</p>
+                            <p class="text-xs text-gray-500 mt-1 truncate">
+                                {{ fonteLabel(lead.fonte) }}<template v-if="lead.local"> · {{ lead.local }}</template> · {{ formatDate(lead.created_at) }}
+                            </p>
+                        </div>
+                    </RouterLink>
+                </li>
+            </ul>
+
+            <div class="hidden md:block overflow-x-auto">
+            <table class="w-full text-sm min-w-[640px]">
                 <thead class="border-b border-gray-800">
                     <tr>
                         <th class="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
@@ -92,6 +115,8 @@
                     </tr>
                 </tbody>
             </table>
+            </div>
+            </template>
 
             <!-- Paginação -->
             <div v-if="lastPage > 1" class="flex items-center justify-between px-5 py-3 border-t border-gray-800">
@@ -104,8 +129,8 @@
         </div>
 
         <!-- Modal Novo/Editar Lead -->
-        <div v-if="modal.open" class="fixed inset-0 bg-black/30 backdrop-blur-xl flex items-center justify-center z-50 p-4">
-            <div class="glass-modal rounded-2xl w-full max-w-lg">
+        <div v-if="modal.open" class="fixed inset-0 dialog-backdrop flex items-center justify-center z-50 p-4">
+            <div class="glass-dialog rounded-2xl w-full max-w-lg">
                 <div class="flex items-center justify-between p-6 border-b border-gray-800">
                     <h2 class="font-semibold text-white">{{ modal.lead ? 'Editar Lead' : 'Novo Lead' }}</h2>
                     <button @click="modal.open = false" class="text-gray-500 hover:text-white"><X class="w-5 h-5" /></button>
@@ -161,7 +186,7 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, RouterLink } from 'vue-router'
 import { Users, Plus, Search, Pencil, Trash2, X, Loader2 } from 'lucide-vue-next'
 import api from '@/services/api'
 import { useAuthStore } from '@/stores/auth'

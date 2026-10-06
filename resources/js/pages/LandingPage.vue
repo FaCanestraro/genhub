@@ -1,5 +1,5 @@
 <template>
-    <div class="landing grid-bg min-h-screen">
+    <div ref="root" class="landing grid-bg min-h-screen">
 
         <!-- Header -->
         <header class="sticky top-0 z-20 border-b border-line bg-[rgba(7,6,13,.86)] backdrop-blur-md">
@@ -22,10 +22,10 @@
                     AI ENGINE · ONLINE
                 </div>
                 <h1 class="m-0 text-[clamp(2.6rem,5.4vw,4.4rem)] leading-[1.02] font-bold tracking-[-.035em]">
-                    Crie, aprove e publique conteúdo <span class="text-accent-soft">com IA.</span>
+                    Ofertas, encartes e posts da sua rede, <span class="text-accent-soft">criados com IA.</span>
                 </h1>
                 <p class="m-0 max-w-[520px] text-[19px] leading-relaxed text-muted">
-                    O CREATIQ junta geração de imagens e vídeos, campanhas, publicação nas redes e CRM em um só motor. Do prompt ao post, sem trocar de ferramenta.
+                    O CREATIQ transforma o catálogo do seu supermercado em criativos prontos: imagens, vídeos, carrosséis e legendas a partir de modelos prontos. Organize por campanha, aprove com o time e mantenha a identidade de cada loja.
                 </p>
                 <div class="flex flex-wrap gap-3">
                     <RouterLink to="/login" class="btn-accent min-h-13 px-6.5 text-base">
@@ -34,36 +34,36 @@
                     <a href="#fluxo" class="btn-ghost min-h-13 px-5.5 text-base">Ver como funciona</a>
                 </div>
                 <div class="flex flex-wrap gap-6 pt-2 mono text-xs tracking-[.1em] text-dim">
-                    <span>IMAGEM · VÍDEO · TEXTO</span>
-                    <span>→ INSTAGRAM · FACEBOOK</span>
+                    <span>IMAGEM · VÍDEO · CARROSSEL · LEGENDA</span>
+                    <span>→ INSTAGRAM · FACEBOOK · TIKTOK</span>
                 </div>
             </div>
 
             <!-- Console mockup -->
-            <div class="flex-[1_1_460px] min-w-0 rounded-2xl border border-line-strong bg-panel overflow-hidden shadow-[0_30px_80px_rgba(0,0,0,.55),0_0_0_1px_rgba(138,58,185,.12)]" aria-hidden="true">
-                <div class="flex items-center justify-between px-4 py-3 border-b border-line mono text-xs text-dim">
+            <div class="tilt flex-[1_1_460px] min-w-0 rounded-2xl border border-line-strong bg-panel shadow-[0_30px_80px_rgba(0,0,0,.55),0_0_0_1px_rgba(138,58,185,.12)]" aria-hidden="true">
+                <div class="flex items-center justify-between px-4 py-3 rounded-t-2xl border-b border-line mono text-xs text-dim">
                     <div class="flex gap-1.5">
                         <span v-for="i in 3" :key="i" class="w-2.5 h-2.5 rounded-full bg-[#2E2843]"></span>
                     </div>
                     <span>creatiq://generate</span>
                     <span class="text-[#C6F432]">● live</span>
                 </div>
-                <div class="p-5 flex flex-col gap-4">
+                <div class="p-5 flex flex-col gap-4 preserve">
                     <div class="px-4 py-3.5 rounded-[10px] border border-line-strong bg-base mono text-[13px] leading-relaxed">
                         <span class="text-accent-soft">&gt; prompt:</span>
-                        foto de produto em fundo minimalista, luz suave, estilo editorial<span class="caret"></span>
+                        oferta de uva roxa da semana, preço em destaque, clima de feira<span class="caret"></span>
                     </div>
                     <div class="flex flex-wrap gap-2 mono text-[11px] tracking-[.06em]">
                         <span v-for="c in consoleChips" :key="c" class="px-2.5 py-1.5 rounded-md border border-line-strong text-soft">{{ c }}</span>
                     </div>
-                    <div class="grid grid-cols-2 gap-2.5 mono text-[11px] text-muted">
-                        <div class="tile stripes">[CRIATIVO 01]</div>
-                        <div class="tile stripes justify-between !border-[var(--accent)]">
-                            <span>[CRIATIVO 02]</span>
-                            <span class="px-1.5 py-0.5 rounded bg-[var(--accent)] text-white">✓ aprovado</span>
+                    <div class="grid grid-cols-2 gap-2.5 mono text-[11px] text-muted preserve">
+                        <div class="tile photo" style="--z: 70px"><img src="/showcase/landing-2.jpg" alt="" decoding="async" /></div>
+                        <div style="--z: 110px" class="tile photo justify-end !border-[var(--accent)]">
+                            <img src="/showcase/landing-1.jpg" alt="" decoding="async" />
+                            <span class="relative px-1.5 py-0.5 rounded bg-[var(--accent)] text-white">✓ aprovado</span>
                         </div>
-                        <div class="tile stripes">[CRIATIVO 03]</div>
-                        <div class="tile !flex-col !items-center !justify-center gap-2.5 !border-dashed !border-[#3A3352] !bg-[#0B0914]">
+                        <div class="tile photo" style="--z: 40px"><img src="/showcase/landing-3.jpg" alt="" decoding="async" /></div>
+                        <div style="--z: 20px" class="tile !flex-col !items-center !justify-center gap-2.5 !border-dashed !border-[#3A3352] !bg-[#0B0914]">
                             <Loader2 class="w-[22px] h-[22px] text-accent-soft animate-spin" />
                             gerando…
                         </div>
@@ -77,8 +77,8 @@
                         </div>
                     </div>
                     <div class="flex flex-wrap justify-between items-center gap-3 pt-1">
-                        <span class="mono text-[11px] text-dim">campanha: Lançamento de verão</span>
-                        <span class="inline-flex items-center min-h-9 px-3.5 rounded-lg border border-line-strong text-[13px] font-semibold">Agendar publicação →</span>
+                        <span class="mono text-[11px] text-dim">campanha: Ofertas da semana</span>
+                        <span class="inline-flex items-center min-h-9 px-3.5 rounded-lg border border-line-strong text-[13px] font-semibold">Vincular à campanha →</span>
                     </div>
                 </div>
             </div>
@@ -93,14 +93,21 @@
 
         <!-- Pipeline -->
         <section id="fluxo" class="max-w-[1200px] mx-auto px-6 pt-28 pb-10 flex flex-col gap-12">
-            <div class="flex flex-col gap-3.5 max-w-[640px]">
-                <span class="eyebrow">// PIPELINE</span>
-                <h2 class="section-title">Do prompt ao post em quatro etapas.</h2>
+            <div class="flex flex-wrap items-center justify-between gap-10">
+                <div class="flex flex-col gap-3.5 max-w-[640px]">
+                    <span class="eyebrow">// PIPELINE</span>
+                    <h2 class="section-title">Do prompt ao post em quatro etapas.</h2>
+                </div>
+                <!-- Embalagem 3D: gira sozinha, cada face é um formato do mesmo produto -->
+                <ProductBox class="mx-auto sm:mx-0 sm:mr-10" />
             </div>
-            <div class="flex flex-wrap gap-px bg-[#221E33] border border-line rounded-[14px] overflow-hidden">
+            <div class="reveal flex flex-wrap gap-px bg-[#221E33] border border-line rounded-[14px] overflow-hidden">
                 <div v-for="(step, i) in steps" :key="step.title" class="flex-[1_1_240px] min-w-0 bg-base px-7 py-8 flex flex-col gap-3.5">
                     <span class="mono text-[13px]" :class="i === steps.length - 1 ? 'text-accent-soft' : 'text-dim'">0{{ i + 1 }} ─────</span>
-                    <h3 class="m-0 text-[22px] font-semibold">{{ step.title }}</h3>
+                    <h3 class="m-0 text-[22px] font-semibold flex items-center gap-2.5">
+                        {{ step.title }}
+                        <span v-if="step.soon" class="mono text-[10px] tracking-[.1em] px-2 py-0.5 rounded-full border border-line-strong text-soft">EM BREVE</span>
+                    </h3>
                     <p class="m-0 text-[15px] leading-relaxed text-muted">{{ step.text }}</p>
                 </div>
             </div>
@@ -116,7 +123,7 @@
                 <p class="m-0 max-w-[380px] text-base leading-relaxed text-muted">Cada módulo conversa com os outros: o lead que chega vira tarefa, a campanha vira post.</p>
             </div>
             <div class="flex flex-wrap gap-4">
-                <div v-for="m in modules" :key="m.title" class="flex-[1_1_340px] min-w-0 rounded-[14px] border border-line bg-panel p-7 flex flex-col gap-3.5">
+                <div v-for="m in modules" :key="m.title" class="reveal flex-[1_1_340px] min-w-0 rounded-[14px] border border-line bg-panel p-7 flex flex-col gap-3.5">
                     <div class="w-11 h-11 rounded-[10px] border border-line-strong flex items-center justify-center text-accent-soft">
                         <component :is="m.icon" class="w-[22px] h-[22px]" :stroke-width="1.8" />
                     </div>
@@ -150,8 +157,26 @@
 </template>
 
 <script setup>
+import { ref, onMounted, onUnmounted } from 'vue'
 import { RouterLink } from 'vue-router'
-import { ArrowRight, Loader2, Image, Video, Megaphone, Send, KanbanSquare, ShieldCheck } from 'lucide-vue-next'
+import { ArrowRight, Loader2, Video, Megaphone, KanbanSquare, LayoutTemplate, Package, Building2 } from 'lucide-vue-next'
+import ProductBox from '@/components/ProductBox.vue'
+
+// Scroll position exposed as --scroll; all 3D motion is CSS reading it.
+const root = ref(null)
+let frame = 0
+function onScroll() {
+    cancelAnimationFrame(frame)
+    frame = requestAnimationFrame(() => root.value?.style.setProperty('--scroll', window.scrollY))
+}
+onMounted(() => {
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+})
+onUnmounted(() => {
+    window.removeEventListener('scroll', onScroll)
+    cancelAnimationFrame(frame)
+})
 
 const navLinks = [
     { href: '#fluxo', label: '/fluxo' },
@@ -159,24 +184,24 @@ const navLinks = [
     { href: '#contato', label: '/contato' },
 ]
 
-const consoleChips = ['1:1', '4 VARIAÇÕES', 'TEMPLATE: EDITORIAL', 'PRODUTO: SÉRUM FACIAL']
+const consoleChips = ['1:1', '3 VARIAÇÕES', 'MODELO: OFERTA DA SEMANA', 'PRODUTO: UVA ROXA BANDEJA']
 
-const specs = ['MULTI-PROVEDOR DE IA', 'MARCA PRÓPRIA POR EMPRESA', 'PERMISSÕES POR PAPEL', 'LOG DE AUDITORIA']
+const specs = ['GALERIA DE MODELOS PRONTOS', 'MARCA PRÓPRIA POR LOJA', 'PERMISSÕES POR PERFIL', 'LOG DE AUDITORIA']
 
 const steps = [
-    { title: 'Briefing', text: 'Escolha produto, campanha e template. A IA parte do contexto da sua marca.' },
-    { title: 'Geração', text: 'Imagens e vídeos em lote, com variações para comparar lado a lado.' },
-    { title: 'Revisão', text: 'Galeria e histórico centralizados. O time aprova antes de qualquer coisa sair.' },
-    { title: 'Publicação', text: 'Conecte suas contas Meta e publique no Instagram e no Facebook direto da plataforma.' },
+    { title: 'Briefing', text: 'Escolha os produtos do catálogo, a campanha e um modelo pronto da galeria.' },
+    { title: 'Geração', text: 'Imagens, vídeos, carrosséis e legendas com hashtags, em até 4 variações por vez.' },
+    { title: 'Revisão', text: 'Tudo fica no histórico e na campanha: o time compara, baixa e aprova.' },
+    { title: 'Publicação', text: 'Baixe em alta e poste nas redes. Publicação direta no Instagram e no Facebook chega em breve.', soon: true },
 ]
 
 const modules = [
-    { icon: Image, title: 'Geração de imagens', text: 'Prompts livres ou templates prontos, com variações e downloads em alta.' },
-    { icon: Video, title: 'Vídeo com storyboard', text: 'Roteiros viram cenas, e cenas viram clipes prontos para as redes.' },
-    { icon: Megaphone, title: 'Campanhas e ações', text: 'Organize cada entrega por campanha, com ações, prazos e criativos vinculados.' },
-    { icon: Send, title: 'Publicação social', text: 'Contas Meta conectadas. Agende ou publique no Instagram e no Facebook.' },
+    { icon: LayoutTemplate, title: 'Galeria de modelos', text: 'Modelos prontos de oferta, família e lançamento: escolha um, combine com o produto e gere.' },
+    { icon: Video, title: 'Vídeo e carrossel', text: 'Reels curtos e carrosséis de vários slides a partir do mesmo produto.' },
+    { icon: Megaphone, title: 'Campanhas e ações', text: 'Ofertas da semana, datas especiais, inauguração: cada campanha reúne peças, prazos e orçamento.' },
+    { icon: Package, title: 'Catálogo de produtos', text: 'Cadastre produtos com foto e preço uma vez e use em qualquer criativo.' },
     { icon: KanbanSquare, title: 'Leads e pipeline', text: 'CRM integrado com funil, atividades e tarefas do time.' },
-    { icon: ShieldCheck, title: 'Times e multiempresa', text: 'Várias empresas, papéis e permissões por menu, com log de auditoria.' },
+    { icon: Building2, title: 'Rede com várias lojas', text: 'Cada loja com sua marca, cores e equipe, com permissões por perfil e log de auditoria.' },
 ]
 </script>
 
@@ -222,6 +247,8 @@ const modules = [
 .btn-ghost:hover { border-color: var(--accent-soft); }
 
 .tile {
+    position: relative;
+    overflow: hidden;
     aspect-ratio: 1 / 1;
     border-radius: 10px;
     border: 1px solid #2E2843;
@@ -230,6 +257,7 @@ const modules = [
     align-items: flex-end;
     padding: 10px;
 }
+.tile.photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .caret {
     display: inline-block;
     width: 8px;
@@ -240,4 +268,36 @@ const modules = [
     animation: blink 1s steps(1) infinite;
 }
 @keyframes blink { 50% { opacity: 0; } }
+/* ── 3D scroll ─────────────────────────────────────────────────── */
+.landing { --scroll: 0; }
+
+/* Console: starts tilted, straightens over the first 500px of scroll */
+.tilt {
+    --t: clamp(0, calc(var(--scroll) / 500), 1);
+    --r: calc(1 - var(--t));
+    transform: perspective(1400px) rotateX(calc(var(--r) * 24deg)) rotateY(calc(var(--r) * -20deg)) rotateZ(calc(var(--r) * 5deg)) scale(calc(.92 + var(--t) * .08));
+    transform-style: preserve-3d;
+    will-change: transform;
+}
+.preserve { transform-style: preserve-3d; }
+.tile { transform: translateZ(calc(var(--r, 0) * var(--z, 0px))); }
+
+
+/* Cards flip in as they enter the viewport (native scroll-driven animation; static where unsupported) */
+@supports (animation-timeline: view()) {
+    .reveal {
+        transform-origin: 50% 100%;
+        animation: flip-in linear both;
+        animation-timeline: view();
+        animation-range: entry 0% entry 90%;
+    }
+}
+@keyframes flip-in {
+    from { opacity: 0; transform: perspective(900px) rotateX(40deg) translateY(50px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tilt, .tile { transform: none; }
+    .reveal, .caret { animation: none; }
+}
 </style>

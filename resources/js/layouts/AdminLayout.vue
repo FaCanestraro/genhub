@@ -2,9 +2,10 @@
     <div class="flex h-screen text-gray-100" style="background: var(--bg-base)">
 
         <!-- Sidebar -->
-        <aside class="w-60 flex-shrink-0 glass-panel border-r flex flex-col relative z-10" style="border-color: var(--border-subtle)">
+        <aside class="app-drawer w-60 flex-shrink-0 glass-panel border-r flex flex-col relative z-10" :class="{ open: menuOpen }" style="border-color: var(--border-subtle)" aria-label="Menu principal">
 
             <!-- Logo -->
+            <button type="button" @click="menuOpen = false" class="lg:hidden icon-btn absolute top-3 right-3 z-10" aria-label="Fechar menu"><X class="w-4 h-4" /></button>
             <div class="flex items-center justify-center gap-2.5 px-4 py-5" style="border-bottom: 1px solid var(--border-subtle)">
                 <img src="/creatiq-logo.png" alt="CREATIQ" class="h-10 w-auto" />
                 <p class="tech-label">Admin</p>
@@ -42,17 +43,29 @@
             </div>
         </aside>
 
+        <!-- Mobile backdrop -->
+        <div v-if="menuOpen" class="lg:hidden fixed inset-0 z-30 bg-black/60 backdrop-blur-sm" @click="menuOpen = false" aria-hidden="true"></div>
+
         <!-- Main -->
-        <main class="flex-1 overflow-y-auto flex flex-col relative z-10">
-            <RouterView />
-        </main>
+        <div class="flex-1 flex flex-col min-w-0 relative z-10">
+            <!-- Mobile top bar -->
+            <header class="lg:hidden flex items-center gap-3 h-14 px-3 flex-shrink-0" style="border-bottom: 1px solid var(--border-subtle); background: rgba(7, 6, 13, 0.85); backdrop-filter: blur(12px)">
+                <button type="button" @click="menuOpen = true" class="icon-btn" aria-label="Abrir menu" :aria-expanded="menuOpen"><Menu class="w-5 h-5" /></button>
+                <img src="/creatiq-logo.png" alt="CREATIQ" class="h-7 w-auto" />
+                <span class="tech-label ml-auto">Admin</span>
+            </header>
+            <main class="flex-1 overflow-y-auto flex flex-col">
+                <RouterView />
+            </main>
+        </div>
     </div>
 </template>
 
 <script setup>
+import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute, RouterLink, RouterView } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { Users2, LayoutTemplate, LogOut, ArrowLeftRight, UserCog } from 'lucide-vue-next'
+import { Users2, LayoutTemplate, LogOut, ArrowLeftRight, UserCog, Menu, X } from 'lucide-vue-next'
 
 const router = useRouter()
 const route  = useRoute()
@@ -63,6 +76,13 @@ const nav = [
     { path: '/admin/templates', label: 'Modelos de Arte', icon: LayoutTemplate },
     { path: '/admin/users',     label: 'Usuários Admin',  icon: UserCog },
 ]
+
+// Mobile drawer: closes on navigation and on Esc.
+const menuOpen = ref(false)
+watch(() => route.fullPath, () => { menuOpen.value = false })
+const onKey = (e) => { if (e.key === 'Escape') menuOpen.value = false }
+onMounted(() => window.addEventListener('keydown', onKey))
+onUnmounted(() => window.removeEventListener('keydown', onKey))
 
 const isActive = (path) => route.path === path || route.path.startsWith(path + '/')
 

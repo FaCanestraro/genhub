@@ -1,6 +1,6 @@
 ﻿<template>
-    <div class="p-8 max-w-7xl mx-auto w-full">
-        <div class="flex items-center justify-between mb-8">
+    <div class="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
             <div>
                 <p class="text-xs font-semibold tracking-widest uppercase mb-1" style="color: var(--text-muted)">Catálogo</p>
                 <h1 class="page-hero-title text-2xl tracking-tight leading-tight">Produtos</h1>
@@ -90,8 +90,8 @@
 
         <!-- Modal de Integrações -->
         <Teleport to="body">
-            <div v-if="showIntegrationModal" class="fixed inset-0 bg-black/30 backdrop-blur-xl flex items-center justify-center z-50 p-4" @click.self="showIntegrationModal = false">
-                <div class="glass-modal rounded-2xl w-full max-w-xl p-6 max-h-[90vh] overflow-y-auto">
+            <div v-if="showIntegrationModal" class="fixed inset-0 dialog-backdrop flex items-center justify-center z-50 p-4" @click.self="showIntegrationModal = false">
+                <div class="glass-dialog rounded-2xl w-full max-w-xl p-6 max-h-[90vh] overflow-y-auto">
 
                     <!-- Sucesso -->
                     <div v-if="integrationSuccess" class="flex flex-col items-center gap-4 py-8">
@@ -193,8 +193,8 @@
 
         <!-- Modal -->
         <Teleport to="body">
-            <div v-if="showModal" class="fixed inset-0 bg-black/30 backdrop-blur-xl flex items-center justify-center z-50 p-4" @click.self="showModal = false">
-                <div class="glass-modal rounded-2xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
+            <div v-if="showModal" class="fixed inset-0 dialog-backdrop flex items-center justify-center z-50 p-4" @click.self="showModal = false">
+                <div class="glass-dialog rounded-2xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
                     <h2 class="text-lg font-semibold text-white mb-5">{{ editingProduct ? 'Editar' : 'Novo' }} Produto</h2>
 
                     <form @submit.prevent="saveProduct" class="space-y-4">

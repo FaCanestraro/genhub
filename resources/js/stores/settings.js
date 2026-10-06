@@ -51,5 +51,16 @@ export const useSettingsStore = defineStore('settings', () => {
         return data.logo_url
     }
 
-    return { primaryColor, logoUrl, nomeEmpresa, loaded, applyColor, load, save, uploadLogo }
+    // Back to the CREATIQ defaults (on logout): drop the company's color from <html> so the
+    // CSS :root values apply again, and force a fresh load for whoever logs in next.
+    function reset() {
+        document.documentElement.style.removeProperty('--brand')
+        document.documentElement.style.removeProperty('--brand-hover')
+        primaryColor.value = '#7c3aed'
+        logoUrl.value = null
+        nomeEmpresa.value = ''
+        loaded.value = false
+    }
+
+    return { primaryColor, logoUrl, nomeEmpresa, loaded, applyColor, load, save, uploadLogo, reset }
 })

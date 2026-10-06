@@ -1,23 +1,22 @@
 <template>
-    <span :class="classes" class="text-xs font-medium px-2 py-0.5 rounded-full flex items-center gap-1">
-        <span>{{ emoji }}</span>
-        {{ label }}
+    <span class="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full" :style="{ color: cfg.color, background: `${cfg.color}1f`, border: `1px solid ${cfg.color}33` }">
+        <component :is="cfg.icon" class="w-3.5 h-3.5" />
+        {{ cfg.label }}
     </span>
 </template>
 
 <script setup>
 import { computed } from 'vue'
+import { Instagram, Facebook, Youtube, Music2, Smartphone } from 'lucide-vue-next'
 
 const props = defineProps({ platform: String })
 
 const map = {
-    instagram: { label: 'Instagram', emoji: '📸', cls: 'bg-pink-500/20 text-pink-400' },
-    tiktok: { label: 'TikTok', emoji: '🎵', cls: 'bg-cyan-500/20 text-cyan-400' },
-    facebook: { label: 'Facebook', emoji: '👤', cls: 'bg-blue-500/20 text-blue-400' },
-    youtube: { label: 'YouTube', emoji: '▶️', cls: 'bg-red-500/20 text-red-400' },
+    instagram: { label: 'Instagram', icon: Instagram, color: '#f472b6' },
+    tiktok: { label: 'TikTok', icon: Music2, color: '#22d3ee' },
+    facebook: { label: 'Facebook', icon: Facebook, color: '#60a5fa' },
+    youtube: { label: 'YouTube', icon: Youtube, color: '#f87171' },
 }
 
-const label = computed(() => map[props.platform]?.label || props.platform)
-const emoji = computed(() => map[props.platform]?.emoji || '📱')
-const classes = computed(() => map[props.platform]?.cls || 'bg-gray-700 text-gray-300')
+const cfg = computed(() => map[props.platform] ?? { label: props.platform, icon: Smartphone, color: '#9ca3af' })
 </script>

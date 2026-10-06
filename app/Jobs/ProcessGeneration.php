@@ -115,7 +115,7 @@ class ProcessGeneration implements ShouldQueue
                 str_contains($errorMsg, 'quota') || str_contains($errorMsg, 'RESOURCE_EXHAUSTED')
                     => 'Cota da API Gemini esgotada. Para imagens e vídeos, habilite o faturamento em aistudio.google.com.',
                 str_contains($errorMsg, 'API_KEY_INVALID') || str_contains($errorMsg, 'API key not valid')
-                    => 'Chave de API inválida. Verifique a chave cadastrada em Configurações > Inteligência Artificial (ou a GEMINI_API_KEY no .env).',
+                    => 'Chave de API inválida. Verifique a chave cadastrada em Configurações > Inteligência Artificial.',
                 str_contains($errorMsg, 'Tempo limite excedido') || str_contains($errorMsg, 'Tempo esgotado')
                     => $errorMsg,
                 str_contains($errorMsg, 'ffmpeg')

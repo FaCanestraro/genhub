@@ -1,5 +1,5 @@
 ﻿<template>
-    <div class="p-8 h-full flex flex-col">
+    <div class="p-4 sm:p-6 lg:p-8 h-full flex flex-col">
         <!-- Header -->
         <div class="flex items-center justify-between mb-6 flex-shrink-0">
             <div>
@@ -100,8 +100,8 @@
         </div>
 
         <!-- Modal Novo/Editar Lead -->
-        <div v-if="modal.open" class="fixed inset-0 bg-black/30 backdrop-blur-xl flex items-center justify-center z-50 p-4">
-            <div class="glass-modal rounded-2xl w-full max-w-lg">
+        <div v-if="modal.open" class="fixed inset-0 dialog-backdrop flex items-center justify-center z-50 p-4">
+            <div class="glass-dialog rounded-2xl w-full max-w-lg">
                 <div class="flex items-center justify-between p-6 border-b border-gray-800">
                     <h2 class="font-semibold text-white">{{ modal.lead ? 'Editar Lead' : 'Novo Lead' }}</h2>
                     <button @click="modal.open = false" class="text-gray-500 hover:text-white"><X class="w-5 h-5" /></button>
