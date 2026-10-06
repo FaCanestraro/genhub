@@ -1,5 +1,5 @@
 ﻿<template>
-    <div class="p-8 max-w-2xl mx-auto">
+    <div class="p-4 sm:p-6 lg:p-8 max-w-2xl mx-auto">
         <h1 class="page-hero-title text-2xl mb-1">Meu Usuário</h1>
         <p class="text-gray-400 mb-8">Gerencie seus dados e informações da empresa</p>
 

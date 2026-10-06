@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import api from '@/services/api'
 import { useCompanyStore } from '@/stores/company'
+import { useSettingsStore } from '@/stores/settings'
 
 export const useAuthStore = defineStore('auth', () => {
     const user = ref(null)
@@ -47,6 +48,7 @@ export const useAuthStore = defineStore('auth', () => {
         user.value = null
         localStorage.removeItem('token')
         useCompanyStore().clear()
+        useSettingsStore().reset()
     }
 
     return { user, token, isAuthenticated, isOwner, isPlatformAdmin, isClient, can, login, register, fetchMe, logout }

@@ -2,9 +2,10 @@
     <div class="flex h-screen text-gray-100" style="background: var(--bg-base)">
 
         <!-- Sidebar -->
-        <aside class="w-60 flex-shrink-0 glass-panel border-r flex flex-col relative z-10" style="border-color: var(--border-subtle)">
+        <aside class="app-drawer w-60 flex-shrink-0 glass-panel border-r flex flex-col relative z-10" :class="{ open: menuOpen }" style="border-color: var(--border-subtle)" aria-label="Menu principal">
 
             <!-- Logo -->
+            <button type="button" @click="menuOpen = false" class="lg:hidden icon-btn absolute top-3 right-3 z-10" aria-label="Fechar menu"><X class="w-4 h-4" /></button>
             <div class="flex items-center justify-center px-4 py-5" style="border-bottom: 1px solid var(--border-subtle)">
                 <img
                     v-if="settings.logoUrl"
@@ -94,20 +95,32 @@
             </div>
         </aside>
 
+        <!-- Mobile backdrop -->
+        <div v-if="menuOpen" class="lg:hidden fixed inset-0 z-30 bg-black/60 backdrop-blur-sm" @click="menuOpen = false" aria-hidden="true"></div>
+
         <!-- Main -->
-        <main class="flex-1 overflow-y-auto flex flex-col relative z-10">
-            <RouterView />
-        </main>
+        <div class="flex-1 flex flex-col min-w-0 relative z-10">
+            <!-- Mobile top bar -->
+            <header class="lg:hidden flex items-center gap-3 h-14 px-3 flex-shrink-0" style="border-bottom: 1px solid var(--border-subtle); background: rgba(7, 6, 13, 0.85); backdrop-filter: blur(12px)">
+                <button type="button" @click="menuOpen = true" class="icon-btn" aria-label="Abrir menu" :aria-expanded="menuOpen"><Menu class="w-5 h-5" /></button>
+                <img v-if="settings.logoUrl" :src="settings.logoUrl" alt="Logo" class="h-8 w-auto max-w-[140px] object-contain" />
+                <img v-else src="/creatiq-logo.png" alt="CREATIQ" class="h-7 w-auto" />
+                <span v-if="companyStore.current?.name" class="ml-auto text-xs truncate max-w-[40%]" style="color: var(--text-muted)">{{ companyStore.current.name }}</span>
+            </header>
+            <main class="flex-1 overflow-y-auto flex flex-col">
+                <RouterView />
+            </main>
+        </div>
     </div>
 </template>
 
 <script setup>
-import { onMounted, ref, computed } from 'vue'
+import { onMounted, ref, computed, watch, onUnmounted } from 'vue'
 import { useRouter, useRoute, RouterLink, RouterView } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useCompanyStore } from '@/stores/company'
 import { useSettingsStore } from '@/stores/settings'
-import { LayoutDashboard, Package, Megaphone, LogOut, UserCircle, Sparkles, History, CheckSquare, Settings, Wand2, Images, Users, KanbanSquare, ShieldCheck, Building2, ChevronsUpDown, Check } from 'lucide-vue-next'
+import { LayoutDashboard, Package, Megaphone, LogOut, UserCircle, Sparkles, History, CheckSquare, Settings, Wand2, Images, Users, KanbanSquare, ShieldCheck, Building2, ChevronsUpDown, Check, Menu, X } from 'lucide-vue-next'
 
 const router       = useRouter()
 const route        = useRoute()
@@ -145,6 +158,13 @@ const accountNav = [
 
 const visibleMainNav    = computed(() => mainNav.filter(item => auth.can(item.menu, 'view')))
 const visibleAccountNav = computed(() => accountNav.filter(item => !item.menu || auth.can(item.menu, 'view')))
+
+// Mobile drawer: closes on navigation and on Esc.
+const menuOpen = ref(false)
+watch(() => route.fullPath, () => { menuOpen.value = false })
+const onKey = (e) => { if (e.key === 'Escape') menuOpen.value = false }
+onMounted(() => window.addEventListener('keydown', onKey))
+onUnmounted(() => window.removeEventListener('keydown', onKey))
 
 const isActive = (path) => route.path === path || (path !== '/' && route.path.startsWith(path + '/'))
 

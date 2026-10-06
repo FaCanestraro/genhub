@@ -7,24 +7,24 @@
 
         <template v-else-if="lead">
             <!-- Header -->
-            <div class="flex items-start justify-between px-6 py-4 border-b border-gray-800 flex-shrink-0">
-                <div class="flex items-start gap-4">
+            <div class="flex flex-wrap items-start justify-between gap-3 px-4 sm:px-6 py-4 border-b border-gray-800 flex-shrink-0">
+                <div class="flex items-start gap-3 sm:gap-4 min-w-0 flex-1">
                     <button @click="$router.back()" class="mt-1 p-1.5 text-gray-500 hover:text-white hover:bg-gray-800 rounded-lg transition-colors flex-shrink-0">
                         <ArrowLeft class="w-4 h-4" />
                     </button>
-                    <div>
+                    <div class="min-w-0">
                         <div class="flex items-center gap-3">
                             <div class="w-9 h-9 rounded-full bg-violet-600/20 flex items-center justify-center text-violet-400 font-bold text-sm flex-shrink-0">
                                 {{ lead.nome.charAt(0).toUpperCase() }}
                             </div>
-                            <h1 class="text-xl font-bold text-white uppercase tracking-wide">{{ lead.nome }}</h1>
+                            <h1 class="text-xl font-bold text-white uppercase tracking-wide break-words min-w-0">{{ lead.nome }}</h1>
                         </div>
-                        <div class="flex items-center gap-4 mt-1.5 ml-12 flex-wrap">
+                        <div class="flex items-center gap-x-4 gap-y-1 mt-1.5 sm:ml-12 flex-wrap min-w-0">
                             <span v-if="lead.telefone" class="flex items-center gap-1.5 text-sm text-gray-400">
                                 <Phone class="w-3.5 h-3.5" />{{ lead.telefone }}
                             </span>
-                            <span v-if="lead.email" class="flex items-center gap-1.5 text-sm text-gray-400">
-                                <Mail class="w-3.5 h-3.5" />{{ lead.email }}
+                            <span v-if="lead.email" class="flex items-center gap-1.5 text-sm text-gray-400 min-w-0 break-all">
+                                <Mail class="w-3.5 h-3.5 flex-shrink-0" />{{ lead.email }}
                             </span>
                             <span v-if="lead.local" class="flex items-center gap-1.5 text-sm text-gray-400">
                                 <MapPin class="w-3.5 h-3.5" />{{ lead.local }}
@@ -32,7 +32,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="flex items-center gap-2 flex-shrink-0">
+                <div class="flex items-center gap-2 flex-shrink-0 ml-auto">
                     <button v-if="auth.can('leads', 'edit')" @click="openEdit" class="flex items-center gap-1.5 px-3 py-1.5 text-sm border border-gray-700 rounded-lg text-gray-300 hover:bg-gray-800 transition-colors">
                         <Pencil class="w-3.5 h-3.5" />Editar
                     </button>
@@ -43,10 +43,10 @@
             </div>
 
             <!-- Body: 3 columns -->
-            <div class="flex flex-1 overflow-hidden">
+            <div class="flex flex-col lg:flex-row flex-1 min-h-0 overflow-y-auto lg:overflow-hidden">
 
                 <!-- LEFT PANEL -->
-                <aside class="w-60 flex-shrink-0 border-r border-gray-800 overflow-y-auto p-4 space-y-5">
+                <aside class="lg:w-60 flex-shrink-0 border-b lg:border-b-0 lg:border-r border-gray-800 lg:overflow-y-auto p-4 space-y-5">
                     <!-- Status -->
                     <div>
                         <label class="label">Status</label>
@@ -90,8 +90,8 @@
                 </aside>
 
                 <!-- CENTER PANEL — Atividades -->
-                <div class="flex-1 overflow-y-auto flex flex-col border-r border-gray-800">
-                    <div class="flex items-center justify-between px-6 py-4 border-b border-gray-800">
+                <div class="lg:flex-1 lg:overflow-y-auto flex flex-col border-b lg:border-b-0 lg:border-r border-gray-800">
+                    <div class="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-gray-800">
                         <h2 class="font-semibold text-white">Atividades</h2>
                         <button v-if="auth.can('leads', 'create')" @click="openAddActivity" class="flex items-center gap-1.5 text-sm text-violet-400 hover:text-violet-300 border border-violet-800 hover:border-violet-600 px-3 py-1.5 rounded-lg transition-colors">
                             <Plus class="w-3.5 h-3.5" />Adicionar
@@ -137,7 +137,7 @@
                 </div>
 
                 <!-- RIGHT PANEL — Tabs -->
-                <div class="w-80 flex-shrink-0 flex flex-col overflow-hidden">
+                <div class="lg:w-80 flex-shrink-0 flex flex-col lg:overflow-hidden">
                     <!-- Tab headers -->
                     <div class="flex border-b border-gray-800 flex-shrink-0">
                         <button

@@ -1,6 +1,6 @@
 <template>
-    <div class="p-8 max-w-4xl mx-auto w-full">
-        <div class="flex items-center justify-between mb-8">
+    <div class="p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto w-full">
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
             <div>
                 <p class="text-xs font-semibold tracking-widest uppercase mb-1" style="color: var(--text-muted)">Painel Admin</p>
                 <h1 class="page-hero-title text-2xl tracking-tight leading-tight">Usuários Admin</h1>

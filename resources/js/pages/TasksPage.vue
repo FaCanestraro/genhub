@@ -1,7 +1,7 @@
 ﻿<template>
-    <div class="p-8">
+    <div class="p-4 sm:p-6 lg:p-8">
         <!-- Header -->
-        <div class="flex items-center justify-between mb-8">
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
             <div>
                 <p class="text-xs font-semibold tracking-widest uppercase mb-1" style="color: var(--text-muted)">Produtividade</p>
                 <h1 class="page-hero-title text-2xl tracking-tight leading-tight">Tarefas</h1>
@@ -45,7 +45,8 @@
                 <button v-if="auth.can('tasks', 'create')" @click="openModal()" class="btn-primary mt-4">Criar primeira tarefa</button>
             </div>
 
-            <table v-else class="w-full text-sm">
+            <div v-else class="overflow-x-auto">
+            <table class="w-full text-sm min-w-[640px]">
                 <thead class="border-b border-gray-800">
                     <tr>
                         <th class="w-10 px-5 py-3"></th>
@@ -105,6 +106,7 @@
                     </tr>
                 </tbody>
             </table>
+            </div>
         </div>
 
         <!-- Modal Nova/Editar Tarefa -->

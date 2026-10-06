@@ -485,6 +485,8 @@ async function generate() {
 <style scoped>
 /* ── Uniform grid: every card 4:5, filled row by row, so loading more only appends below ── */
 .masonry { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+/* Phones: always two per row instead of one full-width card */
+@media (max-width: 639px) { .masonry { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; } }
 .masonry-card {
     position: relative;
     aspect-ratio: 4 / 5;

@@ -1,14 +1,14 @@
 <template>
-    <div class="flex h-full">
-        <!-- Sidebar -->
-        <aside class="w-56 flex-shrink-0 border-r border-gray-800 p-4">
-            <h2 class="text-xs font-semibold text-gray-500 uppercase tracking-wider px-3 mb-3">Configurações</h2>
-            <nav class="space-y-0.5">
+    <div class="flex flex-col lg:flex-row h-full min-h-0">
+        <!-- Sidebar (horizontal scrolling tabs on phones) -->
+        <aside class="lg:w-56 flex-shrink-0 border-b lg:border-b-0 lg:border-r border-gray-800 p-3 lg:p-4">
+            <h2 class="hidden lg:block text-xs font-semibold text-gray-500 uppercase tracking-wider px-3 mb-3">Configurações</h2>
+            <nav class="flex lg:flex-col gap-1 lg:gap-0.5 overflow-x-auto -mx-1 px-1 lg:mx-0 lg:px-0" aria-label="Seções de configurações">
                 <button
                     v-for="item in sections"
                     :key="item.id"
                     @click="active = item.id"
-                    class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors text-left"
+                    class="lg:w-full flex-shrink-0 whitespace-nowrap flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors text-left"
                     :class="active === item.id ? 'text-white' : 'text-gray-400 hover:text-white hover:bg-gray-800'"
                     :style="active === item.id ? { backgroundColor: settingsStore.primaryColor } : {}"
                 >
@@ -19,7 +19,7 @@
         </aside>
 
         <!-- Content -->
-        <div class="flex-1 overflow-y-auto p-8">
+        <div class="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 lg:p-8">
             <!-- Geral -->
             <section v-if="active === 'geral'">
                 <div class="mb-6">
