@@ -252,7 +252,7 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
-import { History, Sparkles, Film, Image, FileText, Layers, Trash2, Download, Loader2, Megaphone, ExternalLink, MessageSquare, Play, X, ChevronLeft, ChevronRight } from 'lucide-vue-next'
+import { History, Sparkles, Film, Image, FileText, Layers, Trash2, Download, Loader2, Megaphone, ExternalLink, MessageSquare, Play, X, ChevronLeft, ChevronRight, FileImage, Newspaper } from 'lucide-vue-next'
 import api from '@/services/api'
 import { downloadAsset } from '@/utils/download'
 import StatusBadge from '@/components/StatusBadge.vue'
@@ -272,16 +272,18 @@ const typeFilters = [
     { value: 'video',   label: 'Vídeos',    icon: Film },
     { value: 'carousel',label: 'Carrossel', icon: Layers },
     { value: 'text',    label: 'Legendas',  icon: FileText },
+    { value: 'cartaz',  label: 'Cartazes',  icon: FileImage },
+    { value: 'tabloide',label: 'Tabloides', icon: Newspaper },
 ]
 
 const hasMore = computed(() => page.value < lastPage.value)
 
 function typeLabel(type) {
-    return { image: 'Imagem', video: 'Vídeo', carousel: 'Carrossel', text: 'Legenda' }[type] ?? type
+    return { image: 'Imagem', video: 'Vídeo', carousel: 'Carrossel', text: 'Legenda', cartaz: 'Cartaz', tabloide: 'Tabloide' }[type] ?? type
 }
 
 function typeIcon(type) {
-    return { image: Image, video: Film, carousel: Layers, text: FileText }[type] ?? Sparkles
+    return { image: Image, video: Film, carousel: Layers, text: FileText, cartaz: FileImage, tabloide: Newspaper }[type] ?? Sparkles
 }
 
 function firstImage(gen) {

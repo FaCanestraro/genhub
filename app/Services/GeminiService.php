@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Contracts\VideoClipRenderer;
 use App\Models\Action;
 use App\Models\AiCredential;
+use App\Services\Concerns\BuildsPrintPrompt;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -12,6 +13,8 @@ use Illuminate\Support\Facades\Storage;
 
 class GeminiService implements VideoClipRenderer
 {
+    use BuildsPrintPrompt;
+
     private string $imageModel  = 'gemini-3.1-flash-image';
     private string $videoModel  = 'veo-3.1-generate-preview';
     private string $textModel   = 'gemini-2.5-flash';
@@ -102,6 +105,35 @@ class GeminiService implements VideoClipRenderer
         return [
             'model' => $this->imageModel,
             'assets' => $assets,
+        ];
+    }
+
+    /**
+     * Cartaz e tabloide usam a mesma API de imagem, mas com prompt de layout de impressão
+     * em vez do de foto publicitária — aqui o preço escrito na arte é o ponto central.
+     */
+    public function generatePrint(Action $action, Collection $products, ?string $extraPrompt, int $companyId, string $format): array
+    {
+        $prompt = $this->printLayoutPrompt($action, $this->buildProductContext($products), $extraPrompt, $format);
+
+        $quantity = min($action->quantity ?? 1, 4);
+        $assets = [];
+
+        for ($i = 0; $i < $quantity; $i++) {
+            $imageData = $this->generateSingleImage($prompt, $companyId);
+            if ($imageData) {
+                $assets[] = $imageData;
+            }
+        }
+
+        if (empty($assets)) {
+            throw new \RuntimeException("O {$format} não pôde ser gerado. O conteúdo pode ter sido bloqueado pelas políticas de segurança da API. Tente reformular o brief.");
+        }
+
+        return [
+            'model' => $this->imageModel,
+            'assets' => $assets,
+            'metadata' => ['print_format' => $format, 'print_resolution' => $this->printResolution($action, $format)],
         ];
     }
 

@@ -5,7 +5,7 @@
         <aside class="hidden md:flex w-64 flex-shrink-0 flex-col" style="background: rgba(255,255,255,0.02); border-right: 1px solid var(--border-subtle)">
             <div class="p-3 pt-4">
                 <button type="button" @click="newChat" class="btn-primary w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white">
-                    <Plus class="w-4 h-4" /> Nova conversa
+                    <Plus class="w-4 h-4" /> Nova criação
                 </button>
             </div>
             <p class="tech-label px-5 pt-2 pb-2 !text-[var(--text-muted)]">Conversas</p>
@@ -55,7 +55,7 @@
                     <h1 class="page-hero-title text-base leading-tight">Motor de Criação</h1>
                     <p class="text-xs truncate" style="color: var(--text-muted)">{{ currentSession?.count ? currentSession.title : 'Imagens, vídeos, carrosséis e legendas com IA' }}</p>
                 </div>
-                <button type="button" @click="newChat" class="md:hidden icon-btn ml-auto" aria-label="Nova conversa"><Plus class="w-4 h-4" /></button>
+                <button type="button" @click="newChat" class="md:hidden icon-btn ml-auto" aria-label="Nova criação"><Plus class="w-4 h-4" /></button>
             </header>
 
             <!-- Mensagens -->
@@ -205,6 +205,10 @@
 
                     <!-- Ajustes + enviar -->
                     <div class="flex flex-wrap items-center gap-2 px-3 pb-3">
+                        <button v-if="products.length" type="button" @click="showProducts = !showProducts" :aria-expanded="showProducts" class="select-chip !pr-3 inline-flex items-center gap-1.5" :class="{ 'is-set': form.productIds.length }">
+                            <Package class="w-3.5 h-3.5" />
+                            {{ form.productIds.length ? `${form.productIds.length} produto${form.productIds.length > 1 ? 's' : ''}` : 'Selecione o produto' }}
+                        </button>
                         <select v-model="form.platform" @change="onPlatformChange" class="select-chip" aria-label="Plataforma">
                             <option v-for="p in PLATFORMS" :key="p.value" :value="p.value">{{ p.label }}</option>
                         </select>
@@ -212,21 +216,22 @@
                             <option v-for="ct in currentContentTypes" :key="ct.value" :value="ct.value">{{ ct.label }}</option>
                         </select>
                         <select v-model="resolutionSelect" @change="onResolutionSelectChange" class="select-chip" aria-label="Resolução">
-                            <option value="1080x1080">1:1 · 1080×1080</option>
-                            <option value="1080x1350">4:5 · 1080×1350</option>
-                            <option value="1080x1920">9:16 · 1080×1920</option>
-                            <option value="1920x1080">16:9 · 1920×1080</option>
-                            <option value="1280x720">HD · 1280×720</option>
+                            <optgroup label="Redes sociais">
+                                <option value="1080x1080">1:1 · 1080×1080</option>
+                                <option value="1080x1350">4:5 · 1080×1350</option>
+                                <option value="1080x1920">9:16 · 1080×1920</option>
+                                <option value="1920x1080">16:9 · 1920×1080</option>
+                                <option value="1280x720">HD · 1280×720</option>
+                            </optgroup>
+                            <optgroup label="Impressão · 300 dpi">
+                                <option value="2480x3508">A4 retrato · 2480×3508</option>
+                                <option value="3508x4961">A3 retrato · 3508×4961</option>
+                            </optgroup>
                             <option value="custom">Personalizada...</option>
                         </select>
-                        <select v-if="form.type === 'image' || form.type === 'carousel'" v-model.number="form.quantity" class="select-chip" aria-label="Variações">
+                        <select v-if="['image', 'carousel', 'cartaz', 'tabloide'].includes(form.type)" v-model.number="form.quantity" class="select-chip" aria-label="Variações">
                             <option v-for="n in 4" :key="n" :value="n">{{ n }} {{ n === 1 ? 'variação' : 'variações' }}</option>
                         </select>
-                        <button v-if="products.length" type="button" @click="showProducts = !showProducts" :aria-expanded="showProducts" class="select-chip !pr-3 inline-flex items-center gap-1.5" :class="{ 'is-set': form.productIds.length }">
-                            <Package class="w-3.5 h-3.5" />
-                            {{ form.productIds.length ? `${form.productIds.length} produto${form.productIds.length > 1 ? 's' : ''}` : 'Produtos' }}
-                        </button>
-
                         <span class="hidden lg:inline text-[11px] ml-auto" style="color: var(--text-muted)">Enter envia · Shift+Enter quebra linha</span>
                         <button
                             v-if="auth.can('generate', 'create')"
@@ -248,7 +253,7 @@
 <script setup>
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { Sparkles, Loader2, Download, Trash2, Copy, Package, MessageSquare, Plus, Pencil, Check, X, Search, ArrowUp, AlertCircle, RotateCcw, Image as ImageIcon, Clapperboard, GalleryHorizontal, Type, Tag, Croissant } from 'lucide-vue-next'
+import { Sparkles, Loader2, Download, Trash2, Copy, Package, MessageSquare, Plus, Pencil, Check, X, Search, ArrowUp, AlertCircle, RotateCcw, Image as ImageIcon, Clapperboard, GalleryHorizontal, Type, Tag, Croissant, FileImage, Newspaper } from 'lucide-vue-next'
 import api from '@/services/api'
 import { downloadAsset } from '@/utils/download'
 import { pollGeneration } from '@/utils/pollGeneration'
@@ -302,8 +307,13 @@ const GEN_TYPES = [
     { value: 'image', label: 'Imagem', icon: ImageIcon },
     { value: 'carousel', label: 'Carrossel', icon: GalleryHorizontal },
     { value: 'video', label: 'Vídeo', icon: Clapperboard },
-    { value: 'text', label: 'Legenda', icon: Type },
+    { value: 'text', label: 'Gerar copy de publicação', icon: Type },
+    { value: 'cartaz', label: 'Cartaz', icon: FileImage },
+    { value: 'tabloide', label: 'Tabloide', icon: Newspaper },
 ]
+
+// Cartaz e tabloide são formatos de impressão: A4 e A3 retrato a 300 dpi.
+const PRINT_RESOLUTIONS = { cartaz: '2480x3508', tabloide: '3508x4961' }
 const typeOf = (value) => GEN_TYPES.find(t => t.value === value) ?? { label: value, icon: Sparkles }
 
 const PLACEHOLDERS = {
@@ -338,7 +348,7 @@ const contentTypesByPlatform = {
 const currentContentTypes = computed(() => contentTypesByPlatform[form.value.platform])
 
 // What each generation type naturally maps to, so picking "Vídeo" doesn't leave "Post 1:1" selected.
-const PREFERRED_CONTENT = { image: ['post'], text: ['post'], carousel: ['carousel', 'post'], video: ['reel', 'tiktok_video', 'story', 'post'] }
+const PREFERRED_CONTENT = { image: ['post'], text: ['post'], carousel: ['carousel', 'post'], video: ['reel', 'tiktok_video', 'story', 'post'], cartaz: ['post'], tabloide: ['post'] }
 
 // ─── Resolution / format ─────────────────────────────────────────────────────
 
@@ -371,7 +381,18 @@ function onPlatformChange() {
     applySuggestedResolution()
 }
 
-watch(() => form.value.type, pickContentTypeForType)
+// Cartaz e tabloide são peças de impressão: ao escolher um deles a resolução vai pro
+// tamanho de papel; ao voltar pra um formato de rede social, volta pra sugerida.
+watch(() => form.value.type, (type, previous) => {
+    pickContentTypeForType()
+
+    if (PRINT_RESOLUTIONS[type]) {
+        resolutionSelect.value = PRINT_RESOLUTIONS[type]
+        form.value.resolution = PRINT_RESOLUTIONS[type]
+    } else if (PRINT_RESOLUTIONS[previous]) {
+        applySuggestedResolution()
+    }
+})
 
 // ─── Products ────────────────────────────────────────────────────────────────
 
@@ -407,7 +428,7 @@ function newChat() {
         currentGenerations.value = []
         return
     }
-    const session = { id: crypto.randomUUID(), title: 'Nova conversa', count: 0, createdAt: new Date().toISOString() }
+    const session = { id: crypto.randomUUID(), title: 'Nova criação', count: 0, createdAt: new Date().toISOString() }
     sessions.value = [session, ...sessions.value]
     saveSessions(sessions.value)
     currentSessionId.value = session.id

@@ -65,6 +65,7 @@ class ProcessGeneration implements ShouldQueue
                 'image'    => $mediaService->generateImage($action, $products, $this->prompt, $this->companyId),
                 'carousel' => $gemini->generateCarousel($action, $products, $this->prompt, $this->companyId),
                 'video'    => $storyboard->generate($action, $products, $this->prompt, $this->companyId, $mediaService, $gemini),
+                'cartaz', 'tabloide' => $mediaService->generatePrint($action, $products, $this->prompt, $this->companyId, $this->type),
             };
 
             $generation->update([

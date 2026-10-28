@@ -5,12 +5,15 @@ namespace App\Services;
 use App\Contracts\VideoClipRenderer;
 use App\Models\Action;
 use App\Models\AiCredential;
+use App\Services\Concerns\BuildsPrintPrompt;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 
 class MuApiService implements VideoClipRenderer
 {
+    use BuildsPrintPrompt;
+
     private string $imageModel = 'flux-schnell';
     private string $apiBase = 'https://api.muapi.ai/v1';
 
@@ -46,8 +49,63 @@ class MuApiService implements VideoClipRenderer
             throw new \RuntimeException('Erro na API MuAPI: ' . $response->body());
         }
 
+        $assets = $this->storeRemoteImages($response->json('data') ?? []);
+
+        if (empty($assets)) {
+            throw new \RuntimeException('A imagem não pôde ser gerada pela MuAPI. Tente reformular o prompt.');
+        }
+
+        return [
+            'model' => $this->imageModel,
+            'assets' => $assets,
+        ];
+    }
+
+    /**
+     * Cartaz e tabloide: mesmo endpoint de imagem, com prompt de layout de impressão.
+     */
+    public function generatePrint(Action $action, Collection $products, ?string $extraPrompt, int $companyId, string $format): array
+    {
+        $productContext = $products->map(fn ($p) => "- {$p->name}: {$p->description} (R$ {$p->price})")->join("\n")
+            ?: 'Nenhum produto específico selecionado.';
+
+        $prompt = $this->printLayoutPrompt($action, $productContext, $extraPrompt, $format);
+
+        $response = Http::withToken($this->resolveApiKey($companyId))
+            ->timeout(60)
+            ->post("{$this->apiBase}/images/generations", [
+                'model' => $this->imageModel,
+                'prompt' => $prompt,
+                'n' => min($action->quantity ?? 1, 4),
+                'size' => $this->resolveSize($this->printResolution($action, $format)),
+            ]);
+
+        if (!$response->successful()) {
+            throw new \RuntimeException('Erro na API MuAPI: ' . $response->body());
+        }
+
+        $assets = $this->storeRemoteImages($response->json('data') ?? []);
+
+        if (empty($assets)) {
+            throw new \RuntimeException("O {$format} não pôde ser gerado pela MuAPI. Tente reformular o brief.");
+        }
+
+        return [
+            'model' => $this->imageModel,
+            'assets' => $assets,
+            'metadata' => ['print_format' => $format, 'print_resolution' => $this->printResolution($action, $format)],
+        ];
+    }
+
+    /**
+     * Baixa as imagens devolvidas pela MuAPI e guarda no R2, no formato de asset que o
+     * ProcessGeneration espera.
+     */
+    private function storeRemoteImages(array $data): array
+    {
         $assets = [];
-        foreach ($response->json('data') ?? [] as $image) {
+
+        foreach ($data as $image) {
             $url = $image['url'] ?? null;
             if (!$url) continue;
 
@@ -64,14 +122,7 @@ class MuApiService implements VideoClipRenderer
             ];
         }
 
-        if (empty($assets)) {
-            throw new \RuntimeException('A imagem não pôde ser gerada pela MuAPI. Tente reformular o prompt.');
-        }
-
-        return [
-            'model' => $this->imageModel,
-            'assets' => $assets,
-        ];
+        return $assets;
     }
 
     public function generateVideo(Action $action, Collection $products, ?string $extraPrompt, int $companyId): array

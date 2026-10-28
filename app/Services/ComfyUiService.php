@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Contracts\VideoClipRenderer;
 use App\Models\Action;
 use App\Models\AiCredential;
+use App\Services\Concerns\BuildsPrintPrompt;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
@@ -12,6 +13,8 @@ use Illuminate\Support\Str;
 
 class ComfyUiService implements VideoClipRenderer
 {
+    use BuildsPrintPrompt;
+
     public function generateImage(Action $action, Collection $products, ?string $extraPrompt, int $companyId): array
     {
         $baseUrl = $this->resolveBaseUrl($companyId);
@@ -27,7 +30,63 @@ class ComfyUiService implements VideoClipRenderer
 
         $files = $this->runWorkflow($baseUrl, $workflow, maxWaitSeconds: 120);
 
+        $assets = $this->storeWorkflowImages($baseUrl, $files);
+
+        if (empty($assets)) {
+            throw new \RuntimeException('A imagem não pôde ser gerada pelo ComfyUI. Verifique se ele está rodando e tente novamente.');
+        }
+
+        return [
+            'model' => 'comfyui/flux-schnell',
+            'assets' => $assets,
+        ];
+    }
+
+    /**
+     * Cartaz e tabloide: mesmo workflow de imagem, com prompt de layout de impressão.
+     */
+    public function generatePrint(Action $action, Collection $products, ?string $extraPrompt, int $companyId, string $format): array
+    {
+        $baseUrl = $this->resolveBaseUrl($companyId);
+
+        $productContext = $products->map(fn ($p) => "- {$p->name}: {$p->description} (R$ {$p->price})")->join("\n")
+            ?: 'Nenhum produto específico selecionado.';
+
+        $prompt = $this->printLayoutPrompt($action, $productContext, $extraPrompt, $format);
+        [$width, $height] = $this->parseResolution(
+            $this->scaleForWorkflow($this->printResolution($action, $format))
+        );
+
+        $workflow = $this->loadWorkflow('flux_schnell.json');
+        $workflow['6']['inputs']['text'] = $prompt;
+        $workflow['27']['inputs']['width'] = $width;
+        $workflow['27']['inputs']['height'] = $height;
+        $workflow['27']['inputs']['batch_size'] = min($action->quantity ?? 1, 4);
+        $workflow['31']['inputs']['seed'] = random_int(0, PHP_INT_MAX - 1);
+
+        $files = $this->runWorkflow($baseUrl, $workflow, maxWaitSeconds: 180);
+
+        $assets = $this->storeWorkflowImages($baseUrl, $files);
+
+        if (empty($assets)) {
+            throw new \RuntimeException("O {$format} não pôde ser gerado pelo ComfyUI. Verifique se ele está rodando e tente novamente.");
+        }
+
+        return [
+            'model' => 'comfyui/flux-schnell',
+            'assets' => $assets,
+            'metadata' => ['print_format' => $format, 'print_resolution' => "{$width}x{$height}"],
+        ];
+    }
+
+    /**
+     * Baixa os arquivos de saída do ComfyUI e guarda no R2, no formato de asset que o
+     * ProcessGeneration espera.
+     */
+    private function storeWorkflowImages(string $baseUrl, array $files): array
+    {
         $assets = [];
+
         foreach ($files as $file) {
             $bytes = $this->downloadOutput($baseUrl, $file);
             if ($bytes === '') continue;
@@ -45,14 +104,25 @@ class ComfyUiService implements VideoClipRenderer
             ];
         }
 
-        if (empty($assets)) {
-            throw new \RuntimeException('A imagem não pôde ser gerada pelo ComfyUI. Verifique se ele está rodando e tente novamente.');
+        return $assets;
+    }
+
+    /**
+     * A4/A3 a 300 dpi é grande demais para o Flux local — reduz mantendo a proporção.
+     * A ampliação para impressão fica fora do escopo da geração.
+     */
+    private function scaleForWorkflow(string $resolution, int $maxSide = 1536): string
+    {
+        [$w, $h] = $this->parseResolution($resolution);
+        $longest = max($w, $h);
+
+        if ($longest <= $maxSide) {
+            return "{$w}x{$h}";
         }
 
-        return [
-            'model' => 'comfyui/flux-schnell',
-            'assets' => $assets,
-        ];
+        $ratio = $maxSide / $longest;
+
+        return (int) round($w * $ratio) . 'x' . (int) round($h * $ratio);
     }
 
     public function generateVideo(Action $action, Collection $products, ?string $extraPrompt, int $companyId): array

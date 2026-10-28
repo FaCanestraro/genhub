@@ -28,7 +28,7 @@ class GenerationController extends Controller implements HasMiddleware
         abort_if($action->company_id !== $request->company()->id, 403);
 
         $request->validate([
-            'type'     => 'required|in:image,text,carousel,video',
+            'type'     => 'required|in:image,text,carousel,video,cartaz,tabloide',
             'prompt'   => 'nullable|string|max:2000',
             'quantity' => 'nullable|integer|min:1|max:10',
         ]);
@@ -66,7 +66,7 @@ class GenerationController extends Controller implements HasMiddleware
     public function generateStandalone(Request $request)
     {
         $request->validate([
-            'type'         => 'required|in:image,text,carousel,video',
+            'type'         => 'required|in:image,text,carousel,video,cartaz,tabloide',
             'platform'     => 'required|in:instagram,tiktok,facebook,youtube',
             'content_type' => 'required|in:post,reel,carousel,story,tiktok_video',
             'brief'        => 'nullable|string|max:5000',

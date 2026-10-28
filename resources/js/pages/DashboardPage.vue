@@ -11,7 +11,7 @@
                 </p>
             </div>
             <RouterLink v-if="can('generate')" to="/generate" class="btn-primary inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white">
-                <Sparkles class="w-4 h-4" /> Criar conteúdo
+                <Sparkles class="w-4 h-4" /> Motor de Criação
             </RouterLink>
         </header>
 
@@ -45,7 +45,7 @@
                     title="Nenhuma criação ainda"
                     text="Gere sua primeira imagem ou vídeo e ela aparece aqui."
                     :cta-to="can('generate') ? '/generate' : null"
-                    cta-label="Criar conteúdo"
+                    cta-label="Motor de Criação"
                 />
                 <div v-else class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     <RouterLink
@@ -228,7 +228,7 @@ const greeting = (() => {
 })()
 
 const quickActions = computed(() => [
-    { to: '/generate', icon: Sparkles, title: 'Criar conteúdo', text: 'Imagens e vídeos com IA', menu: 'generate' },
+    { to: '/generate', icon: Sparkles, title: 'Motor de Criação', text: 'Imagens e vídeos com IA', menu: 'generate' },
     { to: '/generate-prompts', icon: Wand2, title: 'Gerar prompts', text: 'Ideias a partir do produto', menu: 'generate_prompts' },
     { to: '/campaigns', icon: Megaphone, title: 'Campanhas', text: 'Planejar ações e entregas', menu: 'campaigns' },
     { to: '/products', icon: Package, title: 'Produtos', text: 'Catálogo usado nas criações', menu: 'products' },

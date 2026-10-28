@@ -2,18 +2,41 @@
     <div class="flex h-screen text-gray-100" style="background: var(--bg-base)">
 
         <!-- Sidebar -->
-        <aside class="app-drawer w-60 flex-shrink-0 glass-panel border-r flex flex-col relative z-10" :class="{ open: menuOpen }" style="border-color: var(--border-subtle)" aria-label="Menu principal">
+        <!-- z-20: o botão de recolher sobressai pra área do conteúdo, que tem fundo próprio
+             em algumas páginas e cobriria metade dele. No mobile o .app-drawer força z-40. -->
+        <aside
+            class="app-drawer w-60 flex-shrink-0 glass-panel border-r flex flex-col relative z-20"
+            :class="[{ open: menuOpen }, { 'is-collapsed': collapsed }]"
+            style="border-color: var(--border-subtle)"
+            aria-label="Menu principal"
+        >
+
+            <!-- Fecha o drawer; só existe no mobile. Usa classe própria em vez de lg:hidden
+                 porque .icon-btn vem depois do Tailwind no app.css e vencia o utilitário
+                 por ordem, deixando o X visível no desktop sem fazer nada. -->
+            <button type="button" @click="menuOpen = false" class="drawer-close icon-btn absolute top-3 right-3 z-10" aria-label="Fechar menu"><X class="w-4 h-4" /></button>
+
+            <!-- Recolhe/expande o menu no desktop, em cima da borda direita -->
+            <button
+                type="button"
+                @click="toggleCollapsed"
+                class="sidebar-toggle"
+                :title="collapsed ? 'Expandir menu' : 'Recolher menu'"
+                :aria-label="collapsed ? 'Expandir menu' : 'Recolher menu'"
+                :aria-expanded="!collapsed"
+            >
+                <ChevronLeft class="w-3.5 h-3.5" />
+            </button>
 
             <!-- Logo -->
-            <button type="button" @click="menuOpen = false" class="lg:hidden icon-btn absolute top-3 right-3 z-10" aria-label="Fechar menu"><X class="w-4 h-4" /></button>
             <div class="flex items-center justify-center px-4 py-5" style="border-bottom: 1px solid var(--border-subtle)">
                 <img
                     v-if="settings.logoUrl"
                     :src="settings.logoUrl"
-                    class="h-14 w-auto max-w-[180px] object-contain"
+                    class="brand-logo h-14 w-auto max-w-[180px] object-contain"
                     alt="Logo"
                 />
-                <img v-else src="/creatiq-logo.png" alt="CREATIQ" class="h-12 w-auto" />
+                <img v-else src="/creatiq-logo.png" alt="CREATIQ" class="brand-logo h-12 w-auto" />
             </div>
 
             <!-- Company switcher -->
@@ -22,13 +45,13 @@
                     <button @click="showCompanyMenu = !showCompanyMenu" type="button" class="nav-item w-full flex items-center justify-between">
                         <span class="flex items-center gap-2 min-w-0">
                             <Building2 class="w-4 h-4 flex-shrink-0" />
-                            <span class="truncate">{{ companyStore.current?.name || '(sem nome)' }}</span>
+                            <span class="nav-text truncate">{{ companyStore.current?.name || '(sem nome)' }}</span>
                         </span>
-                        <ChevronsUpDown v-if="companyStore.hasMultiple" class="w-3.5 h-3.5 flex-shrink-0 text-gray-500" />
+                        <ChevronsUpDown v-if="companyStore.hasMultiple" class="nav-text w-3.5 h-3.5 flex-shrink-0 text-gray-500" />
                     </button>
                     <div
                         v-if="showCompanyMenu && companyStore.hasMultiple"
-                        class="absolute left-0 right-0 mt-1 rounded-lg overflow-hidden z-20 py-1"
+                        class="absolute left-0 right-0 mt-1 rounded-lg overflow-hidden z-20 py-1 min-w-[200px]"
                         style="background: #14121d; border: 1px solid var(--border-subtle)"
                     >
                         <button
@@ -55,9 +78,10 @@
                     :to="item.path"
                     class="nav-item"
                     :class="{ active: isActive(item.path) }"
+                    :title="collapsed ? item.label : null"
                 >
                     <component :is="item.icon" class="w-4 h-4 flex-shrink-0" />
-                    {{ item.label }}
+                    <span class="nav-text">{{ item.label }}</span>
                 </RouterLink>
 
                 <p class="nav-label">Conta</p>
@@ -67,9 +91,10 @@
                     :to="item.path"
                     class="nav-item"
                     :class="{ active: isActive(item.path) }"
+                    :title="collapsed ? item.label : null"
                 >
                     <component :is="item.icon" class="w-4 h-4 flex-shrink-0" />
-                    {{ item.label }}
+                    <span class="nav-text">{{ item.label }}</span>
                 </RouterLink>
 
             </nav>
@@ -77,20 +102,20 @@
             <!-- Footer: status + painel admin + logout -->
             <div class="px-3 pb-4" style="border-top: 1px solid var(--border-subtle)">
                 <!-- system status -->
-                <div class="flex items-center gap-2 px-3 pt-3 pb-2">
+                <div class="nav-status flex items-center gap-2 px-3 pt-3 pb-2" :title="collapsed ? 'Sistema operacional' : null">
                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0" style="box-shadow: 0 0 5px #34d399"></span>
-                    <span class="tech-label">Sistema operacional</span>
+                    <span class="nav-text tech-label">Sistema operacional</span>
                 </div>
                 <RouterLink v-if="auth.isPlatformAdmin && auth.isClient" to="/admin/clients" class="nav-item">
                     <ShieldCheck class="w-4 h-4 flex-shrink-0" />
-                    Painel Admin
+                    <span class="nav-text">Painel Admin</span>
                 </RouterLink>
                 <button
                     @click="handleLogout"
                     class="nav-item w-full text-left"
                 >
                     <LogOut class="w-4 h-4 flex-shrink-0" />
-                    Sair
+                    <span class="nav-text">Sair</span>
                 </button>
             </div>
         </aside>
@@ -120,7 +145,7 @@ import { useRouter, useRoute, RouterLink, RouterView } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useCompanyStore } from '@/stores/company'
 import { useSettingsStore } from '@/stores/settings'
-import { LayoutDashboard, Package, Megaphone, LogOut, UserCircle, Sparkles, History, CheckSquare, Settings, Wand2, Images, Users, KanbanSquare, ShieldCheck, Building2, ChevronsUpDown, Check, Menu, X } from 'lucide-vue-next'
+import { LayoutDashboard, Package, Megaphone, LogOut, UserCircle, Sparkles, History, CheckSquare, Settings, Wand2, Images, Users, KanbanSquare, ShieldCheck, Building2, ChevronsUpDown, Check, Menu, X, ChevronLeft } from 'lucide-vue-next'
 
 const router       = useRouter()
 const route        = useRoute()
@@ -129,6 +154,21 @@ const companyStore = useCompanyStore()
 const settings     = useSettingsStore()
 
 const showCompanyMenu = ref(false)
+
+// Menu recolhido (desktop): a escolha é lembrada entre páginas e recarregamentos.
+const COLLAPSED_KEY = 'creatiq_sidebar_collapsed'
+
+const collapsed = ref(readCollapsed())
+
+function readCollapsed() {
+    try { return localStorage.getItem(COLLAPSED_KEY) === '1' } catch { return false }
+}
+
+function toggleCollapsed() {
+    collapsed.value = !collapsed.value
+    showCompanyMenu.value = false
+    try { localStorage.setItem(COLLAPSED_KEY, collapsed.value ? '1' : '0') } catch { /* modo privado: segue sem lembrar */ }
+}
 
 function switchCompany(companyId) {
     showCompanyMenu.value = false
@@ -175,3 +215,58 @@ async function handleLogout() {
 
 onMounted(() => settings.load())
 </script>
+
+<style scoped>
+/*
+ * O "X" fecha o drawer e só faz sentido no mobile. Precisa de especificidade maior que
+ * .icon-btn (que no app.css vem depois do Tailwind e vencia o lg:hidden por ordem).
+ */
+@media (min-width: 1024px) {
+    .drawer-close { display: none; }
+}
+
+/* Recolher é comportamento de desktop: no mobile o drawer abre e fecha inteiro. */
+.sidebar-toggle { display: none; }
+
+@media (min-width: 1024px) {
+    .sidebar-toggle {
+        position: absolute;
+        top: 44px;
+        right: -12px;
+        z-index: 30;
+        width: 24px;
+        height: 24px;
+        border-radius: 9999px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-secondary);
+        background: #14121d;
+        border: 1px solid var(--border-subtle);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+        transition: color 0.16s, background 0.16s, transform 0.12s;
+    }
+    .sidebar-toggle:hover {
+        color: #fff;
+        background: color-mix(in srgb, var(--brand) 22%, #14121d);
+        transform: scale(1.08);
+    }
+    .sidebar-toggle svg { transition: transform 0.2s ease; }
+    .is-collapsed .sidebar-toggle svg { transform: rotate(180deg); }
+
+    .app-drawer { transition: width 0.2s ease-out; }
+
+    /* Recolhido: ficam só os ícones. */
+    .is-collapsed { width: 68px; }
+    .is-collapsed .nav-text,
+    .is-collapsed .nav-label { display: none; }
+    .is-collapsed .nav-item,
+    .is-collapsed .nav-status { justify-content: center; padding-left: 0; padding-right: 0; }
+    .is-collapsed .brand-logo { height: 2.25rem; width: auto; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .app-drawer { transition: none; }
+    .sidebar-toggle svg { transition: none; }
+}
+</style>
